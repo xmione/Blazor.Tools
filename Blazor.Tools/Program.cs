@@ -13,6 +13,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
+        builder.Services.AddBlazorBootstrap();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
