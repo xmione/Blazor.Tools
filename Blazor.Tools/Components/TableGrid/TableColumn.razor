@@ -1,0 +1,58 @@
+﻿@* TableColumn.razor *@
+@using System.Data
+
+@if (_dataSource != null)
+{
+    if (Type == "TextBox")
+    {
+        @foreach (DataRow row in _dataSource.Rows)
+        {
+            <input type="text" value="@GetFieldValue(row)" />
+        }
+    }
+    else if (Type == "DropdownList")
+    {
+        @foreach (DataRow employeeRow in _dataSource.Rows)
+        {
+            <select>
+                @if (Context != null)
+                {
+                    var rows = Context.GetDataSource("CountryDS")?.Rows;
+                    if (rows != null)
+                    {
+                        @foreach (DataRow countryRow in rows)
+                        {
+                            <option value="@countryRow[DisplayFieldValue]">
+                                @countryRow[DisplayFieldName]
+                            </option>
+                        }
+                    }
+                }
+            </select>
+        }
+    }
+}
+
+@code {
+    [CascadingParameter] private TableSourceContext Context { get; set; } = default!;
+    [Parameter] public string DataSource { get; set; } = default!;
+    [Parameter] public string FieldName { get; set; } = default!;
+    [Parameter] public string Type { get; set; } = default!;
+    [Parameter] public string DisplayFieldName { get; set; } = default!;
+    [Parameter] public string DisplayFieldValue { get; set; } = default!;
+
+    private DataTable _dataSource = default!;
+
+    protected override void OnParametersSet()
+    {
+        _dataSource = Context?.GetDataSource(DataSource) ?? _dataSource;
+        Console.WriteLine("TableColumn OnParametersSetAsync");
+
+        base.OnParametersSet();
+    }
+
+    private string GetFieldValue(DataRow row)
+    {
+        return row[FieldName]?.ToString() ?? string.Empty;
+    }
+}
