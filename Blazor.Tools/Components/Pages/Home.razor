@@ -8,7 +8,7 @@
 
 <h1>Testing Sample Table Grid Component</h1> 
 
-<TableSourceContext>
+@* <TableSourceContext>
     <TableSource Name="EmployeeSource" DataSource="@_employees" />
     <TableSource Name="CountrySource" DataSource="@_countries" />
     <TableNode Title="AccSol Table" DataSource="EmployeeSource">
@@ -19,13 +19,14 @@
         <TableColumn DataSource="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" />
     </TableNode>
 </TableSourceContext>
-
-<AIChatBot />
+ *@
+<AIChatBot ConnectionString="@_connectionString" />
 
 @code {
 
     private DataTable _employees = default!;
     private DataTable _countries = default!;
+    private readonly string _connectionString = "Server=(local);Database=AIDatabase;User Id=sa;Password=P@ssw0rd123;TrustServerCertificate=True;";
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestAccSolGridTable OnParametersSetAsync");

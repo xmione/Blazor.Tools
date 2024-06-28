@@ -1,11 +1,11 @@
 ﻿@using Microsoft.ML
-@using System.IO
-@using System.Threading.Tasks
 @using Microsoft.ML.Data
 
 <h3>AI Chatbot</h3>
 <div class="row">
-    <button class="btn btn-primary" @onclick="TrainAI">Train AI</button>
+    <div class="column">
+        <button class="btn btn-primary" @onclick="TrainAI">Train AI</button>
+    </div>
 </div>
 
 <div class="row">
@@ -25,63 +25,55 @@
     <div class="column">
         <button @onclick="SendMessage">Send</button>
     </div>
-    
 </div>
 
 @code {
+    [Parameter] public string ConnectionString { get; set; }
+
     private string userInput;
     private List<Message> messages = new List<Message>();
     private PredictionEngine<SentimentData, SentimentPrediction> predictionEngine;
+    private AIDataAccess _da;
 
     protected override async Task OnInitializedAsync()
     {
         // Initialize ML.NET model
         var mlContext = new MLContext();
+        _da = new AIDataAccess(ConnectionString);
 
-        // Specify the path to your model file
-        var modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MLModels", "SentimentAnalysisModel.zip");
-
-        // Check if the model file exists
-        if (File.Exists(modelPath))
+        // Retrieve model file from database
+        var modelData = await _da.GetModelFileAsync("SentimentAnalysisModel.zip");
+        if (modelData != null)
         {
-            // Load your trained model
-            var model = mlContext.Model.Load(modelPath, out _);
+            using var modelStream = new MemoryStream(modelData);
+            var model = mlContext.Model.Load(modelStream, out _);
             predictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
         }
         else
         {
-            // Handle the case where the model file does not exist
-            Console.WriteLine($"Model file '{modelPath}' not found.");
-            // Optionally, you can provide feedback or log an error message
-            // For example:
-            // messages.Add(new Message { Text = "Model file not found. Please train the model.", IsBotMessage = true });
-            // StateHasChanged();
+            Console.WriteLine("Model file not found in database.");
         }
 
         await base.OnInitializedAsync();
     }
 
-    private void SendMessage()
+    private async Task SendMessage()
     {
-        try
-        {
-            messages.Add(new Message { Text = userInput, IsBotMessage = false });
-            StateHasChanged();
+        messages.Add(new Message { Text = userInput, IsBotMessage = false });
+        StateHasChanged();
 
-            // Use ML.NET model to predict sentiment
-            var prediction = predictionEngine.Predict(new SentimentData { SentimentText = userInput });
+        // Use ML.NET model to predict sentiment
+        var prediction = predictionEngine.Predict(new SentimentData { SentimentText = userInput });
 
-            var response = prediction.Prediction ? "Positive sentiment" : "Negative sentiment";
-            messages.Add(new Message { Text = response, IsBotMessage = true });
-            StateHasChanged();
+        var response = prediction.Prediction ? "Positive sentiment" : "Negative sentiment";
+        messages.Add(new Message { Text = response, IsBotMessage = true });
+        StateHasChanged();
 
-            userInput = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error: {0}", ex.Message);
-        }
+        userInput = string.Empty;
 
+        // Store user input in database for future training
+        var trainingData = new TrainingData { SentimentText = userInput, Sentiment = prediction.Prediction };
+        await _da.InsertTrainingDataAsync(trainingData);
     }
 
     private async Task TrainAI()
@@ -108,8 +100,13 @@
             // Train the model
             var trainedModel = trainingPipeline.Fit(data);
 
-            // Save the model
-            mlContext.Model.Save(trainedModel, data.Schema, modelPath);
+            // Save the model to a memory stream
+            using var memoryStream = new MemoryStream();
+            mlContext.Model.Save(trainedModel, data.Schema, memoryStream);
+
+            // Store the model in the database
+            var fileName = "SentimentAnalysisModel.zip"; // Adjust filename as needed
+            await _da.InsertModelFileAsync(fileName, memoryStream.ToArray());
 
             // Provide feedback or update UI after training
             messages.Add(new Message { Text = "Model trained successfully!", IsBotMessage = true });
@@ -119,19 +116,14 @@
             await Task.Delay(3000); // Adjust delay time as needed
 
             // Clear the training message
-            // messages.RemoveAll(msg => msg.Text == "Model trained successfully!");
-            // StateHasChanged();
+            messages.RemoveAll(msg => msg.Text == "Model trained successfully!");
+            StateHasChanged();
 
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: {0}", ex.Message);            
+            Console.WriteLine("Error: {0}", ex.Message);
         }
     }
-
-    public class Message
-    {
-        public string Text { get; set; }
-        public bool IsBotMessage { get; set; }
-    }
+    
 }
