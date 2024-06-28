@@ -18,13 +18,9 @@
         }
     </div>
 </div>
-<div class="row">
-    <div class="column">
-        <input @bind="userInput" type="text" />
-    </div>
-    <div class="column">
-        <button @onclick="SendMessage">Send</button>
-    </div>
+<div class="input-container">
+    <textarea @bind="userInput" rows="4" cols="50"></textarea>
+    <button @onclick="SendMessage">Send</button>
 </div>
 
 @code {
@@ -59,21 +55,72 @@
 
     private async Task SendMessage()
     {
-        messages.Add(new Message { Text = userInput, IsBotMessage = false });
-        StateHasChanged();
+        if (!string.IsNullOrWhiteSpace(userInput))
+        {
+            messages.Add(new Message { Text = userInput, IsBotMessage = false });
+            StateHasChanged();
 
-        // Use ML.NET model to predict sentiment
-        var prediction = predictionEngine.Predict(new SentimentData { SentimentText = userInput });
+            await HandleUserMessage(userInput);
 
-        var response = prediction.Prediction ? "Positive sentiment" : "Negative sentiment";
-        messages.Add(new Message { Text = response, IsBotMessage = true });
-        StateHasChanged();
+            userInput = string.Empty;
+        }
+    }
 
-        userInput = string.Empty;
+    private async Task HandleUserMessage(string userMessage)
+    {
+        if (userMessage.ToLower().StartsWith("add info about"))
+        {
+            var parts = userMessage.Split(new[] { "add info about", ":" }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
+            {
+                var topic = parts[0].Trim();
+                var information = parts[1].Trim();
+                await AddGeneralInformation(topic, information);
+            }
+        }
+        else if (userMessage.ToLower().StartsWith("what is"))
+        {
+            // Remove punctuation marks
+            userMessage = RemovePunctuation(userMessage);
+            var topic = userMessage.Substring("what is".Length).Trim();
+            var information = await _da.GetGeneralInformationAsync(topic);
+            if (information != null)
+            {
+                messages.Add(new Message { Text = information, IsBotMessage = true });
+            }
+            else
+            {
+                messages.Add(new Message { Text = "I don't have information about that topic.", IsBotMessage = true });
+            }
+            StateHasChanged();
+        }
+        else
+        {
+            // Use ML.NET model to predict sentiment
+            var prediction = predictionEngine.Predict(new SentimentData { SentimentText = userMessage });
 
-        // Store user input in database for future training
-        var trainingData = new TrainingData { SentimentText = userInput, Sentiment = prediction.Prediction };
-        await _da.InsertTrainingDataAsync(trainingData);
+            var response = prediction.Prediction ? "Positive sentiment" : "Negative sentiment";
+            messages.Add(new Message { Text = response, IsBotMessage = true });
+            StateHasChanged();
+
+            // Store user input in database for future training
+            var trainingData = new TrainingData { SentimentText = userMessage, Sentiment = prediction.Prediction };
+            await _da.InsertTrainingDataAsync(trainingData);
+        }
+    }
+
+    private string RemovePunctuation(string text)
+    {
+        // Define punctuation marks to remove
+        var punctuation = new char[] { '.', ',', '!', '?', ';' };
+
+        // Remove punctuation from the end of the text
+        while (text.Length > 0 && punctuation.Contains(text[^1]))
+        {
+            text = text.Remove(text.Length - 1);
+        }
+
+        return text.Trim();
     }
 
     private async Task TrainAI()
@@ -83,7 +130,6 @@
             // Training logic
             var mlContext = new MLContext();
             var dataPath = "Data/sentiment-data.csv";
-            var modelPath = "MLModels/SentimentAnalysisModel.zip";
 
             // Load data
             var data = mlContext.Data.LoadFromTextFile<SentimentData>(dataPath, separatorChar: ',', hasHeader: true);
@@ -125,5 +171,18 @@
             Console.WriteLine("Error: {0}", ex.Message);
         }
     }
-    
+
+    private async Task AddGeneralInformation(string topic, string information)
+    {
+        try
+        {
+            await _da.InsertGeneralInformationAsync(topic, information);
+            messages.Add(new Message { Text = $"Information about {topic} added successfully!", IsBotMessage = true });
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+    }
 }
