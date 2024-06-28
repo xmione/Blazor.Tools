@@ -3,6 +3,7 @@
 @using Blazor.Tools.Components.AI
 @using Blazor.Tools.Components.TableGrid
 @using System.Data
+@inject NavigationManager Navigation
 
 <PageTitle>Home</PageTitle>
 
@@ -20,6 +21,9 @@
     </TableNode>
 </TableSourceContext>
  *@
+<button class="btn btn-primary" @onclick="NavigateToWebSearch">Go to Web Search</button>
+
+
 <AIChatBot ConnectionString="@_connectionString" />
 
 @code {
@@ -50,4 +54,8 @@
         base.OnParametersSet();
     }
      
+    private void NavigateToWebSearch()
+    {
+        Navigation.NavigateTo("/web-search");
+    }
 }

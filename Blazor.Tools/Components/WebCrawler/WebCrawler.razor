@@ -1,0 +1,51 @@
+﻿@page "/web-search"
+
+<h3>Web Search</h3>
+
+<div class="row">
+    <div class="column">
+        <input @bind="searchQuery" type="text" placeholder="Enter search query" />
+    </div>
+    <div class="column">
+        <button class="btn btn-primary" @onclick="SearchWeb">Search</button>
+    </div>
+</div>
+
+@if (searchResults != null)
+{
+    <div>
+        @foreach (var link in searchResults)
+        {
+            <p><a href="@link" target="_blank">@link</a></p>
+        }
+    </div>
+}
+
+@code {
+    private string searchQuery = default!;
+    private List<string> searchResults = default!;
+    private Crawler _crawler = default!;
+
+    protected override void OnInitialized()
+    {
+        _crawler = new Crawler();
+        base.OnInitialized();    
+    }
+
+    private async Task SearchWeb()
+    {
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            try
+            {
+                var url = "https://www.google.com/search?q=" + Uri.EscapeDataString(searchQuery);
+                var html = await _crawler.FetchWebPageAsync(url);
+                searchResults = _crawler.ExtractLinksFromHtml(html).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error searching the web: {ex.Message}");
+            }
+        }
+    }
+}
