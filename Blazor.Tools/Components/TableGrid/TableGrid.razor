@@ -1,0 +1,43 @@
+﻿@using System.Data
+@typeparam TItem
+
+<table>
+    <thead>
+        <tr>
+            @foreach (var column in Columns)
+            {
+                <th>@column.Title</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in DataSource.AsEnumerable())
+        {
+            <tr>
+                @foreach (var column in Columns)
+                {
+                    <td>@column.CellContent(row, DataSources[column.DataSource])</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public DataTable DataSource { get; set; } = default!;
+    [Parameter] public Dictionary<string, DataTable> DataSources { get; set; } = new Dictionary<string, DataTable>();
+
+    private List<ColumnDefinition> Columns { get; set; } = new List<ColumnDefinition>();
+
+    public void AddColumn(ColumnDefinition column)
+    {
+        Columns.Add(column);
+    }
+
+    public class ColumnDefinition
+    {
+        public string Title { get; set; } = string.Empty;
+        public string DataSource { get; set; } = string.Empty;
+        public Func<DataRow, DataTable, object> CellContent { get; set; } = default!;
+    }
+}

@@ -1,11 +1,12 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using Blazor.Tools.Components.AI
 @using Blazor.Tools.Components.TableGrid
+@using System.Data
 
 <PageTitle>Home</PageTitle>
 
-<h1>Testing Sample Table Grid Component</h1>
-
-@using System.Data
+<h1>Testing Sample Table Grid Component</h1> 
 
 <TableSourceContext>
     <TableSource Name="EmployeeSource" DataSource="@_employees" />
@@ -18,6 +19,8 @@
         <TableColumn DataSource="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" />
     </TableNode>
 </TableSourceContext>
+
+<AIChatBot />
 
 @code {
 
@@ -45,4 +48,5 @@
 
         base.OnParametersSet();
     }
+     
 }

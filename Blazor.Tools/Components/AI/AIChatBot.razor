@@ -1,0 +1,137 @@
+﻿@using Microsoft.ML
+@using System.IO
+@using System.Threading.Tasks
+@using Microsoft.ML.Data
+
+<h3>AI Chatbot</h3>
+<div class="row">
+    <button class="btn btn-primary" @onclick="TrainAI">Train AI</button>
+</div>
+
+<div class="row">
+    <div class="chat-container">
+        @foreach (var message in messages)
+        {
+            <div class="message @(message.IsBotMessage ? "bot-message" : "user-message")">
+                @message.Text
+            </div>
+        }
+    </div>
+</div>
+<div class="row">
+    <div class="column">
+        <input @bind="userInput" type="text" />
+    </div>
+    <div class="column">
+        <button @onclick="SendMessage">Send</button>
+    </div>
+    
+</div>
+
+@code {
+    private string userInput;
+    private List<Message> messages = new List<Message>();
+    private PredictionEngine<SentimentData, SentimentPrediction> predictionEngine;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize ML.NET model
+        var mlContext = new MLContext();
+
+        // Specify the path to your model file
+        var modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MLModels", "SentimentAnalysisModel.zip");
+
+        // Check if the model file exists
+        if (File.Exists(modelPath))
+        {
+            // Load your trained model
+            var model = mlContext.Model.Load(modelPath, out _);
+            predictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
+        }
+        else
+        {
+            // Handle the case where the model file does not exist
+            Console.WriteLine($"Model file '{modelPath}' not found.");
+            // Optionally, you can provide feedback or log an error message
+            // For example:
+            // messages.Add(new Message { Text = "Model file not found. Please train the model.", IsBotMessage = true });
+            // StateHasChanged();
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private void SendMessage()
+    {
+        try
+        {
+            messages.Add(new Message { Text = userInput, IsBotMessage = false });
+            StateHasChanged();
+
+            // Use ML.NET model to predict sentiment
+            var prediction = predictionEngine.Predict(new SentimentData { SentimentText = userInput });
+
+            var response = prediction.Prediction ? "Positive sentiment" : "Negative sentiment";
+            messages.Add(new Message { Text = response, IsBotMessage = true });
+            StateHasChanged();
+
+            userInput = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+
+    }
+
+    private async Task TrainAI()
+    {
+        try
+        {
+            // Training logic
+            var mlContext = new MLContext();
+            var dataPath = "Data/sentiment-data.csv";
+            var modelPath = "MLModels/SentimentAnalysisModel.zip";
+
+            // Load data
+            var data = mlContext.Data.LoadFromTextFile<SentimentData>(dataPath, separatorChar: ',', hasHeader: true);
+
+            // Data processing pipeline
+            var dataProcessPipeline = mlContext.Transforms.Text.FeaturizeText("Features", nameof(SentimentData.SentimentText))
+                                        .Append(mlContext.Transforms.CopyColumns("Label", nameof(SentimentData.Sentiment)));
+
+            // Choose a learning algorithm
+            var trainer = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features");
+
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+
+            // Train the model
+            var trainedModel = trainingPipeline.Fit(data);
+
+            // Save the model
+            mlContext.Model.Save(trainedModel, data.Schema, modelPath);
+
+            // Provide feedback or update UI after training
+            messages.Add(new Message { Text = "Model trained successfully!", IsBotMessage = true });
+            StateHasChanged();
+
+            // Optionally, wait for a short delay before clearing the message
+            await Task.Delay(3000); // Adjust delay time as needed
+
+            // Clear the training message
+            // messages.RemoveAll(msg => msg.Text == "Model trained successfully!");
+            // StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);            
+        }
+    }
+
+    public class Message
+    {
+        public string Text { get; set; }
+        public bool IsBotMessage { get; set; }
+    }
+}

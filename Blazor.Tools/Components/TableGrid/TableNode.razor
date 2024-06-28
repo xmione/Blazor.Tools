@@ -39,12 +39,12 @@
                                     }
                                 </td>
 
-                                @if (ChildTemplates != null)
+                                @if (_columnTemplates != null)
                                 {
-                                    @foreach (var template in ChildTemplates)
+                                    @foreach (var template in _columnTemplates)
                                     {
                                         <td>
-                                            @template
+                                            @template.Value
                                         </td>
                                     }
                                 }
@@ -141,8 +141,7 @@ else
     [CascadingParameter] private TableSourceContext Context { get; set; } = default!;
 
     private DataTable _dataTable = default!;
-
-    private List<RenderFragment> ChildTemplates { get; set; } = new List<RenderFragment>();
+    private Dictionary<string, RenderFragment> _columnTemplates = default!;
     private string? _serializedDataTable;
     private DataRow _editedRow = default!;
     private bool _isEditing = false;
@@ -205,8 +204,6 @@ else
         Console.WriteLine("TableNode OnParametersSetAsync");
         await base.OnParametersSetAsync();
     }
-
-
     private void ParseChildContent()
     {
         try
@@ -218,30 +215,57 @@ else
 
                 var frames = builder.GetFrames();
 
-                for (int i = 0; i < frames.Count; i++)
+                if (_columnTemplates == null)
+                {
+                    _columnTemplates = new Dictionary<string, RenderFragment>();
+                }
+
+                int frameCount = frames.Count;
+                for (int i = 0; i < frameCount; i++)
                 {
                     var frame = frames.Array[i];
 
                     if (frame.FrameType == RenderTreeFrameType.Component)
                     {
-                        var componentFrame = (RenderTreeFrame)frame;
-                        var renderFragment = new RenderFragment(builder =>
+                        if (frame.Component != null)
                         {
-                            builder.AddMarkupContent(0, componentFrame.MarkupContent);
-                        });
+                            Console.WriteLine("Component is {0}", frame.Component.ToString());
+                        }
+                        else
+                        {
+                            
+                            Console.WriteLine("Component is null");
+                        }
 
-                        ChildTemplates.Add(renderFragment);
+                        if (frame.Component is TableColumn columnComponent)
+                        {
+                            // Access the AttributeName property
+                            var attributeName = frame.AttributeName.ToString(); // This could be a string or some other type depending on the attribute
+
+                            // Use attributeName and attributeValue as needed
+                            Console.WriteLine($"Attribute name: {attributeName}");
+
+                            var renderFragment = new RenderFragment(builder =>
+                            {
+                                builder.OpenComponent(0, typeof(TableColumn));
+                                builder.AddAttribute(1, "FieldName", columnComponent.FieldName);
+                                builder.CloseComponent();
+                            });
+
+                            _columnTemplates.Add(columnComponent.FieldName, renderFragment);
+
+                        }
+                        
                     }
+                    
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: {0}\r\nStackTrace: {1}",ex.Message, ex.StackTrace);    
+            Console.WriteLine($"Error parsing child content: {ex.Message}");
         }
-        
     }
-
     private async Task AddRowAsync()
     {
         if (_dataTable != null)
