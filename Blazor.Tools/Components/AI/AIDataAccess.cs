@@ -2,6 +2,7 @@
 using Dapper;
 using Microsoft.ML;
 using Microsoft.VisualBasic.FileIO;
+using Newtonsoft.Json;
 
 namespace Blazor.Tools.Components.AI
 {
@@ -85,7 +86,11 @@ namespace Blazor.Tools.Components.AI
             {
                 using var connection = new SqlConnection(connectionString);
                 var sql = "INSERT INTO LanguagePredictions (Response, Probability, Score) VALUES (@Response, @Probability, @Score)";
-                await connection.ExecuteAsync(sql, new { prediction.Response, prediction.Probability, prediction.Score });
+
+                // Serialize Score array to JSON
+                var scoreJson = JsonConvert.SerializeObject(prediction.Score);
+
+                await connection.ExecuteAsync(sql, new { prediction.Response, prediction.Probability, Score = scoreJson });
             }
             catch (Exception ex)
             {
@@ -93,6 +98,7 @@ namespace Blazor.Tools.Components.AI
                 throw;
             }
         }
+
 
         public async Task InsertModelFileAsync(string fileName, byte[] modelData)
         {

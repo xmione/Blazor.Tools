@@ -3,6 +3,7 @@
 @using Blazor.Tools.Components.AI
 
 <h3>AI Chatbot</h3>
+
 <div class="row">
     <div class="column">
         <button class="btn btn-primary" @onclick="TrainAIAsync">Train AI</button>
@@ -11,19 +12,29 @@
         <button class="btn btn-primary" @onclick="TrainLanguageAIAsync">Train Language AI</button>
     </div>
 </div>
+
 <div class="row">
-    <div class="chat-container">
-        @foreach (var message in _messages)
-        {
-            <div class="message @(message.IsBotMessage ? "bot-message" : "user-message")">
-                @message.Text
+    <div class="col-md-12">
+        <div class="chat-container">
+            <div class="message-container">
+                @foreach (var message in _messages)
+                {
+                    <div class="message @(message.IsBotMessage ? "bot-message" : "user-message")">
+                        @message.Text
+                    </div>
+                }
             </div>
-        }
+
+            <div class="message-container">
+                <div class="col-md-11">
+                    <textarea @bind="_userInput" rows="2" title="Message Container" placeholder="Send a message"></textarea>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-primary message-container-send-button" @onclick="SendMessage">Send</button>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-<div class="input-container">
-    <textarea @bind="_userInput" rows="4" cols="50"></textarea>
-    <button @onclick="SendMessage">Send</button>
 </div>
 
 @code {
