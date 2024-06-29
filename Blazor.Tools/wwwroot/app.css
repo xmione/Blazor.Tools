@@ -91,3 +91,7 @@ h1:focus {
     padding: 22px 22px 15px 22px;
     margin-bottom: 7px;
 }
+
+.message {
+    padding-left:10px;
+}
