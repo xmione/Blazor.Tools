@@ -16,7 +16,7 @@
 <div class="row">
     <div class="col-md-12">
         <div class="chat-container">
-            <div class="message-container">
+            <div id="message-container-messages">
                 @foreach (var message in _messages)
                 {
                     <div class="message @(message.IsBotMessage ? "bot-message" : "user-message")">
@@ -25,7 +25,7 @@
                 }
             </div>
 
-            <div class="message-container">
+            <div id="message-container-input">
                 <div class="col-md-11">
                     <textarea @bind="_userInput" rows="2" title="Message Container" placeholder="Send a message"></textarea>
                 </div>
