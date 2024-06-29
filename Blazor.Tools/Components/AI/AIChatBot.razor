@@ -56,7 +56,7 @@
         var sentimentModelData = await _da.GetModelFileAsync("SentimentAnalysisModel.zip");
         if (sentimentModelData.Length > 0)
         {
-            
+
             using var sentimentModelStream = new MemoryStream(sentimentModelData);
             var sentimentModel = mlContext.Model.Load(sentimentModelStream, out var sentimentSchema);
             _sentimentPredictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(sentimentModel);
@@ -192,6 +192,8 @@
         try
         {
             await _da.TrainSentimentModelAsync(dataPath);
+            await InitializePredictionEngines();
+
         }
         catch (Exception ex)
         {
@@ -210,8 +212,8 @@
 
         try
         {
-            // await _da.UploadLanguageTrainingDataAsync(dataPath);
             await _da.TrainLanguageModelAsync(dataPath);
+            await InitializePredictionEngines();
         }
         catch (Exception ex)
         {
