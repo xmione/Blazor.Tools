@@ -1,15 +1,19 @@
 ﻿@using Microsoft.ML
 @using Microsoft.ML.Data
+@using Blazor.Tools.Components.AI
 
 <h3>AI Chatbot</h3>
 <div class="row">
     <div class="column">
-        <button class="btn btn-primary" @onclick="TrainAI">Train AI</button>
+        <button class="btn btn-primary" @onclick="TrainAIAsync">Train AI</button>
+    </div>
+    <div class="column">
+        <button class="btn btn-primary" @onclick="TrainLanguageAIAsync">Train Language AI</button>
     </div>
 </div>
 <div class="row">
     <div class="chat-container">
-        @foreach (var message in messages)
+        @foreach (var message in _messages)
         {
             <div class="message @(message.IsBotMessage ? "bot-message" : "user-message")">
                 @message.Text
@@ -18,55 +22,79 @@
     </div>
 </div>
 <div class="input-container">
-    <textarea @bind="userInput" rows="4" cols="50"></textarea>
+    <textarea @bind="_userInput" rows="4" cols="50"></textarea>
     <button @onclick="SendMessage">Send</button>
 </div>
 
 @code {
     [Parameter] public string ConnectionString { get; set; } = default!;
 
-    private string userInput = string.Empty;
-    private List<Message> messages = new List<Message>();
-    private PredictionEngine<SentimentData, SentimentPrediction> predictionEngine = default!;
+    private string _userInput = string.Empty;
+    private List<Message> _messages = new List<Message>();
+    private PredictionEngine<SentimentData, SentimentPrediction> _sentimentPredictionEngine = default!;
+    private PredictionEngine<LanguageData, LanguagePrediction> _languagePredictionEngine = default!;
     private AIDataAccess _da = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialize ML.NET model
-        var mlContext = new MLContext();
+        // Initialize AIDataAccess
         _da = new AIDataAccess(ConnectionString);
 
-        // Retrieve model file from database
-        var modelData = await _da.GetModelFileAsync("SentimentAnalysisModel.zip");
-        if (modelData != null)
-        {
-            using var modelStream = new MemoryStream(modelData);
-            var model = mlContext.Model.Load(modelStream, out _);
-            predictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
-        }
-        else
-        {
-            Console.WriteLine("Model file not found in database.");
-        }
+        // Subscribe to training progress updates
+        _da.TrainingProgressUpdated += OnTrainingProgressUpdated;
+
+        // Load trained models and create prediction engines
+        await InitializePredictionEngines();
 
         await base.OnInitializedAsync();
     }
 
+    private async Task InitializePredictionEngines()
+    {
+        var mlContext = new MLContext();
+        // Load sentiment model
+        var sentimentModelData = await _da.GetModelFileAsync("SentimentAnalysisModel.zip");
+        if (sentimentModelData.Length > 0)
+        {
+            
+            using var sentimentModelStream = new MemoryStream(sentimentModelData);
+            var sentimentModel = mlContext.Model.Load(sentimentModelStream, out var sentimentSchema);
+            _sentimentPredictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(sentimentModel);
+        }
+
+        // Load language model
+        var languageModelData = await _da.GetModelFileAsync("LanguageAnalysisModel.zip");
+        if (languageModelData.Length > 0)
+        {
+            using var languageModelStream = new MemoryStream(languageModelData);
+            var languageModel = mlContext.Model.Load(languageModelStream, out var languageSchema);
+            _languagePredictionEngine = mlContext.Model.CreatePredictionEngine<LanguageData, LanguagePrediction>(languageModel);
+        }
+    }
+
+    private void OnTrainingProgressUpdated(string progressMessage)
+    {
+        // Update UI with progress messages
+        _messages.Add(new Message { Text = progressMessage, IsBotMessage = true });
+        InvokeAsync(StateHasChanged);
+    }
+
     private async Task SendMessage()
     {
-        if (!string.IsNullOrWhiteSpace(userInput))
+        if (!string.IsNullOrWhiteSpace(_userInput))
         {
-            messages.Add(new Message { Text = userInput, IsBotMessage = false });
+            _messages.Add(new Message { Text = _userInput, IsBotMessage = false });
             StateHasChanged();
 
-            await HandleUserMessage(userInput);
+            await HandleUserMessage(_userInput);
 
-            userInput = string.Empty;
+            _userInput = string.Empty;
         }
     }
 
     private async Task HandleUserMessage(string userMessage)
     {
+        // First check for general information
         if (userMessage.ToLower().StartsWith("add info about"))
         {
             var parts = userMessage.Split(new[] { "add info about", ":" }, StringSplitOptions.RemoveEmptyEntries);
@@ -79,96 +107,118 @@
         }
         else if (userMessage.ToLower().StartsWith("what is"))
         {
-            // Remove punctuation marks
             userMessage = RemovePunctuation(userMessage);
             var topic = userMessage.Substring("what is".Length).Trim();
             var information = await _da.GetGeneralInformationAsync(topic);
             if (information != null)
             {
-                messages.Add(new Message { Text = information, IsBotMessage = true });
+                _messages.Add(new Message { Text = information, IsBotMessage = true });
             }
             else
             {
-                messages.Add(new Message { Text = "I don't have information about that topic.", IsBotMessage = true });
+                _messages.Add(new Message { Text = "I don't have information about that topic.", IsBotMessage = true });
             }
             StateHasChanged();
         }
         else
         {
-            // Use ML.NET model to predict sentiment
-            var prediction = predictionEngine.Predict(new SentimentData { SentimentText = userMessage });
+            if (_sentimentPredictionEngine != null && _languagePredictionEngine != null)
+            {
+                // Use ML.NET model to predict sentiment
+                var sentimentPrediction = _sentimentPredictionEngine.Predict(new SentimentData { SentimentText = userMessage });
+                var sentimentResponse = sentimentPrediction.Prediction ? "Positive sentiment" : "Negative sentiment";
+                var sentimentProbability = sentimentPrediction.Probability;
+                var sentimentScore = sentimentPrediction.Score;
 
-            var response = prediction.Prediction ? "Positive sentiment" : "Negative sentiment";
-            messages.Add(new Message { Text = response, IsBotMessage = true });
+                _messages.Add(new Message { Text = sentimentResponse, IsBotMessage = true });
+
+                // Store user input in database for future training
+                var sentimentData = new SentimentData { SentimentText = userMessage, Sentiment = sentimentPrediction.Prediction };
+                await _da.InsertSentimentDataAsync(sentimentData);
+
+                // Use ML.NET model to get language response
+                var languagePrediction = _languagePredictionEngine.Predict(new LanguageData { Question = userMessage });
+                var languageResponse = languagePrediction.Response ?? "I'm sorry, I don't understand that. Can you please rephrase?";
+                var languageProbability = languagePrediction.Probability;
+                var languageScore = languagePrediction.Score;
+
+                _messages.Add(new Message { Text = languageResponse, IsBotMessage = true });
+
+                // Store sentiment and language prediction in database
+                var sentimentPredictionData = new SentimentPrediction
+                    {
+                        Prediction = sentimentPrediction.Prediction,
+                        Probability = sentimentProbability,
+                        Score = sentimentScore
+                    };
+
+                await _da.InsertSentimentPredictionAsync(sentimentPredictionData);
+
+                var languagePredictionData = new LanguagePrediction
+                    {
+                        Response = languageResponse,
+                        Probability = languageProbability,
+                        Score = languageScore
+                    };
+
+                await _da.InsertLanguagePredictionAsync(languagePredictionData);
+            }
+            else
+            {
+                _messages.Add(new Message { Text = "AI models are not initialized.", IsBotMessage = true });
+            }
+
             StateHasChanged();
-
-            // Store user input in database for future training
-            var trainingData = new TrainingData { SentimentText = userMessage, Sentiment = prediction.Prediction };
-            await _da.InsertTrainingDataAsync(trainingData);
         }
     }
 
     private string RemovePunctuation(string text)
     {
-        // Define punctuation marks to remove
         var punctuation = new char[] { '.', ',', '!', '?', ';' };
-
-        // Remove punctuation from the end of the text
         while (text.Length > 0 && punctuation.Contains(text[^1]))
         {
             text = text.Remove(text.Length - 1);
         }
-
         return text.Trim();
     }
 
-    private async Task TrainAI()
+    private async Task TrainAIAsync()
     {
+        var dataPath = "Data/sentiment-data.csv";
+
+        _messages.Add(new Message { Text = "Sentiment model training has started...", IsBotMessage = true });
+        StateHasChanged();
+
         try
         {
-            // Training logic
-            var mlContext = new MLContext();
-            var dataPath = "Data/sentiment-data.csv";
-
-            // Load data
-            var data = mlContext.Data.LoadFromTextFile<SentimentData>(dataPath, separatorChar: ',', hasHeader: true);
-
-            // Data processing pipeline
-            var dataProcessPipeline = mlContext.Transforms.Text.FeaturizeText("Features", nameof(SentimentData.SentimentText))
-                                        .Append(mlContext.Transforms.CopyColumns("Label", nameof(SentimentData.Sentiment)));
-
-            // Choose a learning algorithm
-            var trainer = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features");
-
-            var trainingPipeline = dataProcessPipeline.Append(trainer);
-
-            // Train the model
-            var trainedModel = trainingPipeline.Fit(data);
-
-            // Save the model to a memory stream
-            using var memoryStream = new MemoryStream();
-            mlContext.Model.Save(trainedModel, data.Schema, memoryStream);
-
-            // Store the model in the database
-            var fileName = "SentimentAnalysisModel.zip"; // Adjust filename as needed
-            await _da.InsertModelFileAsync(fileName, memoryStream.ToArray());
-
-            // Provide feedback or update UI after training
-            messages.Add(new Message { Text = "Model trained successfully!", IsBotMessage = true });
-            StateHasChanged();
-
-            // Optionally, wait for a short delay before clearing the message
-            await Task.Delay(3000); // Adjust delay time as needed
-
-            // Clear the training message
-            messages.RemoveAll(msg => msg.Text == "Model trained successfully!");
-            StateHasChanged();
-
+            await _da.TrainSentimentModelAsync(dataPath);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: {0}", ex.Message);
+            _messages.Add(new Message { Text = $"Error: {ex.Message}", IsBotMessage = true });
         }
+
+        StateHasChanged();
+    }
+
+    private async Task TrainLanguageAIAsync()
+    {
+        var dataPath = "Data/language-data.csv";
+
+        _messages.Add(new Message { Text = "Language model training has started...", IsBotMessage = true });
+        StateHasChanged();
+
+        try
+        {
+            // await _da.UploadLanguageTrainingDataAsync(dataPath);
+            await _da.TrainLanguageModelAsync(dataPath);
+        }
+        catch (Exception ex)
+        {
+            _messages.Add(new Message { Text = $"Error: {ex.Message}", IsBotMessage = true });
+        }
+
+        StateHasChanged();
     }
 
     private async Task AddGeneralInformation(string topic, string information)
@@ -176,12 +226,13 @@
         try
         {
             await _da.InsertGeneralInformationAsync(topic, information);
-            messages.Add(new Message { Text = $"Information about {topic} added successfully!", IsBotMessage = true });
+            _messages.Add(new Message { Text = $"Information about {topic} added successfully!", IsBotMessage = true });
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: {0}", ex.Message);
+            _messages.Add(new Message { Text = $"Error: {ex.Message}", IsBotMessage = true });
+            StateHasChanged();
         }
     }
 }
