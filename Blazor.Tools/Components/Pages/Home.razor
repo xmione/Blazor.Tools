@@ -21,9 +21,7 @@
     </TableNode>
 </TableSourceContext>
  *@
-<button class="btn btn-primary" @onclick="NavigateToWebSearch">Go to Web Search</button>
-
-
+ 
 <AIChatBot ConnectionString="@_connectionString" />
 
 @code {
@@ -52,10 +50,5 @@
         _countries.Rows.Add(2, "Canada");
 
         base.OnParametersSet();
-    }
-     
-    private void NavigateToWebSearch()
-    {
-        Navigation.NavigateTo("/web-search");
     }
 }
