@@ -51,8 +51,9 @@ CREATE TABLE LanguagePredictions (
     ID INT PRIMARY KEY IDENTITY,
     Response NVARCHAR(MAX) NOT NULL,
     Probability FLOAT,
-    Score FLOAT
-)
+    Score NVARCHAR(MAX) -- Store as JSON string
+);
+
 
 Go
 

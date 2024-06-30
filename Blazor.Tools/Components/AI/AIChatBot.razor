@@ -133,46 +133,13 @@
         }
         else
         {
-            if (_sentimentPredictionEngine != null && _languagePredictionEngine != null)
+            if (_sentimentPredictionEngine != null)
             {
-                // Use ML.NET model to predict sentiment
-                var sentimentPrediction = _sentimentPredictionEngine.Predict(new SentimentData { SentimentText = userMessage });
-                var sentimentResponse = sentimentPrediction.Prediction ? "Positive sentiment" : "Negative sentiment";
-                var sentimentProbability = sentimentPrediction.Probability;
-                var sentimentScore = sentimentPrediction.Score;
-
-                _messages.Add(new Message { Text = sentimentResponse, IsBotMessage = true });
-
-                // Store user input in database for future training
-                var sentimentData = new SentimentData { SentimentText = userMessage, Sentiment = sentimentPrediction.Prediction };
-                await _da.InsertSentimentDataAsync(sentimentData);
-
-                // Use ML.NET model to get language response
-                var languagePrediction = _languagePredictionEngine.Predict(new LanguageData { Question = userMessage });
-                var languageResponse = languagePrediction.Response ?? "I'm sorry, I don't understand that. Can you please rephrase?";
-                var languageProbability = languagePrediction.Probability;
-                var languageScore = languagePrediction.Score;
-
-                _messages.Add(new Message { Text = languageResponse, IsBotMessage = true });
-
-                // Store sentiment and language prediction in database
-                var sentimentPredictionData = new SentimentPrediction
-                    {
-                        Prediction = sentimentPrediction.Prediction,
-                        Probability = sentimentProbability,
-                        Score = sentimentScore
-                    };
-
-                await _da.InsertSentimentPredictionAsync(sentimentPredictionData);
-
-                var languagePredictionData = new LanguagePrediction
-                    {
-                        Response = languageResponse,
-                        Probability = languageProbability,
-                        Score = languageScore
-                    };
-
-                await _da.InsertLanguagePredictionAsync(languagePredictionData);
+                await ProcessSentimentMessageAsync(userMessage);
+            }
+            else if (_languagePredictionEngine != null)
+            {
+                await ProcessLanguageMessageAsync(userMessage);
             }
             else
             {
@@ -181,6 +148,52 @@
 
             StateHasChanged();
         }
+    }
+
+    private async Task ProcessSentimentMessageAsync(string userMessage)
+    {
+        // Use ML.NET model to predict sentiment
+        var sentimentPrediction = _sentimentPredictionEngine.Predict(new SentimentData { SentimentText = userMessage });
+        var sentimentResponse = sentimentPrediction.Prediction ? "Positive sentiment" : "Negative sentiment";
+        var sentimentProbability = sentimentPrediction.Probability;
+        var sentimentScore = sentimentPrediction.Score;
+
+        _messages.Add(new Message { Text = sentimentResponse, IsBotMessage = true });
+
+        // Store user input in database for future training
+        var sentimentData = new SentimentData { SentimentText = userMessage, Sentiment = sentimentPrediction.Prediction };
+        await _da.InsertSentimentDataAsync(sentimentData);
+
+        // Store prediction in database
+        var sentimentPredictionData = new SentimentPrediction
+            {
+                Prediction = sentimentPrediction.Prediction,
+                Probability = sentimentProbability,
+                Score = sentimentScore
+            };
+
+        await _da.InsertSentimentPredictionAsync(sentimentPredictionData);
+    }
+
+    private async Task ProcessLanguageMessageAsync(string userMessage)
+    {
+        // Use ML.NET model to get language response
+        var languagePrediction = _languagePredictionEngine.Predict(new LanguageData { Question = userMessage });
+        var languageResponse = languagePrediction.Response ?? "I'm sorry, I don't understand that. Can you please rephrase?";
+        var languageProbability = languagePrediction.Probability;
+        var languageScore = languagePrediction.Score;
+
+        _messages.Add(new Message { Text = languageResponse, IsBotMessage = true });
+
+        var languagePredictionData = new LanguagePrediction
+            {
+                Response = languageResponse,
+                Probability = languageProbability,
+                Score = languageScore
+            };
+
+        await _da.InsertLanguagePredictionAsync(languagePredictionData);
+
     }
 
     private string RemovePunctuation(string text)
