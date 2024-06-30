@@ -125,6 +125,64 @@ namespace Blazor.Tools.Components.AI
             return modelData;
         }
 
+        public async Task InsertModelZipFileAsync(string fileName, byte[] modelData)
+        {
+            var filePath = Path.Combine("MLModels", fileName);
+
+            try
+            {
+                // Check if the directory exists, create it if not
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                // Check if the file exists, handle overwrite scenario
+                if (File.Exists(filePath))
+                {
+                    // Example: Rename the existing file with .old extension
+                    var backupFileName = Path.ChangeExtension(filePath, ".old");
+                    File.Move(filePath, backupFileName);
+                }
+
+                // Save the model data to the file
+                using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                {
+                    await fileStream.WriteAsync(modelData, 0, modelData.Length);
+                }
+
+                // Optionally, you can log successful file saving
+                TrainingProgressUpdated?.Invoke($"Model file '{fileName}' saved successfully at '{filePath}'.");
+            }
+            catch (Exception ex)
+            {
+                TrainingProgressUpdated?.Invoke($"Error saving model file '{fileName}': {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<byte[]> GetModelZipFileAsync(string fileName)
+        {
+            var filePath = Path.Combine("MLModels", fileName);
+            byte[] modelData = Array.Empty<byte>();
+
+            try
+            {
+                // Check if the file exists before attempting to read it
+                if (File.Exists(filePath))
+                {
+                    modelData = await File.ReadAllBytesAsync(filePath);
+                }
+                else
+                {
+                    TrainingProgressUpdated?.Invoke($"Model file '{fileName}' does not exist at '{filePath}'.");
+                }
+            }
+            catch (Exception ex)
+            {
+                TrainingProgressUpdated?.Invoke($"Error retrieving model file '{fileName}': {ex.Message}");
+            }
+
+            return modelData;
+        }
+
         public async Task InsertGeneralInformationAsync(string topic, string information)
         {
             using var connection = new SqlConnection(connectionString);
@@ -231,7 +289,8 @@ namespace Blazor.Tools.Components.AI
                 using var memoryStream = new MemoryStream();
                 mlContext.Model.Save(trainedModel, data.Schema, memoryStream);
                 var modelFileName = "SentimentAnalysisModel.zip";
-                await InsertModelFileAsync(modelFileName, memoryStream.ToArray());
+                //await InsertModelFileAsync(modelFileName, memoryStream.ToArray());
+                await InsertModelZipFileAsync(modelFileName, memoryStream.ToArray());
 
                 var trainingDuration = DateTime.Now - startTime;
                 TrainingProgressUpdated?.Invoke($"Sentiment model trained successfully! Training duration: {trainingDuration.TotalMinutes:F2} minutes.");
@@ -272,7 +331,8 @@ namespace Blazor.Tools.Components.AI
                 using var memoryStream = new MemoryStream();
                 mlContext.Model.Save(trainedModel, data.Schema, memoryStream);
                 var modelFileName = "LanguageAnalysisModel.zip";
-                await InsertModelFileAsync(modelFileName, memoryStream.ToArray());
+                //await InsertModelFileAsync(modelFileName, memoryStream.ToArray());
+                await InsertModelZipFileAsync(modelFileName, memoryStream.ToArray());
 
                 var trainingDuration = DateTime.Now - startTime;
                 TrainingProgressUpdated?.Invoke($"Language model trained successfully! Training duration: {trainingDuration.TotalMinutes:F2} minutes.");

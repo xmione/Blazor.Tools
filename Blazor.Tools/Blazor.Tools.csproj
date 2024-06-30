@@ -1,12 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
     <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
@@ -20,13 +18,16 @@
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
-
   <ItemGroup>
+    <Folder Include="Components\MLModels\" />
     <Folder Include="MLModels\" />
   </ItemGroup>
-
+  <ItemGroup Label="SentimentModel">
+    <None Include="SentimentModel.mlnet">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

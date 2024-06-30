@@ -64,7 +64,8 @@
     {
         var mlContext = new MLContext();
         // Load sentiment model
-        var sentimentModelData = await _da.GetModelFileAsync("SentimentAnalysisModel.zip");
+        // var sentimentModelData = await _da.GetModelFileAsync("SentimentAnalysisModel.zip");
+        var sentimentModelData = await _da.GetModelZipFileAsync("SentimentAnalysisModel.zip");
         if (sentimentModelData.Length > 0)
         {
 
@@ -74,7 +75,8 @@
         }
 
         // Load language model
-        var languageModelData = await _da.GetModelFileAsync("LanguageAnalysisModel.zip");
+        // var languageModelData = await _da.GetModelFileAsync("LanguageAnalysisModel.zip");
+        var languageModelData = await _da.GetModelZipFileAsync("LanguageAnalysisModel.zip");
         if (languageModelData.Length > 0)
         {
             using var languageModelStream = new MemoryStream(languageModelData);
