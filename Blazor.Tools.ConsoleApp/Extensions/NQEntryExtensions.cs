@@ -20,19 +20,25 @@ namespace Blazor.Tools.ConsoleApp.Extensions
             int bytesRead;
 
             using (FileStream originalFileStream = new FileStream(gzipFilePath, FileMode.Open, FileAccess.Read))
-            using (FileStream decompressedFileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
-            using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
             {
-                while ((bytesRead = decompressionStream.Read(buffer, 0, buffer.Length)) > 0)
+                long totalSize = originalFileStream.Length; // Get the total size of the compressed file
+
+                using (FileStream decompressedFileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
+                using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
                 {
-                    decompressedFileStream.Write(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
-                    Console.WriteLine($"Decompressed {totalBytesRead} bytes so far...");
+                    while ((bytesRead = decompressionStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        decompressedFileStream.Write(buffer, 0, bytesRead);
+                        totalBytesRead += bytesRead;
+                        double percentComplete = (double)totalBytesRead / (double)totalSize * 100;
+                        Console.WriteLine($"Decompressed {totalBytesRead} / {totalSize} bytes so far ({percentComplete:F2}% complete)...");
+                    }
                 }
             }
 
             Console.WriteLine("Decompression completed.");
         }
+
 
         public static void ParseJsonlFile(string jsonlFilePath, AnswerConfig config, string trainingFilePath)
         {
