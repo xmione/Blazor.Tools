@@ -15,7 +15,7 @@ namespace Blazor.Tools.ConsoleApp
 
             var answerConfig = new AnswerConfig();
             var entries = new List<NqEntry>();
-            var folder = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\";
+            var mlFolder = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\ML";
             var fileName = string.Empty;
             var trainingFilePath = string.Empty;
             var outputFilePath = string.Empty;
@@ -24,7 +24,7 @@ namespace Blazor.Tools.ConsoleApp
             switch (args[0])
             {
                 case "1":
-                    ConvertTabDelimitedFileToCsv();
+                    ConvertTabDelimitedFileToCsv(mlFolder);
                     break;
                 case "2":
                     answerConfig = new AnswerConfig
@@ -35,7 +35,7 @@ namespace Blazor.Tools.ConsoleApp
                     };
 
                     fileName = "v1.0-simplified_nq-dev-all.jsonl";
-                    DecompressAndParseJsonlFile(folder, fileName, answerConfig);
+                    DecompressAndParseJsonlFile(mlFolder, fileName, answerConfig);
                     break;
                 case "3":
                     answerConfig = new AnswerConfig
@@ -47,7 +47,7 @@ namespace Blazor.Tools.ConsoleApp
 
 
                     fileName = "v1.0-simplified-nq-train.jsonl";
-                    DecompressAndParseJsonlFile(folder, fileName, answerConfig);
+                    DecompressAndParseJsonlFile(mlFolder, fileName, answerConfig);
                     break;
                 case "4":
                     answerConfig = new AnswerConfig
@@ -58,8 +58,8 @@ namespace Blazor.Tools.ConsoleApp
                     };
 
                     fileName = "v1.0-simplified_nq-dev-all.jsonl";
-                    outputFilePath = Path.Combine(folder, fileName);
-                    trainingFilePath = Path.Combine(folder, fileName + $"-{dateToday}.txt");
+                    outputFilePath = Path.Combine(mlFolder, fileName);
+                    trainingFilePath = Path.Combine(mlFolder, fileName + $"-{dateToday}.txt");
                     NqEntryExtensions.ParseJsonlFile(outputFilePath, answerConfig, trainingFilePath);
                     break;
                 case "5":
@@ -71,8 +71,8 @@ namespace Blazor.Tools.ConsoleApp
                     };
 
                     fileName = "v1.0-simplified-nq-train.jsonl";
-                    outputFilePath = Path.Combine(folder, fileName);
-                    trainingFilePath = Path.Combine(folder, fileName + $"-{dateToday}.txt");
+                    outputFilePath = Path.Combine(mlFolder, fileName);
+                    trainingFilePath = Path.Combine(mlFolder, fileName + $"-{dateToday}.txt");
                     NqEntryExtensions.ParseJsonlFile(outputFilePath, answerConfig, trainingFilePath);
                     break;
                 case "6":
@@ -84,17 +84,17 @@ namespace Blazor.Tools.ConsoleApp
                     };
 
                     fileName = "v1.0-simplified-nq-train.jsonl";
-                    outputFilePath = Path.Combine(folder, fileName);
-                    trainingFilePath = Path.Combine(folder, fileName + $"-{dateToday}.txt");
+                    outputFilePath = Path.Combine(mlFolder, fileName);
+                    trainingFilePath = Path.Combine(mlFolder, fileName + $"-{dateToday}.txt");
                     NqEntryExtensions.ParseJsonlFile(outputFilePath, answerConfig, trainingFilePath);
                     break;
             }
         }
 
-        private static void ConvertTabDelimitedFileToCsv()
+        private static void ConvertTabDelimitedFileToCsv(string folder)
         {
-            string tabDelimitedFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\yelp_labelled.txt";
-            string csvFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\yelp_labelled.csv"; 
+            string tabDelimitedFilePath = Path.Combine(folder, "yelp_labelled.txt");
+            string csvFilePath = Path.Combine(folder, "yelp_labelled.csv");  
 
             tabDelimitedFilePath.ConvertTabDelimitedFileToCsv(csvFilePath);
         }
