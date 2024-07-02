@@ -65,6 +65,31 @@ CREATE TABLE GeneralInformation (
 
 Go
 
+CREATE TABLE OriginalQuestionAnsweringData (
+    ID INT PRIMARY KEY IDENTITY,
+    Annotations NVARCHAR(MAX),
+    DocumentHtml NVARCHAR(MAX),
+    DocumentTitle NVARCHAR(MAX),
+    DocumentTokens NVARCHAR(MAX),
+    DocumentUrl NVARCHAR(255),
+    ExampleId NVARCHAR(255),
+    LongAnswerCandidates NVARCHAR(MAX),
+    QuestionText NVARCHAR(MAX),
+    QuestionTokens NVARCHAR(MAX),
+    DocumentText NVARCHAR(MAX)
+);
+
+Go 
+
+CREATE TABLE QuestionAnsweringData (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Question NVARCHAR(MAX),
+    Answer NVARCHAR(MAX),
+    Context NVARCHAR(MAX)
+);
+
+Go
+
 INSERT INTO GeneralInformation (Topic, Information) VALUES
 ('apple', 'An apple is a sweet, edible fruit produced by an apple tree.'),
 ('banana', 'A banana is an elongated, edible fruit produced by several kinds of large herbaceous flowering plants.'),
@@ -90,12 +115,9 @@ select * from LanguagePredictions
 
 select * from GeneralInformation
 
+select * from QuestionAnsweringData
 
-
-
-
-
-
+select * from OriginalQuestionAnsweringData
 
 
 */

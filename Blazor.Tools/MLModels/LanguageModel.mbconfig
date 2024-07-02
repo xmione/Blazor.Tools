@@ -1,5 +1,28 @@
 ﻿{
   "Scenario": "QuestionAnswer",
+  "DataSource": {
+    "Version": 3,
+    "EscapeCharacter": "\"",
+    "ReadMultiLines": false,
+    "KeepDiacritics": false,
+    "KeepPunctuations": false,
+    "AllowQuoting": false,
+    "Type": "TabularFile",
+    "FilePath": "C:\\repo\\Blazor.Tools\\Blazor.Tools\\Data\\ML\\v1.0-simplified_nq-dev-all.jsonl-2024-02-07_15-55-20.txt",
+    "Delimiter": "",
+    "DecimalMarker": ".",
+    "HasHeader": true,
+    "ColumnProperties": [
+      {
+        "ColumnName": "Context\tQuestionText\tAnnotations",
+        "ColumnPurpose": "Feature",
+        "ColumnDataFormat": "String",
+        "IsCategorical": false,
+        "Type": "Column",
+        "Version": 5
+      }
+    ]
+  },
   "Environment": {
     "Type": "LocalCPU",
     "Version": 1
@@ -9,7 +32,7 @@
   "TrainingOption": {
     "Version": 0,
     "Type": "QuestionAnswerTrainingOption",
-    "TrainingTime": 2147483647,
+    "TrainingTime": 3600,
     "Epoch": 10
   }
 }
