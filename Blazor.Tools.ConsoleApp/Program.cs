@@ -53,7 +53,7 @@ namespace Blazor.Tools.ConsoleApp
                             IsBytePosition = false
                         };
 
-                        fileName = "v1.0-simplified-nq-train.jsonl";
+                        fileName = "v1.0-simplified_simplified-nq-train.jsonl";
                         DecompressAndParseJsonlFile(mlFolder, fileName, answerConfig);
                         break;
                     case "4":
@@ -77,7 +77,7 @@ namespace Blazor.Tools.ConsoleApp
                             IsBytePosition = false
                         };
 
-                        fileName = "v1.0-simplified-nq-train.jsonl";
+                        fileName = "v1.0-simplified_simplified-nq-train.jsonl";
                         outputFilePath = Path.Combine(mlFolder, fileName);
                         trainingFilePath = Path.Combine(mlFolder, fileName + $"-{dateToday}.txt");
                         NqEntryExtensions.ParseJsonlFile(outputFilePath, answerConfig, trainingFilePath);
