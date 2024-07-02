@@ -16,12 +16,12 @@ namespace Blazor_Tools
         public class ModelInput
         {
             [LoadColumn(0)]
-            [ColumnName(@"col0")]
-            public string Col0 { get; set; }
+            [ColumnName(@"SentimentText")]
+            public string SentimentText { get; set; }
 
             [LoadColumn(1)]
-            [ColumnName(@"col1")]
-            public float Col1 { get; set; }
+            [ColumnName(@"Sentiment")]
+            public float Sentiment { get; set; }
 
         }
 
@@ -33,11 +33,11 @@ namespace Blazor_Tools
         #region model output class
         public class ModelOutput
         {
-            [ColumnName(@"col0")]
-            public float[] Col0 { get; set; }
+            [ColumnName(@"SentimentText")]
+            public float[] SentimentText { get; set; }
 
-            [ColumnName(@"col1")]
-            public uint Col1 { get; set; }
+            [ColumnName(@"Sentiment")]
+            public uint Sentiment { get; set; }
 
             [ColumnName(@"Features")]
             public float[] Features { get; set; }
@@ -108,10 +108,10 @@ namespace Blazor_Tools
         {
             var schema = PredictEngine.Value.OutputSchema;
 
-            var labelColumn = schema.GetColumnOrNull("col1");
+            var labelColumn = schema.GetColumnOrNull("Sentiment");
             if (labelColumn == null)
             {
-                throw new Exception("col1 column not found. Make sure the name searched for matches the name in the schema.");
+                throw new Exception("Sentiment column not found. Make sure the name searched for matches the name in the schema.");
             }
 
             // Key values contains an ordered array of the possible labels. This allows us to map the results to the correct label value.
