@@ -1,0 +1,15 @@
+﻿{
+  "Scenario": "QuestionAnswer",
+  "Environment": {
+    "Type": "LocalCPU",
+    "Version": 1
+  },
+  "Type": "TrainingConfig",
+  "Version": 5,
+  "TrainingOption": {
+    "Version": 0,
+    "Type": "QuestionAnswerTrainingOption",
+    "TrainingTime": 2147483647,
+    "Epoch": 10
+  }
+}

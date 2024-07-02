@@ -6,6 +6,16 @@
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Components\MLModels\**" />
+    <Content Remove="Components\MLModels\**" />
+    <EmbeddedResource Remove="Components\MLModels\**" />
+    <None Remove="Components\MLModels\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Components\AI\SentimentData.cs" />
+    <Compile Remove="Components\AI\SentimentPrediction.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
     <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
@@ -22,12 +32,6 @@
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\MLModels\" />
     <Folder Include="MLModels\" />
-  </ItemGroup>
-  <ItemGroup Label="SentimentModel">
-    <None Include="SentimentModel.mlnet">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>
