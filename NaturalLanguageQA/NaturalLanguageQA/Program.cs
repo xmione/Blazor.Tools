@@ -1,13 +1,42 @@
 ﻿using Microsoft.ML;
 using Microsoft.ML.Data;
 using HtmlAgilityPack;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.Data.Analysis;
 
+/// <summary>
+/// All-in-one Program.cs file that contains the sample implementation of Natural Language Question Answering Training
+/// and Evaluation. This contains all the classes it needs to easily build and run in Visual Studio.
+/// 
+/// To test this:
+/// 
+/// 1. First create a new C# ConsoleApp using .net 8.0 framework or later.
+/// 
+/// 2. Add the necessary nuget packages. In a terminal, copy and run these commands:
+///     dotnet add package HtmlAgilityPack
+///     dotnet add package Microsoft.Data.Analysis
+///     dotnet add package Microsoft.ML
+///
+/// 3. Create your ML training data source by adding a .txt file. Create sample data like this:
+/// 
+///     Column to predict	Context	Question	Answer Index
+///     Capital<html> < body > Paris is the capital of France.</ body ></ html > What is the capital of France?	0
+///     Author	<html><body>George Orwell wrote the novel 1984.</body></html>	Who wrote the novel "1984"?	0
+///
+/// 4. Copy this Program.cs code and modify it to declare your ML source data folder variables. 
+///     For example:
+/// 
+///     private const string _mlFolder = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\ML";
+///     private const string _languageDataFileName = "languageData.txt";
+///     
+/// 5. In Visual Studio, Press F5 to run to train and evaluate.
+/// 
+/// </summary>
 public class Program
 {
+    // Declare your ML source data folder here:
     private const string _mlFolder = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\ML";
     private const string _languageDataFileName = "languageData.txt";
+
     private static string _dataFilePath = string.Empty;
     private static MLContext _mlContext;
     public static void Main(string[] args)
@@ -21,6 +50,7 @@ public class Program
         PreprocessHtmlData();
         TrainQAModel();
         ValidateModel();
+        AnswerUserQuestion();
     }
 
     public static void PreprocessHtmlData()
@@ -70,11 +100,11 @@ public class Program
 
         // Sample input for prediction
         var sampleData = new DataFrame(new List<DataFrameColumn>
-    {
-        new StringDataFrameColumn("ColumnToPredict", new[] { "Sample Prediction" }),
-        new StringDataFrameColumn("Context", new[] { "<html><body><p>This is a sample HTML content.</p></body></html>" }),
-        new StringDataFrameColumn("Question", new[] { "Sample Question" })
-    });
+        {
+            new StringDataFrameColumn("ColumnToPredict", new[] { "Sample Prediction" }),
+            new StringDataFrameColumn("Context", new[] { "<html><body><p>This is a sample HTML content.</p></body></html>" }),
+            new StringDataFrameColumn("Question", new[] { "Sample Question" })
+        });
 
         // Transform the sample data
         var transformedData = model.Transform(sampleData);
@@ -90,6 +120,34 @@ public class Program
         Console.WriteLine("Model validation completed.");
     }
 
+    public static void AnswerUserQuestion()
+    {
+        while (true)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Ask a question (or type 'exit' to quit):");
+            string question = Console.ReadLine();
+
+            if (question.ToLower() == "exit")
+                break;
+
+            // Load the trained model for answering questions
+            ITransformer model;
+            using (var stream = new FileStream("Model.zip", FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                model = _mlContext.Model.Load(stream, out var modelSchema);
+            }
+
+            var predictionEngine = _mlContext.Model.CreatePredictionEngine<LanguageData, LanguagePrediction>(model);
+            // Use ML.NET model to predict sentiment
+            var prediction = predictionEngine.Predict(new LanguageData { Question = question });
+
+            var response = prediction.PredictedLabel;
+
+            Console.WriteLine($"Response: {response}");
+
+        }
+    }
     // Define the data schema
     public class LanguageData
     {
