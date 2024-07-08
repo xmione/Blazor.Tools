@@ -12,10 +12,6 @@
     <None Remove="Components\MLModels\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Components\AI\SentimentData.cs" />
-    <Compile Remove="Components\AI\SentimentPrediction.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
     <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
@@ -34,10 +30,10 @@
   <ItemGroup>
     <Folder Include="MLModels\" />
   </ItemGroup>
-  <ItemGroup Label="SentimentModel">
-    <None Include="SentimentModel.mlnet">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  <ItemGroup>
+    <Content Update="Components\Pages\TestTableGrid.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Update="Data\ML\v1.0-simplified_nq-dev-all.jsonl">

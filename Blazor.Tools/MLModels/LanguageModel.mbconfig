@@ -3,20 +3,44 @@
   "DataSource": {
     "Version": 3,
     "EscapeCharacter": "\"",
-    "ReadMultiLines": false,
+    "ReadMultiLines": true,
     "KeepDiacritics": false,
     "KeepPunctuations": false,
-    "AllowQuoting": false,
+    "AllowQuoting": true,
     "Type": "TabularFile",
-    "FilePath": "C:\\repo\\Blazor.Tools\\Blazor.Tools\\Data\\ML\\v1.0-simplified_nq-dev-all.jsonl-2024-02-07_15-55-20.txt",
-    "Delimiter": "",
+    "FilePath": "C:\\repo\\Blazor.Tools\\Blazor.Tools\\Data\\ML\\languageData.txt",
+    "Delimiter": "\t",
     "DecimalMarker": ".",
     "HasHeader": true,
     "ColumnProperties": [
       {
-        "ColumnName": "Context\tQuestionText\tAnnotations",
-        "ColumnPurpose": "Feature",
+        "ColumnName": "Column to predict",
+        "ColumnPurpose": "Label",
         "ColumnDataFormat": "String",
+        "IsCategorical": false,
+        "Type": "Column",
+        "Version": 5
+      },
+      {
+        "ColumnName": "Context",
+        "ColumnPurpose": "Context",
+        "ColumnDataFormat": "String",
+        "IsCategorical": false,
+        "Type": "Column",
+        "Version": 5
+      },
+      {
+        "ColumnName": "Question",
+        "ColumnPurpose": "Question",
+        "ColumnDataFormat": "String",
+        "IsCategorical": false,
+        "Type": "Column",
+        "Version": 5
+      },
+      {
+        "ColumnName": "Answer Index",
+        "ColumnPurpose": "AnswerIndex",
+        "ColumnDataFormat": "Single",
         "IsCategorical": false,
         "Type": "Column",
         "Version": 5
@@ -32,7 +56,16 @@
   "TrainingOption": {
     "Version": 0,
     "Type": "QuestionAnswerTrainingOption",
-    "TrainingTime": 3600,
-    "Epoch": 10
+    "TrainingTime": 2147483647,
+    "LabelColumn": "Column to predict",
+    "ContextColumn": "Context",
+    "QuestionColumn": "Question",
+    "AnswerIndexColumn": "Answer Index",
+    "Epoch": 10,
+    "ValidationOption": {
+      "Version": 0,
+      "Type": "CrossValidationValidationOption",
+      "NumberOfFolds": 5
+    }
   }
 }

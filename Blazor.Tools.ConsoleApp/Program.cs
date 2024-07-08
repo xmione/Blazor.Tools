@@ -1,10 +1,7 @@
 ﻿using Blazor.Tools.ConsoleApp.Extensions;
 using Microsoft.ML;
-using Microsoft.ML.Data;
 using System.Diagnostics;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata;
-using static Blazor.Tools.ConsoleApp.Program;
+using HtmlAgilityPack;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -37,7 +34,8 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[7] - Parse and save v1.0-simplified_simplified-nq-train.jsonl");
                 Console.WriteLine("[8] - Parse Json File and Save to database");
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
-                Console.WriteLine("[10] - Exit");
+                Console.WriteLine("[10] - Train sample Language Data");
+                Console.WriteLine("[11] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -126,6 +124,10 @@ namespace Blazor.Tools.ConsoleApp
                         
                         break;
                     case "10":
+                        fileName = "languageData.txt";
+                        TrainQuestionAnswers(mlFolder, fileName);
+                        break; 
+                    case "11":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -211,5 +213,42 @@ namespace Blazor.Tools.ConsoleApp
             }
         }
 
+        public static void TrainQuestionAnswers(string folder, string fileName)
+        {
+            var mlContext = new MLContext();
+            var dataFile = Path.Combine(folder, fileName);
+
+            // Load the data
+            var data = mlContext.Data.LoadFromTextFile<QuestionAnswer>(dataFile, hasHeader: true, separatorChar: '\t');
+
+            // Preprocess HTML
+            var preprocessedData = mlContext.Data.CreateEnumerable<QuestionAnswer>(data, reuseRowObject: false)
+                .Select(row =>
+                {
+                    row.Context = PreprocessHtml(row.Context);
+                    return row;
+                });
+
+            var preprocessedDataView = mlContext.Data.LoadFromEnumerable(preprocessedData);
+
+            // Define the training pipeline
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("ContextFeaturized", nameof(QuestionAnswer.Context))
+                .Append(mlContext.Transforms.Text.FeaturizeText("QuestionFeaturized", nameof(QuestionAnswer.Question)))
+                .Append(mlContext.Transforms.Concatenate("Features", "ContextFeaturized", "QuestionFeaturized"))
+                .Append(mlContext.Transforms.CopyColumns("Label", nameof(QuestionAnswer.AnswerIndex)))
+                .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Label", maximumNumberOfIterations: 100));
+
+            // Train the model
+            var model = pipeline.Fit(preprocessedDataView);
+
+            Console.WriteLine("Model training complete.");
+        }
+
+        public static string PreprocessHtml(string html)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            return doc.DocumentNode.InnerText;
+        }
     }
 }

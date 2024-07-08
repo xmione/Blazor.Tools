@@ -2,7 +2,7 @@
 @using System.Data
 
 @code {
-    [CascadingParameter] private TableSourceContext Context { get; set; } = default!;
+    [CascadingParameter] private TableGrid Context { get; set; } = default!;
     [Parameter] public string Name { get; set; } = default!;
     [Parameter] public DataTable DataSource { get; set; } = default!;
 
@@ -11,10 +11,9 @@
         if (Context != null)
         {
             Context.RegisterDataSource(Name, DataSource);
-            StateHasChanged();
+            //StateHasChanged();
         }
 
         Console.WriteLine("TableSource OnParametersSetAsync");
-        base.OnParametersSet();
     }
 }

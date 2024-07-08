@@ -1,43 +1,32 @@
-﻿@using System.Data
-@typeparam TItem
+﻿@* TableGrid.razor *@
+@using System.Data
 
-<table>
-    <thead>
-        <tr>
-            @foreach (var column in Columns)
-            {
-                <th>@column.Title</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var row in DataSource.AsEnumerable())
-        {
-            <tr>
-                @foreach (var column in Columns)
-                {
-                    <td>@column.CellContent(row, DataSources[column.DataSource])</td>
-                }
-            </tr>
-        }
-    </tbody>
-</table>
+<CascadingValue Value="_context">
+    @ChildContent
+</CascadingValue>
 
 @code {
-    [Parameter] public DataTable DataSource { get; set; } = default!;
-    [Parameter] public Dictionary<string, DataTable> DataSources { get; set; } = new Dictionary<string, DataTable>();
 
-    private List<ColumnDefinition> Columns { get; set; } = new List<ColumnDefinition>();
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
 
-    public void AddColumn(ColumnDefinition column)
+    private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
+    private TableGrid _context = default!;
+
+    protected override void OnParametersSet()
     {
-        Columns.Add(column);
+        _context = this;
+        Console.WriteLine("TableGrid OnParametersSetAsync");
     }
 
-    public class ColumnDefinition
+    public void RegisterDataSource(string name, DataTable dataTable)
     {
-        public string Title { get; set; } = string.Empty;
-        public string DataSource { get; set; } = string.Empty;
-        public Func<DataRow, DataTable, object> CellContent { get; set; } = default!;
+        dataTable.TableName = name;
+        _dataSources[name] = dataTable;
+    }
+
+    public DataTable? GetDataSource(string name)
+    {
+        _dataSources.TryGetValue(name, out var dataTable);
+        return dataTable;
     }
 }

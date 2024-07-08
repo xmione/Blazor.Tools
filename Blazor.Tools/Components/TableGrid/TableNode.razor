@@ -138,7 +138,7 @@ else
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Parameter] public string DataSource { get; set; } = default!;
     [Parameter] public bool AllowCellSelection { get; set; } = false;
-    [CascadingParameter] private TableSourceContext Context { get; set; } = default!;
+    [CascadingParameter] private TableGrid Context { get; set; } = default!;
 
     private DataTable _dataTable = default!;
     private Dictionary<string, RenderFragment> _columnTemplates = default!;
@@ -185,7 +185,7 @@ else
     private bool _isRetrieved = false;
     private List<TargetTableColumn> _targetTableColumnList = default!;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         if (Context != null)
         {
@@ -202,7 +202,6 @@ else
         ParseChildContent();
 
         Console.WriteLine("TableNode OnParametersSetAsync");
-        await base.OnParametersSetAsync();
     }
     private void ParseChildContent()
     {

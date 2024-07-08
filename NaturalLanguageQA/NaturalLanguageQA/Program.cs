@@ -2,6 +2,7 @@
 using Microsoft.ML.Data;
 using HtmlAgilityPack;
 using Microsoft.Data.Analysis;
+using NaturalLanguageQA;
 
 /// <summary>
 /// All-in-one Program.cs file that contains the sample implementation of Natural Language Question Answering Training
@@ -36,21 +37,31 @@ public class Program
     // Declare your ML source data folder here:
     private const string _mlFolder = @"C:\repo\Blazor.Tools\Blazor.Tools\Data\ML";
     private const string _languageDataFileName = "languageData.txt";
-
+    private const string _columnToPredict = "ColumnToPredict";
     private static string _dataFilePath = string.Empty;
+    private static string _zipFileName = "Model.zip";
     private static MLContext _mlContext;
     public static void Main(string[] args)
     {
-        _dataFilePath = Path.Combine(_mlFolder, _languageDataFileName);
+        try 
+        {
+            _dataFilePath = Path.Combine(_mlFolder, _languageDataFileName);
 
-        // ML.NET model training pipeline
-        _mlContext = new MLContext();
+            SaveLoadModel.Example(_mlFolder, _languageDataFileName);
+            //// ML.NET model training pipeline
+            //_mlContext = new MLContext();
 
-        // Data preparation and model training flow
-        PreprocessHtmlData();
-        TrainQAModel();
-        ValidateModel();
-        AnswerUserQuestion();
+            //// Data preparation and model training flow
+            //PreprocessHtmlData();
+            //TrainQAModel();
+            //ValidateModel();
+            //AnswerUserQuestion();
+        } 
+        catch (Exception ex) 
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+               
     }
 
     public static void PreprocessHtmlData()
@@ -82,7 +93,7 @@ public class Program
         var model = pipeline.Fit(dataView);
 
         // Save the model for future predictions
-        _mlContext.Model.Save(model, dataView.Schema, "model.zip");
+        _mlContext.Model.Save(model, dataView.Schema, _zipFileName);
 
         Console.WriteLine("Model trained and saved successfully.");
     }
@@ -93,61 +104,85 @@ public class Program
 
         // Load the trained model
         ITransformer model;
-        using (var stream = new FileStream("Model.zip", FileMode.Open, FileAccess.Read, FileShare.Read))
+        using (var stream = new FileStream(_zipFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
             model = _mlContext.Model.Load(stream, out var modelSchema);
+
+            // Inspect the schema
+            var columns = new List<DataFrameColumn>();
+            foreach (var column in modelSchema)
+            {
+                var columnType = column.Type.ToString();
+                switch (columnType)
+                {
+                    case "String":
+                        columns.Add(new StringDataFrameColumn(column.Name, new string[] { "Sample " + column.Name }));
+                        break;
+                    case "Boolean":
+                        columns.Add(new BooleanDataFrameColumn(column.Name, new bool[] { true }));
+                        break;
+                    case "Single":
+                        columns.Add(new SingleDataFrameColumn(column.Name, new float[] { 1.0f }));
+                        break;
+                    default:
+                        throw new NotImplementedException($"Data type {column.Type.RawType.Name} not implemented");
+                }
+            }
+
+            // Create the DataFrame
+            var sampleData = new DataFrame(columns);
+
+            // Transform the sample data
+            var transformedData = model.Transform(sampleData);
+
+            // Extract predictions from transformed data
+            var predictionColumn = transformedData.GetColumn<string>(_columnToPredict);
+
+            // Retrieve the prediction (assuming single prediction in this case)
+            string prediction = predictionColumn.FirstOrDefault();
+
+            Console.WriteLine($"Predicted Answer: {prediction}");
         }
-
-        // Sample input for prediction
-        var sampleData = new DataFrame(new List<DataFrameColumn>
-        {
-            new StringDataFrameColumn("ColumnToPredict", new[] { "Sample Prediction" }),
-            new StringDataFrameColumn("Context", new[] { "<html><body><p>This is a sample HTML content.</p></body></html>" }),
-            new StringDataFrameColumn("Question", new[] { "Sample Question" })
-        });
-
-        // Transform the sample data
-        var transformedData = model.Transform(sampleData);
-
-        // Extract predictions from transformed data
-        var predictionColumn = transformedData.GetColumn<string>("ColumnToPredict");
-
-        // Retrieve the prediction (assuming single prediction in this case)
-        string prediction = predictionColumn.FirstOrDefault();
-
-        Console.WriteLine($"Predicted Answer: {prediction}");
 
         Console.WriteLine("Model validation completed.");
     }
 
     public static void AnswerUserQuestion()
+{
+    // Initialize MLContext and load the model
+    var mlContext = new MLContext();
+    ITransformer model;
+
+    using (var stream = new FileStream(_zipFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
     {
-        while (true)
-        {
-            Console.WriteLine();
-            Console.WriteLine("Ask a question (or type 'exit' to quit):");
-            string question = Console.ReadLine();
-
-            if (question.ToLower() == "exit")
-                break;
-
-            // Load the trained model for answering questions
-            ITransformer model;
-            using (var stream = new FileStream("Model.zip", FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                model = _mlContext.Model.Load(stream, out var modelSchema);
-            }
-
-            var predictionEngine = _mlContext.Model.CreatePredictionEngine<LanguageData, LanguagePrediction>(model);
-            // Use ML.NET model to predict sentiment
-            var prediction = predictionEngine.Predict(new LanguageData { Question = question });
-
-            var response = prediction.PredictedLabel;
-
-            Console.WriteLine($"Response: {response}");
-
-        }
+        model = mlContext.Model.Load(stream, out var modelSchema);
     }
+
+    // Create prediction engine
+    var predictionEngine = mlContext.Model.CreatePredictionEngine<LanguageData, LanguagePrediction>(model);
+
+    while (true)
+    {
+        Console.WriteLine();
+        Console.WriteLine("Ask a question (or type 'exit' to quit):");
+        string question = Console.ReadLine();
+
+        if (question.ToLower() == "exit")
+            break;
+
+        // Prepare input data
+        var input = new LanguageData { Question = question };
+
+        // Predict
+        var prediction = predictionEngine.Predict(input);
+
+        // Retrieve predicted answer
+        string predictedAnswer = prediction.PredictedAnswer;
+
+        Console.WriteLine($"Predicted Answer: {predictedAnswer}");
+    }
+}
+
     // Define the data schema
     public class LanguageData
     {
@@ -167,8 +202,8 @@ public class Program
     // Prediction output class
     public class LanguagePrediction
     {
-        [ColumnName("PredictedLabel")]
-        public float PredictedLabel { get; set; }
+        [ColumnName("PredictedAnswer")]
+        public string PredictedAnswer { get; set; }
     }
 
     // Helper class for HTML preprocessing

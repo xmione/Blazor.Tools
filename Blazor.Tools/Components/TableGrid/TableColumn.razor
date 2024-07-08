@@ -34,7 +34,7 @@
 }
 
 @code {
-    [CascadingParameter] private TableSourceContext Context { get; set; } = default!;
+    [CascadingParameter] private TableGrid Context { get; set; } = default!;
     [Parameter] public string DataSource { get; set; } = default!;
     [Parameter] public string FieldName { get; set; } = default!;
     [Parameter] public string Type { get; set; } = default!;
@@ -48,7 +48,6 @@
         _dataSource = Context?.GetDataSource(DataSource) ?? _dataSource;
         Console.WriteLine("TableColumn OnParametersSetAsync");
 
-        base.OnParametersSet();
     }
 
     private string GetFieldValue(DataRow row)

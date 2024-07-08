@@ -3,6 +3,7 @@ using Microsoft.ML.Data;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.Json;
+using Microsoft.ML.Trainers;
 
 namespace Blazor.Tools.ConsoleApp.Extensions
 {
@@ -234,6 +235,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
 
                 // Choose a model and algorithm
                 var trainer = mlContext.Regression.Trainers.LbfgsPoissonRegression();
+
                 var trainingPipeline = pipeline.Append(trainer);
 
                 // Train the model
@@ -249,6 +251,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                 Console.WriteLine($"Error training model: {ex.Message}");
             }
         }
+
     }
 
 }
