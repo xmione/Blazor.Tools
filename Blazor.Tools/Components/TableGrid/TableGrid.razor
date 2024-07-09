@@ -1,27 +1,94 @@
 ﻿@* TableGrid.razor *@
 @using System.Data
+@using Microsoft.AspNetCore.Components.Rendering
 
-<CascadingValue Value="_context">
-    @ChildContent
-</CascadingValue>
+@if (!_renderTable)
+{
+    <CascadingValue Value="@TableGridContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    @RenderTable
+}
 
 @code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
 
-    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    private bool _renderTable = false; // Flag to control when to render RenderTable()
 
+    private RenderFragment RenderTable => RenderTableContent;
     private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
-    private TableGrid _context = default!;
+    private TableGrid TableGridContext = null!;
+    private List<TableSource> _tableSources = new List<TableSource>();
+    private List<TableNode> _nodes = new List<TableNode>();
 
     protected override void OnParametersSet()
     {
-        _context = this;
-        Console.WriteLine("TableGrid OnParametersSetAsync");
+        TableGridContext = this;
+        Console.WriteLine("TableGrid OnParametersSet");
+    }
+
+    // private void ParseChildContent()
+    // {
+    //     try
+    //     {
+    //         if (ChildContent != null)
+    //         {
+    //             var builder = new RenderTreeBuilder();
+    //             ChildContent(builder);
+
+    //             var frames = builder.GetFrames();
+
+    //             if (_columnTemplates == null)
+    //             {
+    //                 _columnTemplates = new Dictionary<string, RenderFragment>(); // this errors
+    //             }
+
+    //             for (int i = 0; i < frames.Count; i++)
+    //             {
+    //                 var frame = frames.Array[i];
+
+    //                 if (frame.FrameType == RenderTreeFrameType.Component)
+    //                 {
+    //                     var componentFrame = (RenderTreeFrame)frame;
+    //                     var renderFragment = new RenderFragment(builder =>
+    //                     {
+    //                         builder.AddMarkupContent(0, componentFrame.MarkupContent);
+    //                     });
+
+
+    //                     string columnName = "add column name here based on the TableColumn";
+    //                     _columnTemplates.Add([columnName] = (item) => renderFragment);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine("Error: {0}\r\nStackTrace: {1}", ex.Message, ex.StackTrace);
+    //     }
+
+    // }
+
+    public void AddTableSource(TableSource source)
+    {
+        _tableSources.Add(source);
+        TableGridContext = this;
+    }
+
+    public void AddNode(TableNode node)
+    {
+        _nodes.Add(node);
+        TableGridContext = this;
     }
 
     public void RegisterDataSource(string name, DataTable dataTable)
     {
         dataTable.TableName = name;
         _dataSources[name] = dataTable;
+        TableGridContext = this;
     }
 
     public DataTable? GetDataSource(string name)
@@ -29,4 +96,69 @@
         _dataSources.TryGetValue(name, out var dataTable);
         return dataTable;
     }
+
+    private void RenderTableContent(RenderTreeBuilder builder)
+    {
+        builder.OpenElement(0, "div");
+        builder.AddContent(1, "TableGrid RenderTable() content");
+
+        foreach (var node in _nodes)
+        {
+            builder.OpenElement(2, "table");
+            builder.AddAttribute(3, "title", node.Title);
+
+            builder.OpenElement(4, "thead");
+            builder.OpenElement(5, "tr");
+
+            foreach (var column in node.Columns)
+            {
+                builder.OpenElement(6, "th");
+                builder.AddContent(7, column.FieldName);
+                builder.CloseElement(); // th
+            }
+
+            builder.CloseElement(); // tr
+            builder.CloseElement(); // thead
+
+            builder.OpenElement(8, "tbody");
+
+            var dataSource = GetDataSource(node.DataSource)?.Rows;
+            if (dataSource != null)
+            {
+                foreach (DataRow dr in dataSource)
+                {
+                    builder.OpenElement(9, "tr");
+
+                    foreach (var column in node.Columns)
+                    {
+                        builder.OpenElement(10, "td");
+                        var content = node.RenderTableColumn(dr, column);
+                        // Render to HTML string
+                        var htmlString = content.RenderToHtmlString();
+
+                        builder.AddContent(11, content);
+                        builder.CloseElement(); // td
+                    }
+
+                    builder.CloseElement(); // tr
+                }
+            }
+
+            builder.CloseElement(); // tbody
+            builder.CloseElement(); // table
+        }
+
+        builder.CloseElement(); // div
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Ensure RenderTable() is rendered only after initial render
+            _renderTable = true;
+            StateHasChanged();
+        }
+    }
+
 }

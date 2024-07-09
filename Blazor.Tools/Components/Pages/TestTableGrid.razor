@@ -10,9 +10,9 @@
 <h1>Testing Sample Table Grid Component</h1> 
 
  <TableGrid>
-    <TableSource Name="EmployeeSource" DataSource="@_employees" />
-    <TableSource Name="CountrySource" DataSource="@_countries" />
-    <TableNode Title="AccSol Table" DataSource="EmployeeSource">
+    <TableSource Name="EmployeeDS" DataSource="@_employees" />
+    <TableSource Name="CountryDS" DataSource="@_countries" />
+    <TableNode Title="AccSol Table" DataSource="EmployeeDS">
         <TableColumn DataSource="EmployeeDS" FieldName="ID" Type="TextBox" />
         <TableColumn DataSource="EmployeeDS" FieldName="FirstName" Type="TextBox" />
         <TableColumn DataSource="EmployeeDS" FieldName="MiddleName" Type="TextBox" />
