@@ -11,9 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Tools.ServiceDefault
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Tools.ConsoleApp", "Blazor.Tools.ConsoleApp\Blazor.Tools.ConsoleApp.csproj", "{D38D301C-14F1-442B-A12E-E8A29391B75B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PredictiveMaintenance", "PredictiveMaintenance\PredictiveMaintenance.csproj", "{1A8CD689-7B05-4C97-BA88-3D4B49B727DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PredictiveMaintenance", "PredictiveMaintenance\PredictiveMaintenance.csproj", "{1A8CD689-7B05-4C97-BA88-3D4B49B727DE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PredictiveMaintenanceConsole", "PredictiveMaintenanceConsole\PredictiveMaintenanceConsole.csproj", "{11B97DDD-FE82-469B-9E1F-DAF283D84C96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Tools.BlazorBundler", "Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj", "{1B463EE3-BFF9-44FF-8F17-67444B258965}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{11B97DDD-FE82-469B-9E1F-DAF283D84C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11B97DDD-FE82-469B-9E1F-DAF283D84C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11B97DDD-FE82-469B-9E1F-DAF283D84C96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B463EE3-BFF9-44FF-8F17-67444B258965}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B463EE3-BFF9-44FF-8F17-67444B258965}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B463EE3-BFF9-44FF-8F17-67444B258965}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B463EE3-BFF9-44FF-8F17-67444B258965}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

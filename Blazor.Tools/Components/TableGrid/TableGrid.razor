@@ -1,12 +1,25 @@
 ﻿@* TableGrid.razor *@
-@using System.Data
+
+@using Blazorise;
+
+@using Blazor.Tools.Components.DTSearchBox
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.AspNetCore.Components.Rendering
+@using System.Data
 
-@* <CascadingValue Value="@TableGridContext">
-    @ChildContent
-</CascadingValue> *@
+<DTSearchBox DataTable="@_dataTable" OnFilterDataTable="HandleFilterDataTableAsync" />
+<div class="cursor-pointer border-black-10px">Test</div>
+<Icon Name="IconName.Pen" IconSize="IconSize.Large" Class="text-primary icon-button" title="Edit" onclick="EditRow"/>
 
+@*             builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", "fa fa-pencil-alt"); // Font Awesome icon class
+            builder.AddAttribute(sequence++, "Size", IconSize.Large);
+            builder.AddAttribute(sequence++, "Color", Color.Primary);
+            builder.AddAttribute(sequence++, "class", "text-primary icon-button");
+            builder.AddAttribute(sequence++, "title", "Edit");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
+            builder.CloseComponent(); *@
+<i class="bi bi-pencil-fill text-primary icon-button" title="Edit"></i>
 @if (!_renderTable)
 {
     <CascadingValue Value="@TableGridContext">
@@ -25,22 +38,36 @@ else
 
     private bool _renderTable = false; // Flag to control when to render RenderTable()
 
-    private RenderFragment RenderTable => builder =>
-    {
-        var renderTask = RenderTableContentAsync(builder);
-        renderTask.Wait();
-    };
-
+    private DataTable _dataTable = default!;
     private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
     private TableGrid TableGridContext = null!;
     private List<TableSource> _tableSources = new List<TableSource>();
     private List<TableNode> _nodes = new List<TableNode>();
 
+    private IEnumerable<DataRow>? _filteredRows;
+    private IEnumerable<DataRow>? _pagedRows;
+    private int _pageSize = 0;
+    private int _currentPage = 1;
+    private int _totalPages = 0;
+    private int _totalItems = 0;
+    private string? _selectedTableName;
+    private string _searchQuery = string.Empty;
+    private DataRow _editedRow = default!;
+    private Dictionary<string, object> _editValues = null!;
+    private bool _isEditing = false;
+
     protected override void OnParametersSet()
     {
-        TableGridContext = this;
         Console.WriteLine("TableGrid OnParametersSet");
+        TableGridContext = this;
+
     }
+
+    private RenderFragment RenderTable => builder =>
+    {
+        var renderTask = RenderTableContentAsync(builder);
+        renderTask.Wait();
+    };
 
     public void AddTableSource(TableSource source)
     {
@@ -67,90 +94,65 @@ else
         return dataTable;
     }
 
-    private async Task ParseChildContentAsync()
-    {
-        //await Task.Delay(3000);
-        var builder = new RenderTreeBuilder();
-        ChildContent(builder);
-        var frames = builder.GetFrames();
-
-        int totalFrames = frames.Count;
-        for (int i = 0; i < totalFrames; i++)
-        {
-            var frame = frames.Array[i];
-            if (frame.FrameType == RenderTreeFrameType.Component && frame.ComponentType == typeof(TableNode))
-            {
-                var node = (TableNode)frame.Component;
-
-                if (node == null)
-                {
-                    var renderFragment = new RenderFragment(builder =>
-                    {
-                        builder.AddMarkupContent(0, frame.MarkupContent);
-                    });
-
-                    // Parse the child content of TableNode
-                    var nodeBuilder = new RenderTreeBuilder();
-                    renderFragment(nodeBuilder);
-                    var nodeFrames = nodeBuilder.GetFrames();
-                    var totalNodes = nodeFrames.Count;
-                    for (int j = 0; j < totalNodes; j++)
-                    {
-                        var nodeFrame = nodeFrames.Array[j];
-                        if (nodeFrame.FrameType == RenderTreeFrameType.Component && nodeFrame.ComponentType == typeof(TableColumn))
-                        {
-                            var column = (TableColumn)nodeFrame.Component;
-                            node.Columns.Add(column);
-                        }
-                    }
-
-                    _nodes.Add(node);
-                }
-            }
-        }
-    }
-
     private async Task RenderTableContentAsync(RenderTreeBuilder builder)
     {
-        //await ParseChildContentAsync();
-
-        builder.OpenElement(0, "div");
-        builder.AddContent(1, Title);
-
+        // <div>
+        // <div class="data-table-grid-div">
+        //     <table class="data-table-grid">
+        int sequence = 0;
+        builder.OpenElement(sequence, "div");
+        builder.AddContent(sequence++, Title);
+        builder.OpenElement(sequence++, "div");
+        builder.AddAttribute(sequence++, "class", "data-table-grid-div");
         foreach (var node in _nodes)
         {
-            builder.OpenElement(2, "table");
-            builder.AddAttribute(3, "title", node.Title);
+            builder.OpenElement(sequence++, "table");
+            builder.AddAttribute(sequence++, "title", node.Title);
+            builder.AddAttribute(sequence++, "class", "data-table-grid");
 
-            builder.OpenElement(4, "thead");
-            builder.OpenElement(5, "tr");
+            builder.OpenElement(sequence++, "thead");
+            builder.OpenElement(sequence++, "tr");
+            // Add a blank th column for edit/delete buttons.
+            builder.OpenElement(sequence++, "th");
+            builder.CloseElement(); // th
 
+            // Start displaying the proper column headers.
             foreach (var column in node.Columns)
             {
-                builder.OpenElement(6, "th");
-                builder.AddContent(7, column.HeaderName);
+                builder.OpenElement(sequence++, "th");
+                builder.AddContent(sequence++, column.HeaderName);
                 builder.CloseElement(); // th
             }
 
             builder.CloseElement(); // tr
             builder.CloseElement(); // thead
 
-            builder.OpenElement(8, "tbody");
+            builder.OpenElement(sequence++, "tbody");
 
-            var dataSourceRows = GetDataSource(node.DataSource)?.Rows;
-            if (dataSourceRows != null)
+            _dataTable = GetDataSource(node.DataSource);
+
+            _totalItems = _dataTable?.Rows?.Count ?? 0;
+            _pageSize = _totalItems;
+            _filteredRows = _dataTable != null ? ApplyFilter() : _filteredRows;
+            _pagedRows = _filteredRows?.Skip((_currentPage - 1) * _pageSize).Take(_pageSize);
+            _totalPages = (int)Math.Ceiling((double)(_filteredRows?.Count() ?? 0) / _pageSize);
+            _selectedTableName = _dataTable?.TableName;
+
+            if (_pagedRows != null)
             {
-                var totalRows = dataSourceRows.Count;
+                var totalRows = _pagedRows.Count();
+                var pagedRows = _pagedRows.ToList();
                 for ( int i=0; i < totalRows; i++)
                 {
-                    builder.OpenElement(9, "tr");
-
+                    builder.OpenElement(sequence++, "tr");
+                    var currentRow = pagedRows[i];
+                    builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
                     foreach (var column in node.Columns)
                     {
                         int rowIndex = i;
-                        builder.OpenElement(10, "td");
+                        builder.OpenElement(sequence++, "td");
                         // var content = node.RenderTableColumn(column, rowNumber);
-                        builder = await RenderTableColumn(11, rowIndex, builder, column);
+                        builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
                         builder.CloseElement(); // td
                     }
 
@@ -159,12 +161,115 @@ else
             }
 
             builder.CloseElement(); // tbody
-            builder.CloseElement(); // table
+            builder.CloseElement(); //  <table class="data-table-grid">
         }
 
+        builder.CloseElement(); // <div class="data-table-grid-div">
         builder.CloseElement(); // div
 
         await Task.CompletedTask;
+    }
+
+    private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int sequence, RenderTreeBuilder builder, DataRow? row)
+    {
+        builder.OpenElement(sequence++, "td");
+        builder.AddAttribute(sequence++, "class", "icons-td");
+
+        if (!_isEditing || row != _editedRow)
+        {
+            // Edit icon
+            // <Icon Name="IconName.Pen" IconSize="IconSize.Large" Class="text-primary icon-button" title="Edit" onclick="EditRow"/>
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.Pen); // Font Awesome icon class
+            builder.AddAttribute(sequence++, "Size", IconSize.Large);
+            builder.AddAttribute(sequence++, "Class", "text-primary icon-button");
+            builder.AddAttribute(sequence++, "title", "Edit");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
+            builder.CloseComponent();
+
+            // Delete icon
+            // <Icon Name="IconName.Delete" IconSize="IconSize.Large" Class="text-danger icon-button" title="Delete" onclick="DeleteRowAsync"/>
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.Delete); // Font Awesome icon class
+            builder.AddAttribute(sequence++, "Size", IconSize.Large);
+            builder.AddAttribute(sequence++, "Class", "text-danger icon-button");
+            builder.AddAttribute(sequence++, "title", "Delete");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
+            builder.CloseComponent();
+        }
+        else
+        {
+            // Save icon
+            // <Icon Name="IconName.Delete" IconSize="IconSize.Large" Class="text-danger icon-button" title="Delete" onclick="SaveRowAsync"/>
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.Save); // Font Awesome icon class
+            builder.AddAttribute(sequence++, "Size", IconSize.Large);
+            builder.AddAttribute(sequence++, "Class", "text-success icon-button");
+            builder.AddAttribute(sequence++, "title", "Save");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
+            builder.CloseComponent();
+
+            // Cancel icon
+            // <Icon Name="IconName.Delete" IconSize="IconSize.Large" Class="text-danger icon-button" title="Delete" onclick="SaveRowAsync"/>
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.TimesCircle); // Font Awesome icon class
+            builder.AddAttribute(sequence++, "Size", IconSize.Large);
+            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button");
+            builder.AddAttribute(sequence++, "title", "Cancel");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+
+        await Task.CompletedTask;
+
+        return builder;
+    }
+
+    private void EditRow(DataRow row)
+    {
+        if (_dataTable != null)
+        {
+            _editedRow = row;
+            _editValues = _dataTable.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]);
+            _isEditing = true;
+        }
+    }
+    
+    private async Task DeleteRowAsync(DataRow row)
+    {
+        if (_dataTable != null)
+        {
+            _dataTable.Rows.Remove(row);
+            //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable);
+            StateHasChanged(); // Refresh UI after deleting row
+        }
+    }
+
+    private async Task SaveRowAsync()
+    {
+        if (_editedRow != null && _editValues != null && _dataTable != null)
+        {
+            foreach (var column in _dataTable.Columns.Cast<DataColumn>())
+            {
+                _editedRow[column.ColumnName] = _editValues[column.ColumnName];
+            }
+
+            _editedRow = default!;
+            _isEditing = false;
+
+            //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable, serialize: true);
+
+            StateHasChanged();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        _editedRow = default!;
+        _isEditing = false;
+        StateHasChanged(); // Refresh UI after canceling edit
     }
 
     public async Task<RenderTreeBuilder> RenderTableColumn(int sequence, int rowIndex, RenderTreeBuilder builder, TableColumn column)
@@ -176,8 +281,8 @@ else
             if (column.Type == "TextBox")
             {
                 builder.OpenElement(sequence, "input");
-                builder.AddAttribute(sequence + 1, "type", "text");
-                builder.AddAttribute(sequence + 2, "value", rows[rowIndex][column.FieldName]);
+                builder.AddAttribute(sequence++, "type", "text");
+                builder.AddAttribute(sequence++, "value", rows[rowIndex][column.FieldName]);
                 builder.CloseElement();
             }
             else if (column.Type == "DropdownList")
@@ -192,15 +297,15 @@ else
                         var displayName = row[column.DisplayFieldName].ToString();
                         var displayValue = row[column.DisplayFieldValue].ToString();
                         
-                        builder.OpenElement(sequence + i, "option");
-                        builder.AddAttribute(sequence + i + 1, "value", displayValue);
+                        builder.OpenElement(sequence++, "option");
+                        builder.AddAttribute(sequence++, "value", displayValue);
                         // Set selected attribute if current row index matches the selected index
                         if (i == rowIndex)
                         {
-                            builder.AddAttribute(sequence + i + 3, "selected", "selected");
+                            builder.AddAttribute(sequence++, "selected", "selected");
                         }
 
-                        builder.AddContent(sequence + i + 2, displayName);
+                        builder.AddContent(sequence++, displayName);
                         
                         builder.CloseElement();
                     }
@@ -213,6 +318,35 @@ else
         await Task.CompletedTask;
 
         return builder;
+    }
+
+    private async Task HandleFilterDataTableAsync(IEnumerable<DataRow> filteredRows)
+    {
+        _filteredRows = filteredRows;
+        _pagedRows = _filteredRows.Skip((_currentPage - 1) * _pageSize).Take(_pageSize);
+
+        StateHasChanged(); // Ensure UI updates after filtering
+        await Task.CompletedTask;
+    }
+
+    private IEnumerable<DataRow> ApplyFilter()
+    {
+        IEnumerable<DataRow> rows = default!;
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            rows = _dataTable?.AsEnumerable() ?? rows;
+            return rows;
+        }
+
+        rows = _dataTable?
+        .AsEnumerable()?
+        .Where(row => _dataTable
+            .Columns
+            .Cast<DataColumn>()
+            .Any(column => row[column]?.ToString()?.IndexOf(_searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+        ) ?? rows;
+
+        return rows;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

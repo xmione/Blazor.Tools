@@ -4,10 +4,13 @@
 @using Blazor.Tools.Components.TableGrid
 @using System.Data
 @inject NavigationManager Navigation
+@using Blazorise
 
 <PageTitle>Home</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1> 
+<Icon Name="IconName.Mail" />
+<Icon Name="IconName.Pen" IconSize="IconSize.Large" Class="text-primary icon-button" title="Edit" />
 
 @* <TableSourceContext>
     <TableSource Name="EmployeeSource" DataSource="@_employees" />

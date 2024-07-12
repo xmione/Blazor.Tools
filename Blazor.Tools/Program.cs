@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Blazor.Tools.Components;
 using Blazor.Tools.Components.Account;
 using Blazor.Tools.Data;
+using Blazorise;
+using Blazorise.Bootstrap5;
+using Blazorise.Icons.FontAwesome;
 
 namespace Blazor.Tools;
 
@@ -13,7 +16,14 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
-        builder.Services.AddBlazorBootstrap();
+        // Configure Blazorise with existing registrations
+        builder.Services
+            .AddBlazorise(options =>
+            {
+                options.Immediate = true;
+            })
+            .AddBootstrap5Providers()
+            .AddFontAwesomeIcons(); 
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
