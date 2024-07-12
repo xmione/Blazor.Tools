@@ -1,43 +1,23 @@
 ﻿@* TableColumn.razor *@
 @using System.Data
 
-@if (_dataSource != null)
-{
-    if (Type == "TextBox")
-    {
-        <input type="text" value="@DisplayFieldValue" />
-    }
-    else if (Type == "DropdownList")
-    {
-        <select>
-            @foreach (DataRow row in _dataSource.Rows)
-            {
-                if (row != null)
-                {
-                    <option value="@row[DisplayFieldValue]">
-                        @row[DisplayFieldName]
-                    </option>
-                }
-            }
-        </select>
-    }
-}
-
 @code {
     [CascadingParameter] private TableGrid TableGridContext { get; set; } = default!;
     [CascadingParameter] private TableNode TableNodeContext { get; set; } = default!;
-    [Parameter] public string DataSource { get; set; } = default!;
+    [Parameter] public string DataSourceName { get; set; } = default!;
     [Parameter] public string FieldName { get; set; } = default!;
     [Parameter] public string Type { get; set; } = default!;
     [Parameter] public string DisplayFieldName { get; set; } = default!;
     [Parameter] public string DisplayFieldValue { get; set; } = default!;
+    [Parameter] public string HeaderName { get; set; } = default!;
+    [Parameter] public int RowNumber { get; set; } = default!;
 
-    private DataTable _dataSource = default!;
-    public int RowNumber = 0;
+
+    public DataTable _dataSource = default!;
 
     protected override void OnParametersSet()
     {
-        _dataSource = TableGridContext?.GetDataSource(DataSource) ?? _dataSource;
+        _dataSource = TableGridContext?.GetDataSource(DataSourceName) ?? _dataSource;
 
         if (_dataSource != null)
         {
@@ -48,10 +28,25 @@
             }
         }
 
+        if (HeaderName == null)
+        {
+            HeaderName = FieldName;    
+        }
+
+        if (DisplayFieldName == null)
+        {
+            DisplayFieldName = FieldName;    
+        }
+
         TableNodeContext?.AddColumn(this);
 
         Console.WriteLine("TableColumn OnParametersSetAsync");
 
+    }
+
+    public DataTable GetDataSource()
+    {
+        return _dataSource;
     }
 
     private string GetFieldValue(DataRow row)

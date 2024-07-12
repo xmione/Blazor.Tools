@@ -10,7 +10,7 @@ namespace Blazor.Tools.Components.TableGrid
         {
             var result = string.Empty;
 
-            // Create a RenderTreeBuilder
+            // Create a RenderTreeBuilder to build the render tree
             var builder = new RenderTreeBuilder();
 
             // Render the fragment into the builder
@@ -19,30 +19,27 @@ namespace Blazor.Tools.Components.TableGrid
             // Use StringWriter to capture the output
             using (var writer = new StringWriter())
             {
-                // Iterate over the frames in the builder to capture the output
+                // Get the frames from the builder
                 var frames = builder.GetFrames();
                 int frameCount = frames.Count;
+
+                // Iterate over the frames to construct the HTML string
                 for (int i = 0; i < frameCount; i++)
                 {
                     var frame = frames.Array[i];
 
+                    // Capture only MarkupContent
                     if (frame.FrameType == RenderTreeFrameType.Component)
                     {
-                        var componentFrame = (RenderTreeFrame)frame;
-                        var renderFragment = new RenderFragment(builder =>
-                        {
-                            builder.AddMarkupContent(0, componentFrame.MarkupContent);
-                        });
-                     
+                        writer.Write(frame.MarkupContent);
                     }
                 }
 
-                // Convert StringWriter to string
+                // Return the captured HTML string
                 result = writer.ToString();
             }
 
             return result;
         }
     }
-
 }

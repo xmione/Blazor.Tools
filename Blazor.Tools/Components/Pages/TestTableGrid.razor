@@ -9,15 +9,15 @@
 
 <h1>Testing Sample Table Grid Component</h1> 
 
- <TableGrid>
+ <TableGrid Title="Employee Table">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
     <TableNode Title="AccSol Table" DataSource="EmployeeDS">
-        <TableColumn DataSource="EmployeeDS" FieldName="ID" Type="TextBox" />
-        <TableColumn DataSource="EmployeeDS" FieldName="FirstName" Type="TextBox" />
-        <TableColumn DataSource="EmployeeDS" FieldName="MiddleName" Type="TextBox" />
-        <TableColumn DataSource="EmployeeDS" FieldName="LastName" Type="TextBox" />
-        <TableColumn DataSource="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="FirstName" Type="TextBox" HeaderName="First Name" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="MiddleName" Type="TextBox" HeaderName="Middle Name" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="LastName" Type="TextBox" HeaderName="Last Name" />
+        <TableColumn DataSourceName="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" HeaderName="Country" />
     </TableNode>
 </TableGrid>
  
