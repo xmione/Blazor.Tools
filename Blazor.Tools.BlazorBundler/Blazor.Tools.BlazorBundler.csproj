@@ -30,6 +30,9 @@
     <None Update="changelog_2.0.6.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="changelog_2.0.7.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\PublishProfiles\registry.hub.docker.com_solomiosisante.pubxml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

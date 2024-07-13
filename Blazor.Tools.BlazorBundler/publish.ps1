@@ -12,7 +12,7 @@
 #       .\publish.ps1
 #============================================================================================
 
-$PackageVersion = "2.0.6"
+$PackageVersion = "2.0.7"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -38,7 +38,7 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Fixed Change log URL links in README.md file.
+- Fixed Change log URL links in README.md file. Interchanged the url link with the file Name.
 
 ### Revisions
 - None.
@@ -83,7 +83,7 @@ $changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tool
 # Append change log files to README.md
 foreach ($file in $changeLogFiles) {
     $fileUrl = "$changeLogsUrl$file.Name"
-    $link = "- [$($fileUrl)]($($file.Name))`n"
+    $link = "- [$($file.Name)]($($fileUrl))`n"
     Write-Host "Generated link: $link"
     $readmeContent += $link
 }
