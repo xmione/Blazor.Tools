@@ -12,9 +12,9 @@
 #       .\publish.ps1
 #============================================================================================
 
-$PackageVersion = "2.0.5"
-$AssemblyVersion = "2.0.5.0"
-$FileVersion = "2.0.51.0"
+$PackageVersion = "2.0.6"
+$AssemblyVersion = "$PackageVersion.0"
+$FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
 
 # Update project file - using dotnet msbuild
@@ -38,7 +38,7 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Added Microsoft.VisualStudio.Azure.Containers.Tools.Targets version 1.21.0.
+- Fixed Change log URL links in README.md file.
 
 ### Revisions
 - None.
