@@ -21,10 +21,8 @@ You can install BlazorBundler via NuGet Package Manager:
 dotnet add package Blazor.Tools.BlazorBundler
 `
 
-## Change Logs- [changelog_2.0.0.md](changelog_2.0.0.md)
-- [changelog_2.0.1.md](changelog_2.0.1.md)
-- [changelog_2.0.2.md](changelog_2.0.2.md)
-- [changelog_2.0.3.md](changelog_2.0.3.md)
-- [changelog_2.0.4.md](changelog_2.0.4.md)
-- [changelog_2.0.5.md](changelog_2.0.5.md)
+## Change Logs- [https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_2.0.2.md.Name](changelog_2.0.2.md)
+- [https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_2.0.3.md.Name](changelog_2.0.3.md)
+- [https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_2.0.4.md.Name](changelog_2.0.4.md)
+- [https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_2.0.5.md.Name](changelog_2.0.5.md)
 

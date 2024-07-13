@@ -79,9 +79,11 @@ dotnet add package Blazor.Tools.BlazorBundler
 ## Change Logs
 "@
 
+$changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/"
 # Append change log files to README.md
 foreach ($file in $changeLogFiles) {
-    $link = "- [$($file.Name)]($($file.Name))`n"
+    $fileUrl = "$changeLogsUrl$file.Name"
+    $link = "- [$($fileUrl)]($($file.Name))`n"
     Write-Host "Generated link: $link"
     $readmeContent += $link
 }
@@ -89,6 +91,7 @@ foreach ($file in $changeLogFiles) {
 # Save updated README.md
 $readmePath = "README.md"
 Set-Content -Path $readmePath -Value $readmeContent
+
 <# #>
 # Pack the project
 dotnet pack -c Release /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed
