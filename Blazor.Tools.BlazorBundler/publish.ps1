@@ -31,7 +31,7 @@
 
 param([bool] $Publish)
 
-$PackageVersion = "2.0.8"
+$PackageVersion = "2.0.9"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -57,16 +57,8 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Fixed Change log URL links in README.md file. 
-- Removed the error in the URL link. 
+- Updated the project file and removed unnecessary settings.
 
-    Error on additional ".Name" at the end of the file name:
-        [changelog_2.0.7.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_2.0.7.md.Name)
-
-    Corrected version:
-        [changelog_2.0.7.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_2.0.7.md)
-
-- Removed Change log files that were unlisted.
 ### Revisions
 - None.
 "@

@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -8,30 +7,19 @@
     <Title>Blazor Bundler</Title>
     <Description>A Blazor package that bundles bootstraps and Icons</Description>
     <Copyright>2024</Copyright>
-    <PackAsTool>True</PackAsTool>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Authors>$(AssemblyName), Solomio Sisante</Authors>
+    <PackageType>DotnetTool</PackageType>
   </PropertyGroup>
-
   <ItemGroup>
-    <None Update="changelog_2.0.3.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="changelog_2.0.5.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="changelog_2.0.7.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Properties\PublishProfiles\registry.hub.docker.com_solomiosisante.pubxml">
+    <None Update="changelog_*.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>
