@@ -15,6 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="Properties\PublishProfiles\registry.hub.docker.com_solomiosisante.pubxml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

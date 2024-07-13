@@ -12,6 +12,7 @@
     <None Remove="Components\MLModels\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="2.0.4" />
     <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
     <PackageReference Include="Blazorise" Version="1.5.3" />
     <PackageReference Include="Blazorise.Bootstrap5" Version="1.5.3" />
@@ -24,6 +25,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6" />
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
@@ -39,10 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="Data\ML\v1.0-simplified_nq-dev-all.jsonl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Data\ML\v1.0-simplified_simplified-nq-train.jsonl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Data\v1.0-simplified-nq-train.jsonl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

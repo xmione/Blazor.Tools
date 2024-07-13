@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
     <ProjectReference Include="..\Blazor.Tools\Blazor.Tools.csproj" />
   </ItemGroup>
 
