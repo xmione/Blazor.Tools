@@ -31,7 +31,7 @@
 
 param([bool] $Publish)
 
-$PackageVersion = "2.0.9"
+$PackageVersion = "2.0.10"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
