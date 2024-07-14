@@ -37,16 +37,19 @@
             try
             {
                 // Ensure the destination directory exists
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
-
-                // Download the file
-                using (var response = await httpClient.GetAsync(url))
+                string folderName = Path.GetDirectoryName(destinationPath) ?? string.Empty;
+                if (folderName != null)
                 {
-                    response.EnsureSuccessStatusCode();
-                    var content = await response.Content.ReadAsByteArrayAsync();
-                    await File.WriteAllBytesAsync(destinationPath, content);
-                }
+                    Directory.CreateDirectory(folderName);
 
+                    // Download the file
+                    using (var response = await httpClient.GetAsync(url))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        var content = await response.Content.ReadAsByteArrayAsync();
+                        await File.WriteAllBytesAsync(destinationPath, content);
+                    }
+                }
                 Console.WriteLine($"Downloaded {url} to {destinationPath}");
             }
             catch (Exception ex)

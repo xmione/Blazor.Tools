@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>MyPackage</id>
+    <version>1.0.0</version>
+    <authors>Your Name</authors>
+    <owners>Your Name</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A description of your package</description>
+    <contentFiles>
+      <files include="content/wwwroot/**/*.*" buildAction="Content" flatten="false" copyToOutput="true"/>
+    </contentFiles>
+  </metadata>
+</package>

@@ -22,4 +22,22 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <!-- Define content to be included in the NuGet package -->
+    <Content Include="content\**\*.*">
+      <Pack>true</Pack>
+      <PackagePath>content</PackagePath>
+      <CopyToOutput>true</CopyToOutput>
+    </Content>
+  </ItemGroup>
+
+  <!-- Define targets to copy content to wwwroot of consuming project -->
+  <Target Name="CopyContentToWwwRoot" AfterTargets="Build">
+    <ItemGroup>
+      <!-- Copy content files to wwwroot -->
+      <ContentWithTargetPath Include="content\**\*.*">
+        <TargetPath>wwwroot\%(RecursiveDir)%(FileName)%(Extension)</TargetPath>
+      </ContentWithTargetPath>
+    </ItemGroup>
+  </Target>
 </Project>
