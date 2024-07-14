@@ -7,31 +7,36 @@
 # Do these steps before running the script:
 # 1. Generate and copy API Key in nuget.org.
 # 2. Run this command from Powershell terminal.
-#       $Env:MY_NUGET_API_KEY="YOUR_API_KEY"    
-# 3. Run this script from the same Powershell terminal. Make sure you are in the same folder.
+#       $Env:MY_NUGET_API_KEY="YOUR_API_KEY"  
+#
+# 3. Set the value of PackageVersion variable and the change log information.
+#
+# 4. Run this script from the same Powershell terminal. Make sure you are in the same folder.
 #   Examples:
-#   1. To build project and compose README and Change log files, run:
+#   4.1. To build project and compose README and Change log files, run:
 #
 #       .\publish -Publish $false
 #
-#   2. To build project and compose README and Change log files and publish to docker hub 
+#   4.2. To build project and compose README and Change log files and publish to docker hub 
 #       and nuget.org, run:
 #
 #       .\publish -Publish $true
 #
-# 4. Process Steps:
-#   4.1. Build first then commit and push to github then finally publish:
+# 5. Process Steps:
+#   5.1. Build first then commit and push to github then finally publish:
 #       
 #       .\publish -Publish $false
-#       git add .
-#       git commit -m "Your_Message"
-#       git push origin master
-#       .\publish -Publish $true
+#       .\publish -Publish $true -GitComment "Update project with the latest changes"
+#
 #============================================================================================
 
-param([bool] $Publish)
+param(
+    [Parameter(Mandatory=$true)]
+    [bool] $Publish,
+    [string] $GitComment = "Update project with the latest changes"
+)
 
-$PackageVersion = "2.0.10"
+$PackageVersion = "2.0.11"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -57,7 +62,7 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Updated the project file and removed unnecessary settings.
+- Updated the project file and removed PackageType setting.
 
 ### Revisions
 - None.
@@ -116,6 +121,11 @@ Set-Content -Path $readmePath -Value $readmeContent
 <# Run the following codes only if boolean parameter Publish is true #>
 if($Publish -eq $true)
 {
+
+    git add .
+    git commit -m $GitComment
+    git push origin master
+
     # Pack the project
     dotnet pack -c Release /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed
 

@@ -11,7 +11,7 @@
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Authors>$(AssemblyName), Solomio Sisante</Authors>
-    <PackageType>DotnetTool</PackageType>
+    <PackAsTool>False</PackAsTool>
   </PropertyGroup>
   <ItemGroup>
     <None Update="changelog_*.md">
