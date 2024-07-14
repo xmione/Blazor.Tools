@@ -36,7 +36,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "2.0.12"
+$PackageVersion = "2.0.14"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -62,9 +62,7 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Updated the project file's TargetFramework setting.
-
-    <TargetFramework>net8.0</TargetFramework>
+- Removed secrets from publish script (publish.ps1)
 
 ### Revisions
 - None.
