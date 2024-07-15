@@ -20,20 +20,19 @@ Function Print-Folder-Structure {
     foreach ($item in $items) {
         # Skip . and .. special directories
         if ($item.Name -notin @('.', '..')) {
-            # Determine the correct indentation for the item
-            $itemIndent = "    " * ($indentLevel + 1)
-
-            # Print the item with appropriate indentation
             if ($item.PSIsContainer) {
-                Write-Output ("$itemIndent├── " + $item.Name)
                 # Recursively call function for directories
                 Print-Folder-Structure -path $item.FullName -indentLevel ($indentLevel + 1)
             } else {
+                # Determine the correct indentation for the item
+                $itemIndent = "    " * ($indentLevel + 1)
+                # Print the item with appropriate indentation
                 Write-Output ("$itemIndent├── " + $item.Name)
             }
         }
     }
 }
+
 
 Export-ModuleMember -Function Print-Folder-Structure
 
