@@ -1,0 +1,14 @@
+<Project>
+  <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
+    <!-- Log some information for debugging -->
+    <Message Text="Executing CustomInstall target" Importance="high" />
+    <Message Text="Creating directory: $(MSBuildProjectDirectory)\contentFiles" Importance="high" />
+    <Message Text="Copying file from $(MSBuildThisFileDirectory)..\contentFiles\test.js to $(MSBuildProjectDirectory)\contentFiles" Importance="high" />
+
+    <!-- Create the new folder in the consuming project -->
+    <MakeDir Directories="$(MSBuildProjectDirectory)\contentFiles" />
+
+    <!-- Copy the file to the consuming project -->
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\contentFiles\test.js" DestinationFolder="$(MSBuildProjectDirectory)\contentFiles" />
+  </Target>
+</Project>

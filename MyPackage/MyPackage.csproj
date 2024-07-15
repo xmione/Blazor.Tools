@@ -28,23 +28,25 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Content files to be included in the NuGet package -->
     <Content Include="icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </Content>
     <Content Include="README.md">
-      <PackagePath>\</PackagePath>
       <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
     </Content>
-    <!-- Include your test.js file -->
+    <!-- Example of a file within a subdirectory -->
     <Content Include="contentFiles/test.js">
       <Pack>true</Pack>
       <PackagePath>\contentfiles\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="build\Install.targets">
+    <!-- None item for MSBuild targets file -->
+    <None Include="build\MyPackage.targets">
       <Pack>True</Pack>
       <PackagePath>build\</PackagePath>
-    </Content>
+    </None>
   </ItemGroup>
 </Project>

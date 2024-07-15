@@ -1,9 +1,0 @@
-<Project>
-  <Target Name="CustomInstall" AfterTargets="Build">
-    <!-- Example: Create a new folder in the consuming project -->
-    <MakeDir Directories="$(MSBuildProjectDirectory)\contentFiles" />
-
-    <!-- Example: Copy the file to the consuming project -->
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\contentFiles\test.js" DestinationFolder="$(MSBuildProjectDirectory)\contentFiles" />
-  </Target>
-</Project>
