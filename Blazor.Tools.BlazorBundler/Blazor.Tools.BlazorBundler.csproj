@@ -20,12 +20,6 @@
     <IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="wwwroot\blazor-bootstrap\**" />
-    <EmbeddedResource Remove="wwwroot\blazor-bootstrap\**" />
-    <None Remove="wwwroot\blazor-bootstrap\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.10.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -38,12 +32,13 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <None Update="changelog_*.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- None item for MSBuild targets file -->
+    <None Include="build\Blazor.Tools.BlazorBundler.targets">
+      <Pack>True</Pack>
+      <PackagePath>\build\</PackagePath>
     </None>
     <!-- Add wwwroot files -->
     <Content Include="wwwroot\blazor-bootstrap\blazor.bootstrap.css">
@@ -76,16 +71,13 @@
       <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-
+    <Content Include="tools\Uninstall.ps1">
+      <Pack>True</Pack>
+      <PackagePath>\tools\</PackagePath>
+    </Content>
     <Content Include="README.md">
       <Pack>True</Pack>
-      <PackagePath>\BlazorBlunder\</PackagePath>
+      <PackagePath>\</PackagePath>
     </Content>
-    
-    <!-- None item for MSBuild targets file -->
-    <None Include="build\Blazor.Tools.BlazorBundler.targets">
-      <Pack>True</Pack>
-      <PackagePath>build\</PackagePath>
-    </None>
   </ItemGroup>
 </Project>

@@ -3,17 +3,10 @@
     <!-- Log some information for debugging -->
     <Message Text="Executing CustomInstall target" Importance="high" />
 
-    <!-- Check if wwwroot\blazor-bootstrap\blazor.bootstrap.css already exists -->
-    <ItemGroup>
-      <ExistingBlazorCssFiles Include="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.css" />
-    </ItemGroup>
-
-    <!-- Copy blazor.bootstrap.css only if it doesn't exist or needs updating -->
-    <Copy Condition="!Exists('$(ExistingBlazorCssFiles)')"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazor-bootstrap\blazor.bootstrap.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\" />
 
-    <!-- Repeat the above pattern for other files -->
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.js')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazor-bootstrap\blazor.bootstrap.js"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\" />
@@ -34,22 +27,13 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\" />
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\Uninstall.ps1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.ps1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\README.md')"
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-  </Target>
-  <Target Name="CustomUninstall" BeforeTargets="Uninstall">
-    <!-- Log some information for debugging -->
-    <Message Text="Executing CustomUninstall target" Importance="high" />
-
-    <!-- Delete the copied files -->
-    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.css" />
-    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.js" />
-    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\blazored-typeahead\blazored-typeahead.js" />
-    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\bootstrap-icons.min.css" />
-    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff" />
-    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2" />
-    <Delete Files="$(MSBuildProjectDirectory)\BlazorBundler\README.md" />
   </Target>
 </Project>
