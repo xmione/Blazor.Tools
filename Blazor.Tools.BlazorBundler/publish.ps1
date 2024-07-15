@@ -62,7 +62,8 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Fixed 
+- Fixed installation of files in the wwwwroot and BlazorBundler folders
+- Added cleanup scripts to uninstall files and remove them from the .csproj file
 
 ### Revisions
 - None.
