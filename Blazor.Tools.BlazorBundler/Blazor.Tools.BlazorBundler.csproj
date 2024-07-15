@@ -9,7 +9,7 @@
     <Authors>$(AssemblyName), Solomio Sisante</Authors>
     <Description>A Blazor package that bundles bootstraps and Icons</Description>
     <Copyright>2024</Copyright>
-    <PackageId>MyPackage</PackageId>
+    <PackageId>Blazor.Tools.BlazorBundler</PackageId>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/xmione/Blazor.Tools/tree/master/Blazor.Tools.BlazorBundler</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xmione/Blazor.Tools.git</RepositoryUrl>
