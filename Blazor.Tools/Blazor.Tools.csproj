@@ -12,7 +12,7 @@
     <None Remove="Components\MLModels\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="2.0.14" />
+    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="1.0.0" />
     <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
     <PackageReference Include="Blazorise" Version="1.5.3" />
     <PackageReference Include="Blazorise.Bootstrap5" Version="1.5.3" />

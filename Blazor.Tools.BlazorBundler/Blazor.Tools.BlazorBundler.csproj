@@ -17,27 +17,31 @@
     <None Update="changelog_*.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="content\blazorbootstrap\blazor.bootstrap.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="content\blazorbootstrap\blazor.bootstrap.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="content\blazored-typeahead\blazored-typeahead.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="content\bootstrap-icons\font\bootstrap-icons.min.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="content\bootstrap-icons\font\fonts\bootstrap-icons.woff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="content\bootstrap-icons\font\fonts\bootstrap-icons.woff2">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <!-- Define content to be included in the NuGet package -->
-    <Content Include="content\**\*.*">
-      <Pack>true</Pack>
-      <PackagePath>content</PackagePath>
-      <CopyToOutput>true</CopyToOutput>
-    </Content>
+    <None Include="Blazor.Tools.BlazorBundler.targets" Pack="true" PackagePath="\" />
+    <None Include="Blazor.Tools.BlazorBundler.nuspec" Pack="true" PackagePath="\" />
   </ItemGroup>
-
-  <!-- Define targets to copy content to wwwroot of consuming project -->
-  <Target Name="CopyContentToWwwRoot" AfterTargets="Build">
-    <ItemGroup>
-      <!-- Copy content files to wwwroot -->
-      <ContentWithTargetPath Include="content\**\*.*">
-        <TargetPath>wwwroot\%(RecursiveDir)%(FileName)%(Extension)</TargetPath>
-      </ContentWithTargetPath>
-    </ItemGroup>
-  </Target>
 </Project>

@@ -36,7 +36,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.0"
+$PackageVersion = "3.0.1"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -56,26 +56,13 @@ Assembly Version: $AssemblyVersion
 File Version: $FileVersion
 
 ### Major Changes
-- Copied bootstrap, blazored-typeahead and bootstrap-icons files.
-├── content
-    ├── blazorbootstrap
-        ├── blazor.bootstrap.css
-        ├── blazor.bootstrap.js
-    ├── blazored-typeahead
-        ├── blazored-typeahead.js
-    ├── bootstrap-icons
-        ├── font
-        ├── font
-            ├── fonts
-                ├── bootstrap-icons.woff
-                ├── bootstrap-icons.woff2
-            ├── bootstrap-icons.min.css
+- None
 
 ### Minor Changes
 - None.
 
 ### Patches
-- None
+- Fixed 
 
 ### Revisions
 - None.
