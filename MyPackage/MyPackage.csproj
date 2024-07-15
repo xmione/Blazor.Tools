@@ -28,19 +28,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="icon.png">
+    <Content Include="icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </None>
-    <None Update="README.md">
+    </Content>
+    <Content Include="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
-    </None>
+    </Content>
     <!-- Include your test.js file -->
-    <None Update="contentFiles/test.js">
+    <Content Include="contentFiles/test.js">
       <Pack>true</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>\contentfiles\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 </Project>
