@@ -1,0 +1,50 @@
+<Project>
+  <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
+    <!-- Log some information for debugging -->
+    <Message Text="Executing CustomInstall target" Importance="high" />
+
+    <!-- Check if wwwroot\blazorbootstrap\blazor.bootstrap.css already exists -->
+    <ItemGroup>
+      <ExistingBlazorCssFiles Include="$(MSBuildProjectDirectory)\wwwroot\blazorbootstrap\blazor.bootstrap.css" />
+    </ItemGroup>
+
+    <!-- Copy blazor.bootstrap.css only if it doesn't exist or needs updating -->
+    <Copy Condition="!Exists('$(ExistingBlazorCssFiles)')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazorbootstrap\blazor.bootstrap.css"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazorbootstrap\" />
+
+    <!-- Repeat the above pattern for other files -->
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazorbootstrap\blazor.bootstrap.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazorbootstrap\blazor.bootstrap.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazorbootstrap\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazored-typeahead\blazored-typeahead.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazored-typeahead\blazored-typeahead.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazored-typeahead\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\bootstrap-icons.min.css')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\bootstrap-icons.min.css"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\" />
+
+  </Target>
+  <Target Name="CustomUninstall" BeforeTargets="Uninstall">
+    <!-- Log some information for debugging -->
+    <Message Text="Executing CustomUninstall target" Importance="high" />
+
+    <!-- Delete the copied files -->
+    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\blazorbootstrap\blazor.bootstrap.css" />
+    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\blazorbootstrap\blazor.bootstrap.js" />
+    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\blazored-typeahead\blazored-typeahead.js" />
+    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\bootstrap-icons.min.css" />
+    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff" />
+    <Delete Files="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2" />
+  </Target>
+</Project>

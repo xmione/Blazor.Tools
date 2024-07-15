@@ -11,4 +11,11 @@
     <!-- Copy the file to the consuming project -->
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\contentFiles\test.js" DestinationFolder="$(MSBuildProjectDirectory)\contentFiles" />
   </Target>
+  <Target Name="CustomUninstall" BeforeTargets="Uninstall">
+    <!-- Log some information for debugging -->
+    <Message Text="Executing CustomUninstall target" Importance="high" />
+
+    <!-- Delete the copied files -->
+    <Delete Files="$(MSBuildProjectDirectory)\contentFiles\test.js" />
+  </Target>
 </Project>

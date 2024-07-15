@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <Version>3.0.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -9,15 +10,14 @@
     <Description>Test nuget package</Description>
     <Copyright>2024</Copyright>
     <PackageId>MyPackage</PackageId>
-    <Version>3.0.1</Version>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/xmione/Blazor.Tools/tree/master/Blazor.Tools.BlazorBundler</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xmione/Blazor.Tools.git</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <IncludeSymbols>False</IncludeSymbols>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,16 +29,16 @@
 
   <ItemGroup>
     <!-- Content files to be included in the NuGet package -->
-    <Content Include="icon.png">
+    <None Include="icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </Content>
-    <Content Include="README.md">
+    </None>
+    <None Include="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </Content>
+    </None>
     <!-- Example of a file within a subdirectory -->
-    <Content Include="contentFiles/test.js">
+    <Content Include="contentFiles\test.js">
       <Pack>true</Pack>
       <PackagePath>\contentfiles\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
