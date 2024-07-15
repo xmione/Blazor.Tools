@@ -14,12 +14,12 @@
     <repository type="git" url="https://github.com/xmione/Blazor.Tools.git" />
     <readme>README.md</readme>
     <contentFiles>
-      <files include="any/net8.0/contentFiles/test.js" buildAction="None" copyToOutput="true" flatten="true" />
+      <files include="contentFiles/test.js" buildAction="None" copyToOutput="true" flatten="true" />
     </contentFiles>
   </metadata>
   <files>
-    <file src="path/to/icon.png" target="icon.png" />
-    <file src="path/to/README.md" target="README.md" />
+    <file src="icon.png" target="icon.png" />
+    <file src="README.md" target="README.md" />
     <file src="contentFiles/test.js" target="contentFiles/test.js" />
   </files>
 </package>
