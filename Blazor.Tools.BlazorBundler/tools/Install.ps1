@@ -25,12 +25,12 @@ function Copy-FileToProject {
 # Example: Specify files to copy
 $filesToCopy = @(
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazorbootstrap\blazor.bootstrap.css"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazorbootstrap\blazor.bootstrap.css"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.css"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.css"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazorbootstrap\blazor.bootstrap.js"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazorbootstrap\blazor.bootstrap.js"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.js"
     },
     @{
         Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazored-typeahead\blazored-typeahead.js"
@@ -47,6 +47,10 @@ $filesToCopy = @(
     @{
         Source = Join-Path -Path $installPath -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
         Destination = Join-Path -Path $project -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
+    },
+    @{
+        Source = Join-Path -Path $installPath -ChildPath "README.md"
+        Destination = Join-Path -Path $project -ChildPath "BlazorBundler\README.md"
     }
 )
 

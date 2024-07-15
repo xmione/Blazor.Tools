@@ -19,6 +19,11 @@
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="wwwroot\blazor-bootstrap\**" />
+    <EmbeddedResource Remove="wwwroot\blazor-bootstrap\**" />
+    <None Remove="wwwroot\blazor-bootstrap\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.10.1">
@@ -41,19 +46,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <!-- Add wwwroot files -->
-    <Content Include="wwwroot\blazorbootstrap\blazor.bootstrap.css">
+    <Content Include="wwwroot\blazor-bootstrap\blazor.bootstrap.css">
       <Pack>true</Pack>
-      <PackagePath>\wwwroot\blazorbootstrap\</PackagePath>
+      <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\blazorbootstrap\blazor.bootstrap.css">
+    <Content Include="wwwroot\blazor-bootstrap\blazor.bootstrap.js">
       <Pack>True</Pack>
-      <PackagePath>\wwwroot\blazorbootstrap\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\blazorbootstrap\blazor.bootstrap.js">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\blazorbootstrap\</PackagePath>
+      <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="wwwroot\blazored-typeahead\blazored-typeahead.js">
@@ -76,15 +76,16 @@
       <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+
+    <Content Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\BlazorBlunder\</PackagePath>
+    </Content>
+    
     <!-- None item for MSBuild targets file -->
     <None Include="build\Blazor.Tools.BlazorBundler.targets">
       <Pack>True</Pack>
       <PackagePath>build\</PackagePath>
-    </None>
-    
-    <None Update="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 </Project>
