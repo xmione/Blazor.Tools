@@ -36,7 +36,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.1"
+$PackageVersion = "3.0.2"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -62,7 +62,10 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Fixed installation of files in the wwwwroot and BlazorBundler folders
+- Added js folder with these files in wwwroot folder:
+    bootstrap.bundle.min.js
+    site.js
+
 - Added cleanup scripts to uninstall files and remove them from the .csproj file
 
 ### Revisions
@@ -95,11 +98,63 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 
 ## Installation
 
-You can install BlazorBundler via NuGet Package Manager:
+You can install BlazorBundler via NuGet Package Manager, Package Manager Console or from a terminal:
 
-```sh
+#Nuget Package Manager
+- Search for Blazor.Tools.BlazorBundler in nuget.org.
+
+
+```
 dotnet add package Blazor.Tools.BlazorBundler
 ```
+
+#Package Manager Console
+```
+Install-Package Blazor.Tools.BlazorBundler
+```
+
+#Terminal console
+```
+dotnet add package Blazor.Tools.BlazorBundler
+```
+
+## Setup your App.razor stylesheets and javascripts
+
+Add these to your <head> section:
+```
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="blazor-bootstrap/blazor.bootstrap.css" />
+
+    <script src="blazored-typeahead/blazored-typeahead.js"></script>
+    <script src="js/site.js"></script>
+```
+
+Add these to your <body> section:
+```
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="blazor-bootstrap/blazor.bootstrap.js"></script>
+```
+    
+## Uninstallation
+
+First, uninstall the package from the Nuget Package Manager, Package Manager Console or from a terminal.
+
+#Nuget Package Manager 
+- Search Blazor.Tools.BlazorBundler and uninstall it.
+
+#Package Manager Console
+```
+Uninstall-Package Blazor.Tools.BlazorBundler
+```
+
+#Terminal console
+```
+dotnet remove package Blazor.Tools.BlazorBundler
+```
+
+There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
+
 
 ## Change Logs
 "@

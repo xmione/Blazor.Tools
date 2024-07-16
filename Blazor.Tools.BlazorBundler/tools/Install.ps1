@@ -49,6 +49,14 @@ $filesToCopy = @(
         Destination = Join-Path -Path $project -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
     },
     @{
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\js\bootstrap.bundle.min.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\js\bootstrap.bundle.min.js"
+    },
+    @{
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\js\site.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\js\site.js"
+    },
+    @{
         Source = Join-Path -Path $installPath -ChildPath "tools\Uninstall.ps1"
         Destination = Join-Path -Path $project -ChildPath "BlazorBundler\Uninstall.ps1"
     },

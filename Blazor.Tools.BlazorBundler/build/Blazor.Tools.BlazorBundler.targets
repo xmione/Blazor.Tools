@@ -27,6 +27,14 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\" />
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\js\bootstrap.bundle.min.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\js\bootstrap.bundle.min.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\js\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\js\site.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\js\site.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\js\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\Uninstall.ps1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
