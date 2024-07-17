@@ -41,42 +41,42 @@
       <PackagePath>\build\</PackagePath>
     </None>
     <!-- Add wwwroot files -->
-    <Content Include="wwwroot\blazor-bootstrap\blazor.bootstrap.css">
+    <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css">
       <Pack>true</Pack>
       <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\blazor-bootstrap\blazor.bootstrap.js">
+    <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\blazored-typeahead\blazored-typeahead.js">
+    <Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\blazored-typeahead\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\bootstrap-icons\font\bootstrap-icons.min.css">
+    <Content Include="wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bootstrap-icons\font\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff">
+    <Content Include="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2">
+    <Content Include="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\js\bootstrap.bundle.min.js">
+    <Content Include="wwwroot\bundler\js\bootstrap.bundle.min.js">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\js\site.js">
+    <Content Include="wwwroot\bundler\js\site.js">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

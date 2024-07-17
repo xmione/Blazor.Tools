@@ -178,4 +178,3 @@ window.DOMCleanup = {
         observer.observe(element, { attributes: true });
     }
 };
-
