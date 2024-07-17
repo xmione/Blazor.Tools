@@ -1,25 +1,14 @@
 ﻿@* TableGrid.razor *@
 
-@using Blazorise;
-
 @using Blazor.Tools.Components.DTSearchBox
+@using BlazorBootstrap
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Data
 
 <DTSearchBox DataTable="@_dataTable" OnFilterDataTable="HandleFilterDataTableAsync" />
 <div class="cursor-pointer border-black-10px">Test</div>
-<Icon Name="IconName.Pen" IconSize="IconSize.Large" Class="text-primary icon-button" title="Edit" onclick="EditRow"/>
 
-@*             builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", "fa fa-pencil-alt"); // Font Awesome icon class
-            builder.AddAttribute(sequence++, "Size", IconSize.Large);
-            builder.AddAttribute(sequence++, "Color", Color.Primary);
-            builder.AddAttribute(sequence++, "class", "text-primary icon-button");
-            builder.AddAttribute(sequence++, "title", "Edit");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
-            builder.CloseComponent(); *@
-<i class="bi bi-pencil-fill text-primary icon-button" title="Edit"></i>
 @if (!_renderTable)
 {
     <CascadingValue Value="@TableGridContext">
@@ -178,21 +167,21 @@ else
         if (!_isEditing || row != _editedRow)
         {
             // Edit icon
-            // <Icon Name="IconName.Pen" IconSize="IconSize.Large" Class="text-primary icon-button" title="Edit" onclick="EditRow"/>
+            // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
+            
             builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.Pen); // Font Awesome icon class
-            builder.AddAttribute(sequence++, "Size", IconSize.Large);
-            builder.AddAttribute(sequence++, "Class", "text-primary icon-button");
+            builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
             builder.AddAttribute(sequence++, "title", "Edit");
             builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
             builder.CloseComponent();
 
             // Delete icon
-            // <Icon Name="IconName.Delete" IconSize="IconSize.Large" Class="text-danger icon-button" title="Delete" onclick="DeleteRowAsync"/>
+            // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
+            
             builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.Delete); // Font Awesome icon class
-            builder.AddAttribute(sequence++, "Size", IconSize.Large);
-            builder.AddAttribute(sequence++, "Class", "text-danger icon-button");
+            builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
             builder.AddAttribute(sequence++, "title", "Delete");
             builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
             builder.CloseComponent();
@@ -200,21 +189,20 @@ else
         else
         {
             // Save icon
-            // <Icon Name="IconName.Delete" IconSize="IconSize.Large" Class="text-danger icon-button" title="Delete" onclick="SaveRowAsync"/>
+            // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
+            
             builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.Save); // Font Awesome icon class
-            builder.AddAttribute(sequence++, "Size", IconSize.Large);
-            builder.AddAttribute(sequence++, "Class", "text-success icon-button");
+            builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
             builder.AddAttribute(sequence++, "title", "Save");
             builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
             builder.CloseComponent();
 
             // Cancel icon
-            // <Icon Name="IconName.Delete" IconSize="IconSize.Large" Class="text-danger icon-button" title="Delete" onclick="SaveRowAsync"/>
+            // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
             builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.TimesCircle); // Font Awesome icon class
-            builder.AddAttribute(sequence++, "Size", IconSize.Large);
-            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button");
+            builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
             builder.AddAttribute(sequence++, "title", "Cancel");
             builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
             builder.CloseComponent();

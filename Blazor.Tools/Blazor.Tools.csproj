@@ -12,6 +12,9 @@
     <None Remove="Components\MLModels\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
+    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.0.5" />
+    <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
