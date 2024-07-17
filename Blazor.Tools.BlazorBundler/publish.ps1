@@ -20,12 +20,6 @@
 #   4.2. To build project and compose README and Change log files and publish to docker hub 
 #       and nuget.org, run:
 #
-#       .\publish -Publish $true
-#
-# 5. Process Steps:
-#   5.1. Build first then commit and push to github then finally publish:
-#       
-#       .\publish -Publish $false
 #       .\publish -Publish $true -GitComment "Update project with the latest changes"
 #
 #============================================================================================
@@ -36,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.2"
+$PackageVersion = "3.0.3"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -144,15 +138,15 @@ Add these to your <body> section:
 
 First, uninstall the package from the Nuget Package Manager, Package Manager Console or from a terminal.
 
-#Nuget Package Manager 
+### Nuget Package Manager 
 - Search Blazor.Tools.BlazorBundler and uninstall it.
 
-#Package Manager Console
+### Package Manager Console
 ```
 Uninstall-Package Blazor.Tools.BlazorBundler
 ```
 
-#Terminal console
+### Terminal console
 ```
 dotnet remove package Blazor.Tools.BlazorBundler
 ```

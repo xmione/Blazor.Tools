@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.0.2
-- **Assembly Version**: 3.0.2.0
-- **File Version**: 3.0.2.0
+- **Package Version**: 3.0.3
+- **Assembly Version**: 3.0.3.0
+- **File Version**: 3.0.3.0
 
 ## Features
 
@@ -61,15 +61,15 @@ Add these to your <body> section:
 
 First, uninstall the package from the Nuget Package Manager, Package Manager Console or from a terminal.
 
-#Nuget Package Manager 
+### Nuget Package Manager 
 - Search Blazor.Tools.BlazorBundler and uninstall it.
 
-#Package Manager Console
+### Package Manager Console
 `
 Uninstall-Package Blazor.Tools.BlazorBundler
 `
 
-#Terminal console
+### Terminal console
 `
 dotnet remove package Blazor.Tools.BlazorBundler
 `
@@ -79,4 +79,5 @@ There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
 
 ## Change Logs
 - [changelog_3.0.2.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.2.md)
+- [changelog_3.0.3.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.3.md)
 
