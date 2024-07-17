@@ -6,37 +6,41 @@
     <!-- Log some information for debugging -->
     <Message Text="Executing CustomInstall target" Importance="high" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.css')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazor-bootstrap\blazor.bootstrap.css"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\blazor.bootstrap.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazor-bootstrap\blazor.bootstrap.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazor-bootstrap\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\blazored-typeahead\blazored-typeahead.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\blazored-typeahead\blazored-typeahead.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\blazored-typeahead\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazored-typeahead\blazored-typeahead.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazored-typeahead\blazored-typeahead.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazored-typeahead\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\bootstrap-icons.min.css')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\bootstrap-icons.min.css"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bootstrap-icons\font\fonts\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\js\bootstrap.bundle.min.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\js\bootstrap.bundle.min.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\js\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\bootstrap.bundle.min.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\bootstrap.bundle.min.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\vjs\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\js\site.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\js\site.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\js\" />
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\site.js')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\site.js"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\js\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\css\bundler.css')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\Uninstall.ps1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.ps1"

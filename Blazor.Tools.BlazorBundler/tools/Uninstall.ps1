@@ -15,10 +15,7 @@ cd ..
 
 # List of directories to delete
 $directoriesToDelete = @(
-    "wwwroot\blazor-bootstrap",
-    "wwwroot\blazored-typeahead",
-    "wwwroot\bootstrap-icons",
-    "wwwroot\js",
+    "wwwroot\bundler",
     "BlazorBundler"
 )
 

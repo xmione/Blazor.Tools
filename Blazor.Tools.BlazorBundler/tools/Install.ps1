@@ -1,5 +1,4 @@
 <#
-
     # Install Blazor.Bootstrap package
     Install-NuGetPackage -packageName "Blazor.Bootstrap" -version "1.11.1"  
 #>
@@ -31,36 +30,36 @@ function Copy-FileToProject {
 # Example: Specify files to copy
 $filesToCopy = @(
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.css"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.css"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.js"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazor-bootstrap\blazor.bootstrap.js"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\blazored-typeahead\blazored-typeahead.js"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\blazored-typeahead\blazored-typeahead.js"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\blazored-typeahead\blazored-typeahead.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\blazored-typeahead\blazored-typeahead.js"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bootstrap-icons\font\bootstrap-icons.min.css"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\bootstrap-icons\font\bootstrap-icons.min.css"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\js\bootstrap.bundle.min.js"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\js\bootstrap.bundle.min.js"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\js\bootstrap.bundle.min.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\js\bootstrap.bundle.min.js"
     },
     @{
-        Source = Join-Path -Path $installPath -ChildPath "wwwroot\js\site.js"
-        Destination = Join-Path -Path $project -ChildPath "wwwroot\js\site.js"
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\js\site.js"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\js\site.js"
     },
     @{
         Source = Join-Path -Path $installPath -ChildPath "tools\Uninstall.ps1"
