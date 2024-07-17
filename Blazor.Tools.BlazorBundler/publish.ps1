@@ -95,6 +95,10 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 - **Automated Package Bundling**: Easily download and bundle multiple packages with a single command.
 - **Bootstrap Integration**: Seamlessly include Bootstrap and Bootstrap Icons in your Blazor projects.
 - **Asynchronous Downloads**: Efficiently download multiple files simultaneously for faster setup.
+- Bundle:
+    - Blazor.Bootstrap version 1.11.1
+    - Blazored.Typeahead version 4.7.0
+    - Bootstrap Icons version 1.11.3
 
 ## Installation
 

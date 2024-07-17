@@ -48,15 +48,20 @@
 
     <ItemGroup>
       <PackageReferenceToUpdate Include="Blazor.Bootstrap" Version="1.11.1" />
+      <PackageReferenceToUpdate Include="Blazor.Typeahead" Version="4.7.0" />
     </ItemGroup>
 
-    <!-- Conditionally update the package reference using findstr -->
+    <!-- Update the Blazor.Bootstrap package reference using findstr -->
     <Exec Command="dotnet list $(TargetProjectPath) package Blazor.Bootstrap | findstr /C:&quot;1.11.1=&quot;" />
-
     <Exec Command="if %errorlevel% neq 0 dotnet add $(TargetProjectPath) package Blazor.Bootstrap --version 1.11.1" />
-
-    <!-- Optionally: Log a message for successful update -->
+    <!-- Blazor.Bootstrap successful update -->
     <Message Text="Updated Blazor.Bootstrap to version 1.11.1 in $(TargetProjectPath)" Importance="high" />
+
+    <!-- Update the Blazored.Typeahead package reference using findstr -->
+    <Exec Command="dotnet list $(TargetProjectPath) package Blazored.Typeahead | findstr /C:&quot;4.7.0=&quot;" />
+    <Exec Command="if %errorlevel% neq 0 dotnet add $(TargetProjectPath) package Blazored.Typeahead --version 4.7.0" />
+    <!-- Blazored.Typeahead successful update -->
+    <Message Text="Updated Blazored.Typeahead to version 4.7.0 in $(TargetProjectPath)" Importance="high" />
     
   </Target>
 </Project>
