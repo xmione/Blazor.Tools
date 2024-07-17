@@ -30,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.3"
+$PackageVersion = "3.0.4"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -98,7 +98,7 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 
 You can install BlazorBundler via NuGet Package Manager, Package Manager Console or from a terminal:
 
-#Nuget Package Manager
+### Nuget Package Manager
 - Search for Blazor.Tools.BlazorBundler in nuget.org.
 
 
@@ -106,12 +106,12 @@ You can install BlazorBundler via NuGet Package Manager, Package Manager Console
 dotnet add package Blazor.Tools.BlazorBundler
 ```
 
-#Package Manager Console
+### Package Manager Console
 ```
 Install-Package Blazor.Tools.BlazorBundler
 ```
 
-#Terminal console
+### Terminal console
 ```
 dotnet add package Blazor.Tools.BlazorBundler
 ```
