@@ -178,6 +178,10 @@ foreach ($file in $changeLogFiles) {
 $readmePath = "README.md"
 Set-Content -Path $readmePath -Value $readmeContent
 
+# Save updated readme.txt
+$readmePath = "readme.txt"
+Set-Content -Path $readmePath -Value $readmeContent
+
 <# Run the following codes only if boolean parameter Publish is true #>
 if($Publish -eq $true)
 {
