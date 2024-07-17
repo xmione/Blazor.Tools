@@ -5,10 +5,13 @@ param(
     )
 Write-Host "Executing CustomUninstall script"
 
+$scriptsourceDir = Get-Item -Path (Get-Location)
+
+# Get the parent directory of the current directory
+$projectDir = Split-Path -Path $scriptsourceDir.FullName -Parent
+
 # Go one parent folder up first before deleting
 cd ..
-
-$projectDir = Get-Location
 
 # List of directories to delete
 $directoriesToDelete = @(

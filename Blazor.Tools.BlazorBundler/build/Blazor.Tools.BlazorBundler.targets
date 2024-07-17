@@ -1,4 +1,7 @@
 <Project>
+  <PropertyGroup>
+    <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
+  </PropertyGroup>
   <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
     <!-- Log some information for debugging -->
     <Message Text="Executing CustomInstall target" Importance="high" />
@@ -43,5 +46,17 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
+    <ItemGroup>
+      <PackageReferenceToUpdate Include="Blazor.Bootstrap" Version="1.11.1" />
+    </ItemGroup>
+
+    <!-- Conditionally update the package reference using findstr -->
+    <Exec Command="dotnet list $(TargetProjectPath) package Blazor.Bootstrap | findstr /C:&quot;1.11.1=&quot;" />
+
+    <Exec Command="if %errorlevel% neq 0 dotnet add $(TargetProjectPath) package Blazor.Bootstrap --version 1.11.1" />
+
+    <!-- Optionally: Log a message for successful update -->
+    <Message Text="Updated Blazor.Bootstrap to version 1.11.1 in $(TargetProjectPath)" Importance="high" />
+    
   </Target>
 </Project>

@@ -1,3 +1,9 @@
+<#
+
+    # Install Blazor.Bootstrap package
+    Install-NuGetPackage -packageName "Blazor.Bootstrap" -version "1.11.1"  
+#>
+
 param($installPath, $toolsPath, $package, $project)
 
 function Copy-FileToProject {
@@ -69,4 +75,16 @@ $filesToCopy = @(
 # Loop through files and copy each to the project
 foreach ($file in $filesToCopy) {
     Copy-FileToProject -SourcePath $file['Source'] -DestinationPath $file['Destination']
+}
+
+# Install NuGet packages
+function Install-NuGetPackage {
+    param(
+        [string]$packageName,
+        [string]$version
+    )
+
+    $dotnetArgs = "add package $packageName --version $version"
+    Write-Host "Running: dotnet $dotnetArgs"
+    dotnet $dotnetArgs
 }
