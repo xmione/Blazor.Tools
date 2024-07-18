@@ -1,0 +1,140 @@
+# Step-by-step instruction on how to add a Nuget Local Resource.
+1. Create a packages folder and add your .nupkg files there.
+2. In the packages folder, create an index.json file and create the list.
+	Example:
+        {
+          "versions": [
+            {
+              "version": "8.0.0",
+              "id": "aspire.hosting.apphost",
+              "path": "aspire.hosting.apphost.8.0.0.nupkg"
+            },
+            {
+              "version": "1.11.1",
+              "id": "blazor.bootstrap",
+              "path": "blazor.bootstrap.1.11.1.nupkg"
+            },
+            {
+              "version": "4.7.0",
+              "id": "blazored.typeahead",
+              "path": "blazored.typeahead.4.7.0.nupkg"
+            },
+            {
+              "version": "2.1.35",
+              "id": "dapper",
+              "path": "dapper.2.1.35.nupkg"
+            },
+            {
+              "version": "1.11.61",
+              "id": "htmlagilitypack",
+              "path": "htmlagilitypack.1.11.61.nupkg"
+            },
+            {
+              "version": "8.0.6",
+              "id": "microsoft.aspnetcore.components.web.8.0.6",
+              "path": "microsoft.aspnetcore.components.web.8.0.6.nupkg"
+            },
+            {
+              "version": "8.0.6",
+              "id": "microsoft.aspnetcore.diagnostics.entityframeworkcore",
+              "path": "microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.6.nupkg"
+            },
+            {
+              "version": "8.0.6",
+              "id": "microsoft.aspnetcore.identity.entityframeworkcore",
+              "path": "microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg"
+            },
+            {
+              "version": "17.10.4",
+              "id": "microsoft.build",
+              "path": "microsoft.build.17.10.4.nupkg"
+            },
+            {
+              "version": "8.0.6",
+              "id": "microsoft.entityframeworkcore.sqlserver",
+              "path": "microsoft.entityframeworkcore.sqlserver.8.0.6.nupkg"
+            },
+            {
+              "version": "8.0.6",
+              "id": "microsoft.entityframeworkcore.tools",
+              "path": "microsoft.entityframeworkcore.tools.8.0.6.nupkg"
+            },
+            {
+              "version": "8.3.0",
+              "id": "microsoft.extensions.http.resilience",
+              "path": "microsoft.extensions.http.resilience.8.3.0.nupkg"
+            },
+            {
+              "version": "8.0.0",
+              "id": "microsoft.extensions.servicediscovery",
+              "path": "microsoft.extensions.servicediscovery.8.0.0.nupkg"
+            },
+            {
+              "version": "3.0.1",
+              "id": "microsoft.ml",
+              "path": "microsoft.ml.3.0.1.nupkg"
+            },
+            {
+              "version": "1.21.0",
+              "id": "microsoft.visualstudio.azure.containers.tools.targets",
+              "path": "microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg"
+            },
+            {
+              "version": "13.0",
+              "id": "newtonsoft.json",
+              "path": "newtonsoft.json.13.0.3.nupkg"
+            },
+            {
+              "version": "1.8.1",
+              "id": "opentelemetry.exporter.opentelemetryprotocol",
+              "path": "opentelemetry.exporter.opentelemetryprotocol.1.8.1.nupkg"
+            },
+            {
+              "version": "1.8.1",
+              "id": "opentelemetry.extensions.hosting",
+              "path": "opentelemetry.extensions.hosting.1.8.1.nupkg"
+            },
+            {
+              "version": "1.8.1",
+              "id": "opentelemetry.instrumentation.aspnetcore",
+              "path": "opentelemetry.instrumentation.aspnetcore.1.8.1.nupkg"
+            },
+            {
+              "version": "1.8.1",
+              "id": "opentelemetry.instrumentation.http",
+              "path": "opentelemetry.instrumentation.http.1.8.1.nupkg"
+            },
+            {
+              "version": "1.8.0",
+              "id": "opentelemetry.instrumentation.runtime",
+              "path": "opentelemetry.instrumentation.runtime.1.8.0.nupkg"
+            },
+            {
+              "version": "4.8.6",
+              "id": "system.data.sqlclient",
+              "path": "system.data.sqlclient.4.8.6.nupkg"
+            }
+          ]
+        }
+
+3. Check first your nuget sources list in the PowerShell terminal.
+    Run:
+        nuget sources list
+
+4. If it is already there, you can create a new one or remove the existing one. 
+    To remove, run:
+        nuget sources remove -Name "Unique Name for your local resource"
+        nuget sources remove -Name "BlazorBundlerPackages"
+
+5. If it is not there, add it.
+    Run:
+        nuget sources add -Name "Unique Name for your local resource" -Source "path\to\your\packages"
+        nuget sources add -Name "BlazorBundlerPackages" -Source "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\packages"
+
+6. Check if it is already there. 
+    Run:
+        nuget sources list
+
+7. If it is already there, you can add your local nuget package to any project now.
+    Run:
+        

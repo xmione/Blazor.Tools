@@ -16,6 +16,7 @@
     <None Remove="wwwroot\bundler\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="blazor.bootstrap" Version="1.11.1" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />

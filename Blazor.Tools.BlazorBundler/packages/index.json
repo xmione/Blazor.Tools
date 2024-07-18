@@ -26,14 +26,39 @@
       "path": "htmlagilitypack.1.11.61.nupkg"
     },
     {
-      "version": "8.0.6",
-      "id": "microsoft.aspnetcore.diagnostics.entityframeworkcore",
-      "path": "microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.6.nupkg"
+      "version": "6.0.26",
+      "id": "microsoft.aspnetcore.components",
+      "path": "microsoft.aspnetcore.components.6.0.26.nupkg"
+    },
+    {
+      "version": "6.0.26",
+      "id": "microsoft.aspnetcore.components.analyzers",
+      "path": "microsoft.aspnetcore.components.analyzers.6.0.26.nupkg"
+    },
+    {
+      "version": "6.0.26",
+      "id": "microsoft.aspnetcore.authorization",
+      "path": "microsoft.aspnetcore.authorization.6.0.26.nupkg"
+    },
+    {
+      "version": "6.0.26",
+      "id": "microsoft.aspnetcore.components.forms",
+      "path": "microsoft.aspnetcore.components.forms.6.0.26.nupkg"
+    },
+    {
+      "version": "6.0.26",
+      "id": "microsoft.aspnetcore.components.web",
+      "path": "microsoft.aspnetcore.components.web.6.0.26.nupkg"
     },
     {
       "version": "8.0.6",
       "id": "microsoft.aspnetcore.identity.entityframeworkcore",
       "path": "microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg"
+    },
+    {
+      "version": "6.0.26",
+      "id": "microsoft.aspnetcore.metadata",
+      "path": "microsoft.aspnetcore.metadata.6.0.26.nupkg"
     },
     {
       "version": "17.10.4",
@@ -51,6 +76,11 @@
       "path": "microsoft.entityframeworkcore.tools.8.0.6.nupkg"
     },
     {
+      "version": "6.0.1",
+      "id": "microsoft.extensions.dependencyinjection",
+      "path": "microsoft.extensions.dependencyinjection.6.0.1.nupkg"
+    },
+    {
       "version": "8.3.0",
       "id": "microsoft.extensions.http.resilience",
       "path": "microsoft.extensions.http.resilience.8.3.0.nupkg"
@@ -59,6 +89,11 @@
       "version": "8.0.0",
       "id": "microsoft.extensions.servicediscovery",
       "path": "microsoft.extensions.servicediscovery.8.0.0.nupkg"
+    },
+    {
+      "version": "6.0.26",
+      "id": "microsoft.jsinterop",
+      "path": "microsoft.jsinterop.6.0.26.nupkg"
     },
     {
       "version": "3.0.1",
