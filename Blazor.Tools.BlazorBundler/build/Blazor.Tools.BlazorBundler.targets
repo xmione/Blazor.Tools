@@ -1,6 +1,8 @@
 <Project>
   <PropertyGroup>
     <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
+    <PackagePath>$(NuGetPackageRoot)blazor.tools.blazorbundler\3.0.5\packages</PackagePath>
+    <ToolsPath>$(NuGetPackageRoot)blazor.tools.blazorbundler\3.0.5\tools</ToolsPath>
   </PropertyGroup>
   <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
     <!-- Log some information for debugging -->
@@ -32,7 +34,7 @@
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\bootstrap.bundle.min.js')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\bootstrap.bundle.min.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\vjs\" />
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\js\" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\site.js')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\site.js"
@@ -42,6 +44,10 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\install-nupkg.ps1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\Uninstall.ps1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
@@ -50,7 +56,7 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <ItemGroup>
+    <!--<ItemGroup>
       <PackageReferenceToUpdate Include="Blazor.Bootstrap" Version="1.11.1" />
       <PackageReferenceToUpdate Include="Blazor.Typeahead" Version="4.7.0" />
     </ItemGroup>
@@ -58,7 +64,12 @@
     <UpdatePackageReference
       Condition="!Exists('$(MSBuildProjectDirectory)\obj\$(MSBuildProjectName).csproj.nuget.g.props')"
       PackageReference="@(PackageReferenceToUpdate)"
-      ProjectPath="$(MSBuildProjectFullPath)" />
-   
+      ProjectPath="$(MSBuildProjectFullPath)" />-->
+
+    <!-- Invoke PowerShell script to install the package -->
+    <Message Text="Executing PowerShell command for blazor.bootstrap package..." Importance="high" />
+    <Message Text="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePath &quot;$(PackagePath)\blazor.bootstrap.1.11.1.nupkg&quot;" Importance="high" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePath &quot;$(PackagePath)\blazor.bootstrap.1.11.1.nupkg&quot;" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePath &quot;$(PackagePath)\blazored.typeahead.4.7.0.nupkg&quot;" />
   </Target>
 </Project>

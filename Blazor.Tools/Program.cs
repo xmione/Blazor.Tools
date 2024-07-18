@@ -14,7 +14,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
         // Configure Blazorise with existing registrations
-        builder.Services.AddBlazorBootstrap();
+        //builder.Services.AddBlazorBootstrap();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()

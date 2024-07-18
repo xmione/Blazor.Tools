@@ -27,67 +27,78 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Content files to be included in the NuGet package -->
-    <None Include="icon.png">
+    <!-- None items in the root -->
+    <None Include="changelog_*.md;readme.txt;icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Update="changelog_*.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+
+    <!-- Add README.md -->
+    <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
     </None>
+    
     <!-- None item for MSBuild targets file -->
     <None Include="build\Blazor.Tools.BlazorBundler.targets">
       <Pack>True</Pack>
       <PackagePath>\build\</PackagePath>
     </None>
-    <!-- Add wwwroot files -->
-    <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css">
-      <Pack>true</Pack>
-      <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js">
+
+    <!-- None items in the packages folder -->
+    <None Include="packages/*.nupkg">
       <Pack>True</Pack>
-      <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
+      <PackagePath>\packages\</PackagePath>
+    </None>
+    
+    <!-- None items in the tools folder -->
+    <None Include="tools/Install.ps1; tools/install-nupkg.ps1">
       <Pack>True</Pack>
-      <PackagePath>\wwwroot\blazored-typeahead\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bootstrap-icons\font\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\js\bootstrap.bundle.min.js">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\js\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\bundler\js\site.js">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\js\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="tools\Uninstall.ps1">
+      <PackagePath>\tools\</PackagePath>
+    </None>
+    
+    <!-- Add Uninstall.ps1 -->
+    <Content Include="tools/Uninstall.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </Content>
-    <Content Include="README.md">
+    
+    <!-- Add blazor-bootstrap files -->
+    <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.*">
+      <Pack>true</Pack>
+      <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <!-- Add blazored-typeahead files -->
+    <Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>\wwwroot\bundler\blazored-typeahead\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    
+    <!-- Add bootstrap-icons files -->
+    <Content Include="wwwroot\bundler\bootstrap-icons\**\*">
+      <Pack>True</Pack>
+      <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <!-- Add the bundler.css file-->
+    <Content Include="wwwroot\bundler\css\bundler.css">
+      <Pack>True</Pack>
+      <PackagePath>\wwwroot\bundler\css\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <!-- Add files in the js folder-->
+    <Content Include="wwwroot\bundler\js\*.js">
+      <Pack>True</Pack>
+      <PackagePath>\wwwroot\bundler\js\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <Target Name="CustomPack" AfterTargets="Build">
+    <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
+  </Target>
 </Project>

@@ -62,6 +62,10 @@ $filesToCopy = @(
         Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\js\site.js"
     },
     @{
+        Source = Join-Path -Path $installPath -ChildPath "wwwroot\bundler\css\bundler.css"
+        Destination = Join-Path -Path $project -ChildPath "wwwroot\bundler\css\bundler.css"
+    },
+    @{
         Source = Join-Path -Path $installPath -ChildPath "tools\Uninstall.ps1"
         Destination = Join-Path -Path $project -ChildPath "BlazorBundler\Uninstall.ps1"
     },

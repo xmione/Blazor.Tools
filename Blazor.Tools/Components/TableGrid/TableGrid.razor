@@ -1,7 +1,7 @@
 ﻿@* TableGrid.razor *@
 
 @using Blazor.Tools.Components.DTSearchBox
-@using BlazorBootstrap
+@* @using BlazorBootstrap *@
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Data
@@ -163,49 +163,49 @@ else
         builder.OpenElement(sequence++, "td");
         builder.AddAttribute(sequence++, "class", "icons-td");
 
-        if (!_isEditing || row != _editedRow)
-        {
-            // Edit icon
-            // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
+        // if (!_isEditing || row != _editedRow)
+        // {
+        //     // Edit icon
+        //     // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
             
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Edit");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
-            builder.CloseComponent();
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Edit");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
+        //     builder.CloseComponent();
 
-            // Delete icon
-            // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
+        //     // Delete icon
+        //     // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
             
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Delete");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
-            builder.CloseComponent();
-        }
-        else
-        {
-            // Save icon
-            // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Delete");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
+        //     builder.CloseComponent();
+        // }
+        // else
+        // {
+        //     // Save icon
+        //     // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
             
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Save");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
-            builder.CloseComponent();
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Save");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
+        //     builder.CloseComponent();
 
-            // Cancel icon
-            // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Cancel");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
-            builder.CloseComponent();
-        }
+        //     // Cancel icon
+        //     // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Cancel");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
+        //     builder.CloseComponent();
+        // }
 
         builder.CloseElement();
 

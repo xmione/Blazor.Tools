@@ -7,16 +7,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Components\MLModels\**" />
+    <Compile Remove="wwwroot\bundler\**" />
     <Content Remove="Components\MLModels\**" />
+    <Content Remove="wwwroot\bundler\**" />
     <EmbeddedResource Remove="Components\MLModels\**" />
+    <EmbeddedResource Remove="wwwroot\bundler\**" />
     <None Remove="Components\MLModels\**" />
+    <None Remove="wwwroot\bundler\**" />
   </ItemGroup>
   <ItemGroup>
-    <Content Remove="wwwroot\bundler\css\bundler.css" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
-    <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
@@ -35,51 +34,8 @@
     <Folder Include="MLModels\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="wwwroot\bundler\css\bundler.css" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Update="Components\Pages\TestTableGrid.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Update="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css">
-      <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>true</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js">
-      <PackagePath>\wwwroot\blazor-bootstrap\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
-      <PackagePath>\wwwroot\blazored-typeahead\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css">
-      <PackagePath>\wwwroot\bootstrap-icons\font\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff">
-      <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2">
-      <PackagePath>\wwwroot\bootstrap-icons\font\fonts\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\js\bootstrap.bundle.min.js">
-      <PackagePath>\wwwroot\js\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-    </Content>
-    <Content Update="wwwroot\bundler\js\site.js">
-      <PackagePath>\wwwroot\js\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
     </Content>
   </ItemGroup>
   <ItemGroup>
