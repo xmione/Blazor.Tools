@@ -1,12 +1,18 @@
 <Project>
   <PropertyGroup>
-    <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
+    <BlazorBundlerPackageName Condition="'$(PackageId)' != ''">$(PackageId)</BlazorBundlerPackageName>
+    <BlazorBundlerPackageVersion Condition="'$(Version)' != ''">$(Version)</BlazorBundlerPackageVersion>
+    <!--<PackagePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\packages</PackagePath>
+    <ToolsPath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\tools</ToolsPath>-->
     <PackagePath>$(NuGetPackageRoot)blazor.tools.blazorbundler\3.0.5\packages</PackagePath>
     <ToolsPath>$(NuGetPackageRoot)blazor.tools.blazorbundler\3.0.5\tools</ToolsPath>
   </PropertyGroup>
   <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
     <!-- Log some information for debugging -->
     <Message Text="Executing CustomInstall target" Importance="high" />
+    <Message Text="Using Nuget Package Root: $(NuGetPackageRoot)" Importance="high" />
+    <Message Text="Using BlazorBundler version: $(BlazorBundlerPackageVersion)" Importance="high" />
+    <Message Text="Using BlazorBundler package name: $(BlazorBundlerPackageName)" Importance="high" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
@@ -66,10 +72,23 @@
       PackageReference="@(PackageReferenceToUpdate)"
       ProjectPath="$(MSBuildProjectFullPath)" />-->
 
-    <!-- Invoke PowerShell script to install the package -->
-    <Message Text="Executing PowerShell command for blazor.bootstrap package..." Importance="high" />
-    <Message Text="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePath &quot;$(PackagePath)\blazor.bootstrap.1.11.1.nupkg&quot;" Importance="high" />
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePath &quot;$(PackagePath)\blazor.bootstrap.1.11.1.nupkg&quot;" />
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePath &quot;$(PackagePath)\blazored.typeahead.4.7.0.nupkg&quot;" />
+    <!-- Define the list of package files to install -->
+    <ItemGroup>
+      <PackageFile Include="$(PackagePath)\blazor.bootstrap.1.11.1.nupkg" />
+      <PackageFile Include="$(PackagePath)\blazored.typeahead.4.7.0.nupkg" />
+      <PackageFile Include="$(PackagePath)\dapper.2.1.35.nupkg" />
+      <PackageFile Include="$(PackagePath)\htmlagilitypack.1.11.61.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.6.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.build.17.10.4.nupkg.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.entityframeworkcore.sqlserver.8.0.6.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.entityframeworkcore.tools.8.0.6.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.ml.3.0.1.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg" />
+      <PackageFile Include="$(PackagePath)\newtonsoft.json.13.0.3.nupkg" />
+    </ItemGroup>
+
+    <!-- Invoke PowerShell script to install all packages -->
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)'" />
   </Target>
 </Project>
