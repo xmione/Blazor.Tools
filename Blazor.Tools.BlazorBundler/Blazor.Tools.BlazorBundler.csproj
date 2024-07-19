@@ -46,7 +46,7 @@
     </None>
     
     <!-- None items in the tools folder -->
-    <None Include="tools/Install.ps1; tools/install-nupkg.ps1">
+    <None Include=" tools/install-nupkg.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
