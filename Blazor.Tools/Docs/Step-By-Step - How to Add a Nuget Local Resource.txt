@@ -117,8 +117,10 @@
           ]
         }
 
-3. Check first your nuget sources list in the PowerShell terminal.
+3. Check first your nuget sources list in the PowerShell terminal. 
+    Note: nuget locals all -clear clears out all your global packages.
     Run:
+        nuget locals all -clear 
         nuget sources list
 
 4. If it is already there, you can create a new one or remove the existing one. 
@@ -138,3 +140,11 @@
 7. If it is already there, you can add your local nuget package to any project now.
     Run:
         
+        # dotnet add package $PackagePath --version $Version --source $SourcePath
+        dotnet add package blazor.bootstrap --version 1.11.1 --source "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\packages"
+        
+        # Example usage: See the Blazor.Tools.BlazorBundler.targets file. At the bottom part of the file you will see the command:
+        <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />
+
+        # It is basically running this command:
+        .\install-nupkg -PackagePaths -SourcePath -TargetProjectPath
