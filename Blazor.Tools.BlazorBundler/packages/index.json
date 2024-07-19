@@ -111,6 +111,11 @@
       "path": "newtonsoft.json.13.0.3.nupkg"
     },
     {
+      "version": "6.10.1",
+      "id": "nuget.build.tasks.pack",
+      "path": "nuget.build.tasks.pack.6.10.1.nupkg"
+    },
+    {
       "version": "1.8.1",
       "id": "opentelemetry.exporter.opentelemetryprotocol",
       "path": "opentelemetry.exporter.opentelemetryprotocol.1.8.1.nupkg"

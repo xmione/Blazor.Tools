@@ -4,13 +4,15 @@
     <BlazorBundlerPackageVersion>3.0.5</BlazorBundlerPackageVersion>
     <PackagePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\packages</PackagePath>
     <ToolsPath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\tools</ToolsPath>
+    <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
   </PropertyGroup>
   <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
     <!-- Log some information for debugging -->
     <Message Text="Executing CustomInstall target" Importance="high" />
-    <Message Text="Using Nuget Package Root: $(NuGetPackageRoot)" Importance="high" />
-    <Message Text="Using BlazorBundler version: $(BlazorBundlerPackageVersion)" Importance="high" />
-    <Message Text="Using BlazorBundler package name: $(BlazorBundlerPackageName)" Importance="high" />
+    <Message Text="Nuget Package Root: $(NuGetPackageRoot)" Importance="high" />
+    <Message Text="BlazorBundler version: $(BlazorBundlerPackageVersion)" Importance="high" />
+    <Message Text="BlazorBundler package name: $(BlazorBundlerPackageName)" Importance="high" />
+    <Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
@@ -87,7 +89,7 @@
     </ItemGroup>
 
     <!-- Invoke PowerShell script to install all packages -->
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot;" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />
 
 </Target>
 </Project>
