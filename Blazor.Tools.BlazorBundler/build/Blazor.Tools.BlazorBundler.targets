@@ -13,6 +13,7 @@
     <Message Text="BlazorBundler version: $(BlazorBundlerPackageVersion)" Importance="high" />
     <Message Text="BlazorBundler package name: $(BlazorBundlerPackageName)" Importance="high" />
     <Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
+    <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="high" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"

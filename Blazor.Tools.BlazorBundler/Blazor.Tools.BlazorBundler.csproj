@@ -71,7 +71,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     
-    <!-- Add bootstrap-icons files -->
+    <!-- Add bootstrap-icons files --> 
     <Content Include="wwwroot\bundler\bootstrap-icons\**\*">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
@@ -84,14 +84,15 @@
       <PackagePath>\wwwroot\bundler\css\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-
     <!-- Add files in the js folder-->
     <Content Include="wwwroot\bundler\js\*.js">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    
   </ItemGroup>
+  
   <Target Name="CustomPack" AfterTargets="Build">
     <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
   </Target>
