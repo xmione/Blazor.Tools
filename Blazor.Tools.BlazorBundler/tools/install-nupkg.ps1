@@ -1,37 +1,59 @@
 ﻿param (
-    [string]$PackagePath,
+    [string]$PackagePaths,
+    [string]$SourcePath,
+    [string]$SourceName = "BlazorBundlerPackages",
     [string]$DestinationPath = "$env:ProgramFiles\NuGet\Packages"
 )
 
-try {
-    # Ensure PackageManagement and NuGet provider are available
-    if (-not (Get-Module -ListAvailable -Name PackageManagement)) {
-        Write-Host "Installing PackageManagement module..."
-        Install-Module -Name PackageManagement -Force -SkipPublisherCheck
-    }
+# Convert the semicolon-separated paths into an array
+$PackagePathsArray = $PackagePaths -split ';'
 
-    # This is not needed for local nuget packages
-    <#
-        if (-not (Get-PackageSource -Name 'Nuget.org')) {
-            Write-Host "Registering Nuget.org package source..."
-            Register-PackageSource -Name Nuget.org -ProviderName NuGet -Location "https://api.nuget.org/v3/index.json"
-        }
-    #>
-
-    # Ensure the destination directory exists
-    if (-not (Test-Path -Path $DestinationPath)) {
-        Write-Host "Creating destination directory: $DestinationPath"
-        New-Item -ItemType Directory -Path $DestinationPath -Force
-    }
-
-    cls
-    Write-Host "Starting installation of package from $PackagePath to $DestinationPath"
-
-    # Install the package
-    Install-Package -Source $PackagePath -DestinationPath $DestinationPath -ProviderName NuGet -Force
-    
-    Write-Host "Completed the installation of package: $PackagePath"
-} catch {
-    Write-Error "An error occurred during the package installation: $_"
-    exit 1
+Write-Host "PackagePathsArray: $PackagePathsArray"
+# Ensure the destination directory exists
+if (-not (Test-Path -Path $DestinationPath)) {
+    New-Item -ItemType Directory -Path $DestinationPath -Force
 }
+
+Write-Host "SourcePath: $SourcePath"
+# Check if the NuGet source already exists
+#$existingSource = nuget sources list | ForEach-Object { $_.Trim() } | Where-Object { $_ -eq $SourcePath }
+
+#if (-not $existingSource) {
+#    Write-Host "Adding NuGet source $SourceName..."
+#    nuget sources add -Name $SourceName -Source $SourcePath
+#} else {
+#    Write-Host "NuGet source $SourceName already exists."
+#}
+
+foreach ($packagePath in $PackagePathsArray) {
+    Write-Host "PackagePath: $packagePath"
+
+    # Extract the package name and version from the package path using regex
+    $packageFileName = [System.IO.Path]::GetFileNameWithoutExtension($packagePath)
+     if ($packageFileName -match '^(.*?)(?:\.|$)(\d+\.\d+\.\d+.*)$') {
+        $packageName = $matches[1]
+        $packageVersion = $matches[2]
+    } else {
+        Write-Error "Invalid package file name format: $packageFileName"
+        continue
+    }
+
+    # Install the package using dotnet CLI
+    # dotnet add package blazor.bootstrap --version 1.11.1 --source "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\packages"
+    # dotnet add package $PackagePath --version $Version --source $SourcePath
+    Write-Host "Installing package $packageName version $packageVersion from source $SourcePath..."
+    dotnet add package $packageName --version $packageVersion --source $SourcePath
+}
+
+ # Pause after each package installation
+ # Read-Host "Press Enter to continue to the next package"
+
+<# No need to do this but I'm gonna keep this code for future use
+    # Remove the NuGet source only if it was added by this script
+    if (-not $existingSource) {
+        Write-Host "Removing NuGet source $SourceName..."
+        nuget sources remove -Name $SourceName
+    }
+#>
+
+Write-Host "Completed the installation of $SourcePath package"

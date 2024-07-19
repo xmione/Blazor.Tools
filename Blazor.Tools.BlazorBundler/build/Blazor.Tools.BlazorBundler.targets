@@ -1,11 +1,9 @@
 <Project>
   <PropertyGroup>
-    <BlazorBundlerPackageName Condition="'$(PackageId)' != ''">$(PackageId)</BlazorBundlerPackageName>
-    <BlazorBundlerPackageVersion Condition="'$(Version)' != ''">$(Version)</BlazorBundlerPackageVersion>
-    <!--<PackagePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\packages</PackagePath>
-    <ToolsPath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\tools</ToolsPath>-->
-    <PackagePath>$(NuGetPackageRoot)blazor.tools.blazorbundler\3.0.5\packages</PackagePath>
-    <ToolsPath>$(NuGetPackageRoot)blazor.tools.blazorbundler\3.0.5\tools</ToolsPath>
+    <BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
+    <BlazorBundlerPackageVersion>3.0.5</BlazorBundlerPackageVersion>
+    <PackagePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\packages</PackagePath>
+    <ToolsPath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)\tools</ToolsPath>
   </PropertyGroup>
   <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
     <!-- Log some information for debugging -->
@@ -80,7 +78,7 @@
       <PackageFile Include="$(PackagePath)\htmlagilitypack.1.11.61.nupkg" />
       <PackageFile Include="$(PackagePath)\microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.6.nupkg" />
       <PackageFile Include="$(PackagePath)\microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.build.17.10.4.nupkg.nupkg" />
+      <PackageFile Include="$(PackagePath)\microsoft.build.17.10.4.nupkg" />
       <PackageFile Include="$(PackagePath)\microsoft.entityframeworkcore.sqlserver.8.0.6.nupkg" />
       <PackageFile Include="$(PackagePath)\microsoft.entityframeworkcore.tools.8.0.6.nupkg" />
       <PackageFile Include="$(PackagePath)\microsoft.ml.3.0.1.nupkg" />
@@ -89,6 +87,7 @@
     </ItemGroup>
 
     <!-- Invoke PowerShell script to install all packages -->
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)'" />
-  </Target>
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot;" />
+
+</Target>
 </Project>
