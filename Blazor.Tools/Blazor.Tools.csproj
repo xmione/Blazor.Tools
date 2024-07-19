@@ -6,16 +6,6 @@
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Components\MLModels\**" />
-    <Compile Remove="wwwroot\bundler\**" />
-    <Content Remove="Components\MLModels\**" />
-    <Content Remove="wwwroot\bundler\**" />
-    <EmbeddedResource Remove="Components\MLModels\**" />
-    <EmbeddedResource Remove="wwwroot\bundler\**" />
-    <None Remove="Components\MLModels\**" />
-    <None Remove="wwwroot\bundler\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
