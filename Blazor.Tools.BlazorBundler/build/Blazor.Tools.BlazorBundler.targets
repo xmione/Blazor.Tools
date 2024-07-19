@@ -19,7 +19,7 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js')"
+    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
@@ -49,7 +49,7 @@
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\css\bundler.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
+          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />-->
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\install-nupkg.ps1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
@@ -74,7 +74,7 @@
       ProjectPath="$(MSBuildProjectFullPath)" />-->
 
     <!-- Define the list of package files to install -->
-    <ItemGroup>
+    <!--<ItemGroup>
       <PackageFile Include="$(PackagePath)\blazor.bootstrap.1.11.1.nupkg" />
       <PackageFile Include="$(PackagePath)\blazored.typeahead.4.7.0.nupkg" />
       <PackageFile Include="$(PackagePath)\dapper.2.1.35.nupkg" />
@@ -87,10 +87,10 @@
       <PackageFile Include="$(PackagePath)\microsoft.ml.3.0.1.nupkg" />
       <PackageFile Include="$(PackagePath)\microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg" />
       <PackageFile Include="$(PackagePath)\newtonsoft.json.13.0.3.nupkg" />
-    </ItemGroup>
+    </ItemGroup>-->
 
     <!-- Invoke PowerShell script to install all packages -->
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />
+    <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
 
 </Target>
 </Project>
