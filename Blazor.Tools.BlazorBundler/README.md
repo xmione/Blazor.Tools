@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.0.5
-- **Assembly Version**: 3.0.5.0
-- **File Version**: 3.0.5.0
+- **Package Version**: 3.0.6
+- **Assembly Version**: 3.0.6.0
+- **File Version**: 3.0.6.0
 
 ## Features
 
@@ -15,7 +15,18 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 - Bundle:
     - Blazor.Bootstrap version 1.11.1
     - Blazored.Typeahead version 4.7.0
+    - Bogus version 35.6.0
     - Bootstrap Icons version 1.11.3
+    - Dapper version 2.1.35
+    - HtmlAgilityPack version 1.11.61
+    - Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore version 8.0.6
+    - Microsoft.AspNetCore.Identity.EntityFrameworkCore version 8.0.6
+    - Microsoft.Build version 17.10.4
+    - Microsoft.EntityFrameworkCore.SqlServer version 8.0.6
+    - Microsoft.EntityFrameworkCore.Tools version 8.0.6
+    - Microsoft.ML version 3.0.1
+    - Microsoft.VisualStudio.Azure.Containers.Tools.Targets version 1.21.0
+    - Newtonsoft.Json version 13.0.3    
 
 ## Installation
 
@@ -86,4 +97,5 @@ There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
 
 ## Change Logs
 - [changelog_3.0.5.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.5.md)
+- [changelog_3.0.6.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.6.md)
 

@@ -30,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.5"
+$PackageVersion = "3.0.6"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -56,11 +56,7 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Added js folder with these files in wwwroot folder:
-    bootstrap.bundle.min.js
-    site.js
-
-- Added cleanup scripts to uninstall files and remove them from the .csproj file
+- Added Bogus nuget package
 
 ### Revisions
 - None.
@@ -92,7 +88,18 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 - Bundle:
     - Blazor.Bootstrap version 1.11.1
     - Blazored.Typeahead version 4.7.0
+    - Bogus version 35.6.0
     - Bootstrap Icons version 1.11.3
+    - Dapper version 2.1.35
+    - HtmlAgilityPack version 1.11.61
+    - Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore version 8.0.6
+    - Microsoft.AspNetCore.Identity.EntityFrameworkCore version 8.0.6
+    - Microsoft.Build version 17.10.4
+    - Microsoft.EntityFrameworkCore.SqlServer version 8.0.6
+    - Microsoft.EntityFrameworkCore.Tools version 8.0.6
+    - Microsoft.ML version 3.0.1
+    - Microsoft.VisualStudio.Azure.Containers.Tools.Targets version 1.21.0
+    - Newtonsoft.Json version 13.0.3    
 
 ## Installation
 
