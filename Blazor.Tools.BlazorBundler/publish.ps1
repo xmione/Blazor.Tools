@@ -30,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.4"
+$PackageVersion = "3.0.5"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY

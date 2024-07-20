@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.0.4
-- **Assembly Version**: 3.0.4.0
-- **File Version**: 3.0.4.0
+- **Package Version**: 3.0.5
+- **Assembly Version**: 3.0.5.0
+- **File Version**: 3.0.5.0
 
 ## Features
 
@@ -38,6 +38,13 @@ Install-Package Blazor.Tools.BlazorBundler
 `
 dotnet add package Blazor.Tools.BlazorBundler
 `
+
+## Install Pre-requesites
+Note: After installing the package, you have to manually run the Install.ps1 file to install required nuget packages.
+
+In the BlazorBundler folder, run: 
+    .\Install.ps1 -SourcePath "C:\Users\{user}\.nuget\packages\blazor.tools.blazorbundler\{version}" -TargetProjectPath "{TargetProjectPath}"
+    .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
 
 ## Setup your App.razor stylesheets and javascripts
 
@@ -78,7 +85,5 @@ There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
 
 
 ## Change Logs
-- [changelog_3.0.2.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.2.md)
-- [changelog_3.0.3.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.3.md)
-- [changelog_3.0.4.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.4.md)
+- [changelog_3.0.5.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.5.md)
 
