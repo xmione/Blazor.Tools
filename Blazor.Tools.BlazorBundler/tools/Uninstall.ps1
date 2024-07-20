@@ -10,9 +10,6 @@ $scriptsourceDir = Get-Item -Path (Get-Location)
 # Get the parent directory of the current directory
 $projectDir = Split-Path -Path $scriptsourceDir.FullName -Parent
 
-# Go one parent folder up first before deleting
-cd ..
-
 # List of directories to delete
 $directoriesToDelete = @(
     "wwwroot\bundler",

@@ -6,9 +6,6 @@
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="blazor.bootstrap" Version="1.11.1" />
-    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.0.6" />
-    <PackageReference Include="blazored.typeahead" Version="4.7.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />

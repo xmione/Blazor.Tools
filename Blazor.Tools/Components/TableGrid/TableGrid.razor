@@ -1,7 +1,7 @@
 ﻿@* TableGrid.razor *@
 
 @using Blazor.Tools.Components.DTSearchBox
-@using BlazorBootstrap
+@* @using BlazorBootstrap *@
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Data
@@ -18,7 +18,7 @@ else
 {
     @RenderTable
 
-    <Icon Name="IconName.PlusCircleFill" @onclick="ShowAddRowModalAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />
+    @* <Icon Name="IconName.PlusCircleFill" @onclick="ShowAddRowModalAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" /> *@
 
     <div>        
         <div class="pagination-container">
@@ -32,20 +32,20 @@ else
                 <option value="100">100</option>
             </select>
             <!-- First Page -->
-            <Icon Name="IconName.ChevronDoubleLeft" @onclick="GoToFirstPageAsync" class="pagination-icon" title="First" />
+            @* <Icon Name="IconName.ChevronDoubleLeft" @onclick="GoToFirstPageAsync" class="pagination-icon" title="First" /> *@
 
             <!-- Previous Page -->
-            <Icon Name="IconName.ChevronLeft" @onclick="GoToPreviousPageAsync" class="pagination-icon" title="Previous" />
+            @* <Icon Name="IconName.ChevronLeft" @onclick="GoToPreviousPageAsync" class="pagination-icon" title="Previous" /> *@
 
             <!-- Next Page -->
-            <Icon Name="IconName.ChevronRight" @onclick="GoToNextPageAsync" class="pagination-icon" title="Next" />
+            @* <Icon Name="IconName.ChevronRight" @onclick="GoToNextPageAsync" class="pagination-icon" title="Next" /> *@
 
             <!-- Last Page -->
-            <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon" title="Last" />
+            @* <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon" title="Last" /> *@
 
             <!-- Go To Page -->
             <input type="number" min="1" max="@_totalPages" @bind="_currentPage" />
-            <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon" title="Go" />
+            @* <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon" title="Go" /> *@
         </div>
     </div>
     @if (AllowCellSelection)
@@ -53,7 +53,7 @@ else
         <!-- Start cell and End cell textboxes -->
         <div class="row mb-2">
             <div class="col-auto">
-                <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" />
+                @* <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" /> *@
             </div>
             <div class="col">
                 <input @bind="_startCell" class="form-control" placeholder="Start Cell" />
@@ -225,49 +225,49 @@ else
         builder.OpenElement(sequence++, "td");
         builder.AddAttribute(sequence++, "class", "icons-td");
 
-        if (!_isEditing || row != _editedRow)
-        {
-            // Edit icon
-            // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
+        // if (!_isEditing || row != _editedRow)
+        // {
+        //     // Edit icon
+        //     // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
 
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Edit");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
-            builder.CloseComponent();
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Edit");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
+        //     builder.CloseComponent();
 
-            // Delete icon
-            // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
+        //     // Delete icon
+        //     // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
 
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Delete");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
-            builder.CloseComponent();
-        }
-        else
-        {
-            // Save icon
-            // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Delete");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
+        //     builder.CloseComponent();
+        // }
+        // else
+        // {
+        //     // Save icon
+        //     // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
 
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Save");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
-            builder.CloseComponent();
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Save");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
+        //     builder.CloseComponent();
 
-            // Cancel icon
-            // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Cancel");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
-            builder.CloseComponent();
-        }
+        //     // Cancel icon
+        //     // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Cancel");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
+        //     builder.CloseComponent();
+        // }
 
         builder.CloseElement();
 

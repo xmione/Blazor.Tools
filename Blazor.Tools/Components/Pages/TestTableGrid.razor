@@ -2,7 +2,7 @@
 @rendermode InteractiveServer
 @using Blazor.Tools.Components.AI
 @using Blazor.Tools.Components.TableGrid
-@using Bogus
+@* @using Bogus *@
 @using System.Data
 
 @inject NavigationManager Navigation
@@ -38,11 +38,11 @@
         _employees.Columns.Add("LastName", typeof(string));
         _employees.Columns.Add("CountryID", typeof(int));
 
-        for (int i = 0; i < 101; i++)
-        {
-            var employee = employeeFaker.Generate();
-            _employees.Rows.Add(employee.ID, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
-        }
+        // for (int i = 0; i < 101; i++)
+        // {
+        //     var employee = employeeFaker.Generate();
+        //     _employees.Rows.Add(employee.ID, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
+        // }
 
         // Initialize and generate country data
         _countries = new DataTable();
