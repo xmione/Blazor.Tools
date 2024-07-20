@@ -116,6 +116,13 @@ Install-Package Blazor.Tools.BlazorBundler
 dotnet add package Blazor.Tools.BlazorBundler
 ```
 
+## Install Pre-requesites
+Note: After installing the package, you have to manually run the Install.ps1 file to install required nuget packages.
+
+In the BlazorBundler folder, run: 
+    .\Install.ps1 -SourcePath "C:\Users\{user}\.nuget\packages\blazor.tools.blazorbundler\{version}" -TargetProjectPath "{TargetProjectPath}"
+    .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+
 ## Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:

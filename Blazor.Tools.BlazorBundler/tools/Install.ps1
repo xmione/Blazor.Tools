@@ -1,8 +1,10 @@
 <#
-    File Name   : Install.ps1
-    Purpose     : To automate the copying and installation of nuget packages.
-    Created By  : Solomio S. Sisante
-    Created On  : July 2024
+    File Name       : Install.ps1
+    Purpose         : To automate the copying and installation of nuget packages.
+    Created By      : Solomio S. Sisante
+    Created On      : July 2024
+    Sample command  : 
+                      .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
 #>
 
 param($SourcePath, $TargetProjectPath)
@@ -40,7 +42,7 @@ function Copy-FileToProject {
         Write-Host "File $Destination already exists. Skipping."
     }
 }
-
+<#
 # Specify files to copy
 $filesToCopy = @(
     @{
@@ -93,8 +95,9 @@ $filesToCopy = @(
 foreach ($file in $filesToCopy) {
     Copy-FileToProject -Source $file['Source'] -Destination $file['Destination']
 }
- 
+#> 
 # Specify packages to install
+ 
 $packagesToInstall = @(
     @{ 
         PackageName = "blazor.bootstrap" 
@@ -145,7 +148,7 @@ $packagesToInstall = @(
         Version = "13.0.3" 
     }
 )
-
+ 
 # Install NuGet packages
 function Install-NuGetPackage {
     param(
@@ -156,16 +159,15 @@ function Install-NuGetPackage {
     )
 
     # dotnet add "C:\repo\Blazor.Tools\Blazor.Tools" package blazor.bootstrap --version 1.11.1 --source "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5\packages"
+    Write-Host "dotnet add $targetPath package $PackageName --version $Version --source $PackagesPath"
     dotnet add $targetPath package $PackageName --version $Version --source $PackagesPath
 }
 
 # Loop through files and copy each to the targetPath
-<#
+
 foreach ($package in $packagesToInstall) {
     # Install Blazor.Bootstrap package
     Install-NuGetPackage -$TargetProjectPath $TargetProjectPath -PackageName $package['PackageName'] -Version $package['Version'] -PackagesPath $packagesPath
 }
-
-#>
 
 Write-Host "Completed copying files and installing packages"

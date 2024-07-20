@@ -4,6 +4,7 @@
     <BlazorBundlerPackageVersion>3.0.5</BlazorBundlerPackageVersion>
     <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)</SourcePath>
     <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
+    <PackagesPath>$(SourcePath)\packages</PackagesPath>
   </PropertyGroup>
   <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
     <!-- Log some information for debugging -->
@@ -14,7 +15,7 @@
     <Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
     
 
-    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
@@ -50,15 +51,19 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\install-nupkg.ps1')"
+    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.ps1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install.ps1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\tools\Uninstall.ps1')"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall.ps1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\README.md')"
+    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\README.md')"
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
 
@@ -90,7 +95,7 @@
           
     <!-- Invoke PowerShell script to install all packages -->
     <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Install.ps1&quot; -SourcePath &quot;$(SourcePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />
+    <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Install.ps1&quot; -SourcePath &quot;$(SourcePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
 
   </Target>
 </Project>
