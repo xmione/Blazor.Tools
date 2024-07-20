@@ -30,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.6"
+$PackageVersion = "3.0.7"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -56,7 +56,7 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Added Bogus nuget package
+- Added nuget package Bogus version 35.6.0 in the index file
 
 ### Revisions
 - None.

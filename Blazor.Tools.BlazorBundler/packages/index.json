@@ -16,6 +16,11 @@
       "path": "blazored.typeahead.4.7.0.nupkg"
     },
     {
+      "version": "35.6.0",
+      "id": "bogus",
+      "path": "bogus.35.6.0.nupkg"
+    },
+    {
       "version": "2.1.35",
       "id": "dapper",
       "path": "dapper.2.1.35.nupkg"

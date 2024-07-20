@@ -2,14 +2,16 @@
 @rendermode InteractiveServer
 @using Blazor.Tools.Components.AI
 @using Blazor.Tools.Components.TableGrid
+@using Bogus
 @using System.Data
+
 @inject NavigationManager Navigation
 
 <PageTitle>Test Table Grid</PageTitle>
 
-<h1>Testing Sample Table Grid Component</h1> 
+<h1>Testing Sample Table Grid Component</h1>
 
- <TableGrid Title="Employee Table">
+<TableGrid Title="Employee Table" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
     <TableNode Title="AccSol Table" DataSource="EmployeeDS">
@@ -35,15 +37,28 @@
         _employees.Columns.Add("MiddleName", typeof(string));
         _employees.Columns.Add("LastName", typeof(string));
         _employees.Columns.Add("CountryID", typeof(int));
-        _employees.Rows.Add(1, "John", "A.", "Doe", 1);
-        _employees.Rows.Add(2, "Jane", "B.", "Smith", 2);
 
-        // Initialize _countries DataTable
+        for (int i = 0; i < 101; i++)
+        {
+            var employee = employeeFaker.Generate();
+            _employees.Rows.Add(employee.ID, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
+        }
+
+        // Initialize and generate country data
         _countries = new DataTable();
         _countries.Columns.Add("ID", typeof(int));
         _countries.Columns.Add("Name", typeof(string));
-        _countries.Rows.Add(1, "USA");
-        _countries.Rows.Add(2, "Canada");
+
+        var countries = new List<dynamic>
+        {
+            new { ID = 1, Name = "USA" },
+            new { ID = 2, Name = "Canada" }
+        };
+
+        foreach (var country in countries)
+        {
+            _countries.Rows.Add(country.ID, country.Name);
+        }
 
     }
 }

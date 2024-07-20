@@ -1,8 +1,10 @@
 <#
-    File Name   : Install.ps1
-    Purpose     : To automate the copying and installation of nuget packages.
-    Created By  : Solomio S. Sisante
-    Created On  : July 2024
+    File Name       : Install.ps1
+    Purpose         : To automate the copying and installation of nuget packages.
+    Created By      : Solomio S. Sisante
+    Created On      : July 2024
+    Sample command  : 
+                      .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
 #>
 
 param($SourcePath, $TargetProjectPath)
@@ -97,54 +99,19 @@ foreach ($file in $filesToCopy) {
 # Specify packages to install
  
 $packagesToInstall = @(
-    @{ 
-        PackageName = "blazor.bootstrap" 
-        Version = "1.11.1" 
-    },
-    @{ 
-        PackageName = "blazored.typeahead" 
-        Version = "4.7.0" 
-    },
-    @{ 
-        PackageName = "dapper" 
-        Version = "2.1.35" 
-    },
-    @{ 
-        PackageName = "htmlagilitypack" 
-        Version = "1.11.61" 
-    },
-    @{ 
-        PackageName = "microsoft.aspnetcore.diagnostics.entityframeworkcore" 
-        Version = "8.0.6" 
-    },
-    @{ 
-        PackageName = "microsoft.aspnetcore.identity.entityframeworkcore" 
-        Version = "8.0.6" 
-    },
-    @{ 
-        PackageName = "microsoft.build" 
-        Version = "17.10.4" 
-    },
-    @{ 
-        PackageName = "microsoft.entityframeworkcore.sqlserver" 
-        Version = "8.0.6" 
-    },
-    @{ 
-        PackageName = "microsoft.entityframeworkcore.tools" 
-        Version = "8.0.6" 
-    },
-    @{ 
-        PackageName = "microsoft.ml" 
-        Version = "3.0.1" 
-    },
-    @{ 
-        PackageName = "microsoft.visualstudio.azure.containers.tools.targets" 
-        Version = "1.21.0" 
-    },
-    @{ 
-        PackageName = "newtonsoft.json" 
-        Version = "13.0.3" 
-    }
+    @{ PackageName = "blazor.bootstrap"; Version = "1.11.1" },
+    @{ PackageName = "blazored.typeahead"; Version = "4.7.0" },
+    @{ PackageName = "bogus"; Version = "35.6.0" },
+    @{ PackageName = "dapper"; Version = "2.1.35" },
+    @{ PackageName = "htmlagilitypack"; Version = "1.11.61" },
+    @{ PackageName = "microsoft.aspnetcore.diagnostics.entityframeworkcore"; Version = "8.0.6" },
+    @{ PackageName = "microsoft.aspnetcore.identity.entityframeworkcore"; Version = "8.0.6" },
+    @{ PackageName = "microsoft.build"; Version = "17.10.4" },
+    @{ PackageName = "microsoft.entityframeworkcore.sqlserver"; Version = "8.0.6" },
+    @{ PackageName = "microsoft.entityframeworkcore.tools"; Version = "8.0.6" },
+    @{ PackageName = "microsoft.ml"; Version = "3.0.1" },
+    @{ PackageName = "microsoft.visualstudio.azure.containers.tools.targets"; Version = "1.21.0" },
+    @{ PackageName = "newtonsoft.json"; Version = "13.0.3" }
 )
  
 # Install NuGet packages
