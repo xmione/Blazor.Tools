@@ -41,8 +41,8 @@ try {
         }
 
         # Install the package using dotnet CLI
-        # dotnet add package blazor.bootstrap --version 1.11.1 --source "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\packages"
-        # dotnet add package $PackagePath --version $Version --source $SourcePath
+        # dotnet add "C:\repo\Blazor.Tools\Blazor.Tools" package blazor.bootstrap --version 1.11.1 --source "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\packages"
+        # dotnet add "C:\repo\Blazor.Tools\Blazor.Tools" package $PackagePath --version $Version --source $SourcePath
         Write-Host "Installing package $packageName version $packageVersion from source $SourcePath..."
         dotnet add $TargetProjectPath package $packageName --version $packageVersion --source $SourcePath
     }

@@ -38,7 +38,7 @@
       <Pack>True</Pack>
       <PackagePath>\build\</PackagePath>
     </None>
-
+    
     <!-- None items in the packages folder -->
     <None Include="packages/*.nupkg">
       <Pack>True</Pack>
@@ -47,6 +47,12 @@
     
     <!-- None items in the tools folder -->
     <None Include=" tools/install-nupkg.ps1">
+      <Pack>True</Pack>
+      <PackagePath>\tools\</PackagePath>
+    </None>
+    
+    <!-- Add Uninstall.ps1 -->
+    <None Include="tools/Install.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
