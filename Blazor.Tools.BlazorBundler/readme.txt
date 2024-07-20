@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.0.6
-- **Assembly Version**: 3.0.6.0
-- **File Version**: 3.0.6.0
+- **Package Version**: 3.0.7
+- **Assembly Version**: 3.0.7.0
+- **File Version**: 3.0.7.0
 
 ## Features
 
@@ -96,6 +96,5 @@ There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
 
 
 ## Change Logs
-- [changelog_3.0.5.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.5.md)
-- [changelog_3.0.6.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.6.md)
+- [changelog_3.0.7.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.7.md)
 
