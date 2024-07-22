@@ -30,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.7"
+$PackageVersion = "3.0.8"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -56,7 +56,8 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Added nuget package Bogus version 35.6.0 in the index file
+- Fixed compilation errors.
+- Added instructions on README document
 
 ### Revisions
 - None.
@@ -106,12 +107,7 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 You can install BlazorBundler via NuGet Package Manager, Package Manager Console or from a terminal:
 
 ### Nuget Package Manager
-- Search for Blazor.Tools.BlazorBundler in nuget.org.
-
-
-```
-dotnet add package Blazor.Tools.BlazorBundler
-```
+- Search for Blazor.Tools.BlazorBundler in nuget.org and click Install.
 
 ### Package Manager Console
 ```
@@ -124,12 +120,22 @@ dotnet add package Blazor.Tools.BlazorBundler
 ```
 
 ## Install Pre-requesites
-Note: After installing the package, you have to manually run the Install.ps1 file to install required nuget packages.
 
-In the BlazorBundler folder, run: 
-    .\Install.ps1 -SourcePath "C:\Users\{user}\.nuget\packages\blazor.tools.blazorbundler\{version}" -TargetProjectPath "{TargetProjectPath}"
-    .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
+      First replace the values of the `$userProfileName` and `$targetPath` variables.
+      
+      `$userProfileName` should contain your Windows UserProfile Name
+      `$sourcePath` should not be changed
+      `$targetPath` should contain the full path of your project file
 
+Open Powershell and run: 
+```
+    $version = "3.0.8"
+    $userProfileName = "solom"
+    $sourcePath = "C:\Users\$userProfileName\.nuget\packages\blazor.tools.blazorbundler\$version"
+    $targetPath = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+    Install-Pkgs -SourcePath $sourcePath -TargetProjectPath $targetPath
+```
 ## Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
@@ -165,8 +171,19 @@ Uninstall-Package Blazor.Tools.BlazorBundler
 dotnet remove package Blazor.Tools.BlazorBundler
 ```
 
-There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
+## Clean-up
+Note: After uninstalling the package, you have to manually run the Uninstall module file to uninstall the packages.
+      First replace the values of the `$userProfileName` and `$targetPath` variables.
+      
+      `$projectPath` should contain the path to your project folder
+      `$projectName` should contain the name of your project
 
+Open PowerShell and run:
+```
+    $projectPath = "C:\repo\Blazor.Tools\Blazor.Tools\"
+    $projectName = "Blazor.Tools.csproj"
+    Uninstall -ProjectPath  $projectPath -$ProjectName $projectName
+```
 
 ## Change Logs
 "@
