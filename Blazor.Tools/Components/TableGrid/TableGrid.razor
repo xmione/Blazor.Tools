@@ -126,6 +126,7 @@ else
 
     private async Task RenderTableContentAsync(RenderTreeBuilder builder)
     {
+        _node.UpdateDisplayFromPageSize();
         // <div>
         // <div class="data-table-grid-div">
         //     <table class="data-table-grid">
