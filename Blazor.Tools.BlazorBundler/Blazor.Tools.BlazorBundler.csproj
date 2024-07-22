@@ -28,16 +28,8 @@
     </None>
 
     <!-- Add README.md -->
-    <None Include="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
 
     <!-- Add readme.txt -->
-    <None Include="readme.txt">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     
     <!-- None item for MSBuild targets file -->
     <None Include="build\Blazor.Tools.BlazorBundler.targets">
