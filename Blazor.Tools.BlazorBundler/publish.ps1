@@ -121,7 +121,7 @@ Install-Package Blazor.Tools.BlazorBundler
 dotnet add package Blazor.Tools.BlazorBundler
 ```
 
-## Install Pre-requesites
+## After-Install Setup Commands
 
 Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
       First replace the values of the `$userProfileName` and `$targetPath` variables.
@@ -132,31 +132,31 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
 
 Open PowerShell and run: 
 
-```
+```````
     `$version` = "3.0.8"
     `$userProfileName` = "solom"
     `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\$version"
     `$targetPath` = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
     Install-Pkgs -SourcePath `$sourcePath` -TargetProjectPath `$targetPath`
-```
+```````
 ## Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
 
-```
+```````
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="blazor-bootstrap/blazor.bootstrap.css" />
 
     <script src="blazored-typeahead/blazored-typeahead.js"></script>
     <script src="js/site.js"></script>
-```
+```````
 
 Add these to your <body> section:
-```
+```````
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="blazor-bootstrap/blazor.bootstrap.js"></script>
-```
+```````
     
 ## Uninstallation
 
@@ -180,17 +180,17 @@ dotnet remove package Blazor.Tools.BlazorBundler
 ## Clean-up
 Note: After uninstalling the package, you have to manually run the Uninstall module file to uninstall the packages.
       First replace the values of the `$userProfileName` and `$targetPath` variables.
-      
+
       `$projectPath` should contain the path to your project folder
       `$projectName` should contain the name of your project
 
 Open PowerShell and run:
 
-```
+```````
     `$projectPath` = "C:\repo\Blazor.Tools\Blazor.Tools\"
     `$projectName` = "Blazor.Tools.csproj"
     Uninstall -ProjectPath  `$projectPath` -ProjectName `$projectName`
-```
+```````
 
 ## Change Logs
 "@
