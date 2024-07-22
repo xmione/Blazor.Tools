@@ -36,14 +36,14 @@ You can install BlazorBundler via NuGet Package Manager, Package Manager Console
 - Search for Blazor.Tools.BlazorBundler in nuget.org and click Install.
 
 ### Package Manager Console
-`
+
 Install-Package Blazor.Tools.BlazorBundler
-`
+
 
 ### Terminal console
-`
+
 dotnet add package Blazor.Tools.BlazorBundler
-`
+
 
 ## Install Pre-requesites
 
@@ -55,6 +55,7 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
       $targetPath should contain the full path of your project file
 
 Open Powershell and run: 
+
 `
      = "3.0.8"
      = "solom"
@@ -65,6 +66,7 @@ Open Powershell and run:
 ## Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
+
 `
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
@@ -88,14 +90,16 @@ First, uninstall the package from the Nuget Package Manager, Package Manager Con
 - Search Blazor.Tools.BlazorBundler and uninstall it.
 
 ### Package Manager Console
-`
+
+
 Uninstall-Package Blazor.Tools.BlazorBundler
-`
+
 
 ### Terminal console
-`
+
+
 dotnet remove package Blazor.Tools.BlazorBundler
-`
+
 
 ## Clean-up
 Note: After uninstalling the package, you have to manually run the Uninstall module file to uninstall the packages.
@@ -105,6 +109,7 @@ Note: After uninstalling the package, you have to manually run the Uninstall mod
       $projectName should contain the name of your project
 
 Open PowerShell and run:
+
 `
      = "C:\repo\Blazor.Tools\Blazor.Tools\"
      = "Blazor.Tools.csproj"
