@@ -22,13 +22,19 @@
 
   <ItemGroup>
     <!-- None items in the root -->
-    <None Include="changelog_*.md;readme.txt;icon.png">
+    <None Include="changelog_*.md;icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
 
     <!-- Add README.md -->
     <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+
+    <!-- Add readme.txt -->
+    <None Include="readme.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
