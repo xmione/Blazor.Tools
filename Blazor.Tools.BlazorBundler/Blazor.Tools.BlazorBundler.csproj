@@ -22,14 +22,10 @@
 
   <ItemGroup>
     <!-- None items in the root -->
-    <None Include="changelog_*.md;icon.png">
+    <None Include="changelog_*.md;icon.png;README.md;readme.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-
-    <!-- Add README.md -->
-
-    <!-- Add readme.txt -->
     
     <!-- None item for MSBuild targets file -->
     <None Include="build\Blazor.Tools.BlazorBundler.targets">
