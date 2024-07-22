@@ -19,20 +19,67 @@
 
     public List<TableColumn> Columns = new List<TableColumn>();
     public TableNode TableNodeContext = default!;
-
-    private DataTable _dataTable = default!;
+    public DataTable DataTable = default!;
+    public int TotalPages = 0;
+    public int TotalItems = 0;
+    public int PageSize = 0;
+    public int CurrentPage = 1;
+    public IEnumerable<DataRow>? FilteredRows;
+    public IEnumerable<DataRow>? PagedRows;
+    public string? SelectedTableName;
+    public string SearchQuery = string.Empty;
+    public DataRow? EditedRow = default!;
+    public Dictionary<string, object> EditValues = null!;
+    public bool IsEditing = false;
+    public bool ShowAddRowModal = false;
+    public DataRow NewRowData = default!;
+    // New state variables for cell selection
+    public string StartCell = string.Empty;
+    public string EndCell = string.Empty;
+    public bool IsFirstCellClicked = true;
 
     protected override void OnParametersSet()
     {
-        TableNodeContext = this;
-
         if (TableGridContext != null)
         {
-            _dataTable = TableGridContext.GetDataSource(DataSource) ?? _dataTable;
+            DataTable = TableGridContext.GetDataSource(DataSource) ?? DataTable;
         }
 
-        TableGridContext?.AddNode(this);
+        TotalItems = DataTable?.Rows?.Count ?? 0;
+        PageSize = TotalItems;
+        UpdateDisplayFromPageSize();
+
+        TableNodeContext = this;
+        TableGridContext?.SetNode(TableNodeContext);
         Console.WriteLine("TableNode OnParametersSet");
+    }
+
+    public void UpdateDisplayFromPageSize()
+    {
+        FilteredRows = DataTable != null ? ApplyFilter() : FilteredRows;
+        PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+        TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
+        SelectedTableName = DataTable?.TableName;
+    }
+
+    private IEnumerable<DataRow> ApplyFilter()
+    {
+        IEnumerable<DataRow> rows = default!;
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            rows = DataTable?.AsEnumerable() ?? rows;
+            return rows;
+        }
+
+        rows = DataTable?
+        .AsEnumerable()?
+        .Where(row => DataTable
+            .Columns
+            .Cast<DataColumn>()
+            .Any(column => row[column]?.ToString()?.IndexOf(SearchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+        ) ?? rows;
+
+        return rows;
     }
 
     public void AddColumn(TableColumn column)

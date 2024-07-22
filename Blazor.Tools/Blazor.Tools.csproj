@@ -36,6 +36,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Components\TableGrid\TableGrid.razor.css" CssScope="custom-scope-identifier" >
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\ML\v1.0-simplified_nq-dev-all.jsonl">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

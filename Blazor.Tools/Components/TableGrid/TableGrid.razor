@@ -6,7 +6,7 @@
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Data
 
-<DTSearchBox DataTable="@_dataTable" OnFilterDataTable="HandleFilterDataTableAsync" />
+<DTSearchBox DataTable="@_node.DataTable" OnFilterDataTable="HandleFilterDataTableAsync" />
 
 @if (!_renderTable)
 {
@@ -24,7 +24,7 @@ else
         <div class="pagination-container">
             <label for="pageSize">Page Size:</label>
             <select id="pageSize" @onchange="PageSizeChangedAsync">
-                <option value=@_totalItems selected>@_totalItems</option>
+                <option value=@_node.TotalItems selected>@_node.TotalItems</option>
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="20">20</option>
@@ -44,7 +44,7 @@ else
             <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon" title="Last" />
 
             <!-- Go To Page -->
-            <input type="number" min="1" max="@_totalPages" @bind="_currentPage" />
+            <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" />
             <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon" title="Go" />
         </div>
     </div>
@@ -53,21 +53,21 @@ else
         <!-- Start cell and End cell textboxes -->
         <div class="row mb-2">
             <div class="col-auto">
-                @* <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" /> *@
+                <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" />
             </div>
             <div class="col">
-                <input @bind="_startCell" class="form-control" placeholder="Start Cell" />
+                <input @bind="_node.StartCell" class="form-control" placeholder="Start Cell" />
             </div>
             <div class="col">
-                <input @bind="_endCell" class="form-control" placeholder="End Cell" />
+                <input @bind="_node.EndCell" class="form-control" placeholder="End Cell" />
             </div>
         </div>
     }
     <!-- Add Row Modal -->
-    @if (_showAddRowModal)
+    @if (_node.ShowAddRowModal)
     {
-        <AddRowModal ShowAddRowModal="_showAddRowModal"
-                     DataTable="_dataTable"NewRowData="_newRowData"
+        <AddRowModal ShowAddRowModal="_node.ShowAddRowModal"
+                     DataTable="_node.DataTable"NewRowData="_node.NewRowData"
                      OnClose="CloseAddRowModal"
                      OnSave="AddRowAsync" />
     }
@@ -81,36 +81,16 @@ else
 
     private bool _renderTable = false; // Flag to control when to render RenderTable()
 
-    private DataTable? _dataTable = default!;
     private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
     private TableGrid TableGridContext = null!;
     private List<TableSource> _tableSources = new List<TableSource>();
-    private List<TableNode> _nodes = new List<TableNode>();
-
-    private IEnumerable<DataRow>? _filteredRows;
-    private IEnumerable<DataRow>? _pagedRows;
-    private int _pageSize = 0;
-    private int _currentPage = 1;
-    private int _totalPages = 0;
-    private int _totalItems = 0;
-    private string? _selectedTableName;
-    private string _searchQuery = string.Empty;
-    private DataRow? _editedRow = default!;
-    private Dictionary<string, object> _editValues = null!;
-    private bool _isEditing = false;
-    private bool _showAddRowModal = false;
-    private DataRow _newRowData = default!;
-    // New state variables for cell selection
-    private string _startCell = string.Empty;
-    private string _endCell = string.Empty;
-    private bool _isFirstCellClicked = true;
-
+    private TableNode _node = new TableNode();
 
     protected override void OnParametersSet()
     {
         Console.WriteLine("TableGrid OnParametersSet");
         TableGridContext = this;
-
+        base.OnParametersSet();
     }
 
     private RenderFragment RenderTable => builder =>
@@ -125,9 +105,9 @@ else
         TableGridContext = this;
     }
 
-    public void AddNode(TableNode node)
+    public void SetNode(TableNode node)
     {
-        _nodes.Add(node);
+        _node = node;
         TableGridContext = this;
     }
 
@@ -154,64 +134,53 @@ else
         builder.AddContent(sequence++, Title);
         builder.OpenElement(sequence++, "div");
         builder.AddAttribute(sequence++, "class", "data-table-grid-div");
-        foreach (var node in _nodes)
+        
+        builder.OpenElement(sequence++, "table");
+        builder.AddAttribute(sequence++, "title", _node.Title);
+        builder.AddAttribute(sequence++, "class", "data-table-grid");
+
+        builder.OpenElement(sequence++, "thead");
+        builder.OpenElement(sequence++, "tr");
+        // Add a blank th column for edit/delete buttons.
+        builder.OpenElement(sequence++, "th");
+        builder.CloseElement(); // th
+
+        // Start displaying the proper column headers.
+        foreach (var column in _node.Columns)
         {
-            builder.OpenElement(sequence++, "table");
-            builder.AddAttribute(sequence++, "title", node.Title);
-            builder.AddAttribute(sequence++, "class", "data-table-grid");
-
-            builder.OpenElement(sequence++, "thead");
-            builder.OpenElement(sequence++, "tr");
-            // Add a blank th column for edit/delete buttons.
             builder.OpenElement(sequence++, "th");
+            builder.AddContent(sequence++, column.HeaderName);
             builder.CloseElement(); // th
-
-            // Start displaying the proper column headers.
-            foreach (var column in node.Columns)
-            {
-                builder.OpenElement(sequence++, "th");
-                builder.AddContent(sequence++, column.HeaderName);
-                builder.CloseElement(); // th
-            }
-
-            builder.CloseElement(); // tr
-            builder.CloseElement(); // thead
-
-            builder.OpenElement(sequence++, "tbody");
-
-            _dataTable = GetDataSource(node.DataSource);
-
-            _totalItems = _dataTable?.Rows?.Count ?? 0;
-            _pageSize = _totalItems;
-            _filteredRows = _dataTable != null ? ApplyFilter() : _filteredRows;
-            _pagedRows = _filteredRows?.Skip((_currentPage - 1) * _pageSize).Take(_pageSize);
-            _totalPages = (int)Math.Ceiling((double)(_filteredRows?.Count() ?? 0) / _pageSize);
-            _selectedTableName = _dataTable?.TableName;
-
-            if (_pagedRows != null)
-            {
-                var totalRows = _pagedRows.Count();
-                var pagedRows = _pagedRows.ToList();
-                for ( int i=0; i < totalRows; i++)
-                {
-                    builder.OpenElement(sequence++, "tr");
-                    var currentRow = pagedRows[i];
-                    builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
-                    foreach (var column in node.Columns)
-                    {
-                        int rowIndex = i;
-                        builder.OpenElement(sequence++, "td");
-                        builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
-                        builder.CloseElement(); // td
-                    }
-
-                    builder.CloseElement(); // tr
-                }
-            }
-
-            builder.CloseElement(); // tbody
-            builder.CloseElement(); //  <table class="data-table-grid">
         }
+
+        builder.CloseElement(); // tr
+        builder.CloseElement(); // thead
+
+        builder.OpenElement(sequence++, "tbody");
+
+        if (_node.PagedRows != null)
+        {
+            var totalRows = _node.PagedRows.Count();
+            var pagedRows = _node.PagedRows.ToList();
+            for ( int i=0; i < totalRows; i++)
+            {
+                builder.OpenElement(sequence++, "tr");
+                var currentRow = pagedRows[i];
+                builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
+                foreach (var column in _node.Columns)
+                {
+                    int rowIndex = i;
+                    builder.OpenElement(sequence++, "td");
+                    builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
+                    builder.CloseElement(); // td
+                }
+
+                builder.CloseElement(); // tr
+            }
+        }
+
+        builder.CloseElement(); // tbody
+        builder.CloseElement(); //  <table class="data-table-grid">
 
         builder.CloseElement(); // <div class="data-table-grid-div">
         builder.CloseElement(); // div
@@ -224,7 +193,7 @@ else
         builder.OpenElement(sequence++, "td");
         builder.AddAttribute(sequence++, "class", "icons-td");
 
-        if (!_isEditing || row != _editedRow)
+        if (!_node.IsEditing || row != _node.EditedRow)
         {
             // Edit icon
             // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
@@ -277,19 +246,19 @@ else
 
     private void EditRow(DataRow? row)
     {
-        if (_dataTable != null && row != null)
+        if (_node.DataTable != null && row != null)
         {
-            _editedRow = row;
-            _editValues = _dataTable.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]);
-            _isEditing = true;
+            _node.EditedRow = row;
+            _node.EditValues = _node.DataTable.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]);
+            _node.IsEditing = true;
         }
     }
 
     private async Task DeleteRowAsync(DataRow? row)
     {
-        if (_dataTable != null && row != null)
+        if (_node.DataTable != null && row != null)
         {
-            _dataTable.Rows.Remove(row);
+            _node.DataTable.Rows.Remove(row);
             //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable);
             StateHasChanged(); // Refresh UI after deleting row
         }
@@ -299,15 +268,15 @@ else
 
     private async Task SaveRowAsync()
     {
-        if (_editedRow != null && _editValues != null && _dataTable != null)
+        if (_node.EditedRow != null && _node.EditValues != null && _node.DataTable != null)
         {
-            foreach (var column in _dataTable.Columns.Cast<DataColumn>())
+            foreach (var column in _node.DataTable.Columns.Cast<DataColumn>())
             {
-                _editedRow[column.ColumnName] = _editValues[column.ColumnName];
+                _node.EditedRow[column.ColumnName] = _node.EditValues[column.ColumnName];
             }
 
-            _editedRow = default!;
-            _isEditing = false;
+            _node.EditedRow = default!;
+            _node.IsEditing = false;
 
             //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable, serialize: true);
 
@@ -319,8 +288,8 @@ else
 
     private void CancelEdit()
     {
-        _editedRow = default!;
-        _isEditing = false;
+        _node.EditedRow = default!;
+        _node.IsEditing = false;
         StateHasChanged(); // Refresh UI after canceling edit
     }
 
@@ -328,12 +297,12 @@ else
     {
         var dataSource = column.GetDataSource();
         var dataSourceRows = dataSource.Rows;
-        var rows = _dataTable.Rows;
+        var rows = _node.PagedRows.ToList();
 
         if (rows != null)
         {
             var row = rows[rowIndex];
-            var isEditing = _isEditing && _editedRow != null && row == _editedRow;
+            var isEditing = _node.IsEditing && _node.EditedRow != null && row == _node.EditedRow;
             if(isEditing)
             {
                 if (column.Type == "TextBox")
@@ -365,7 +334,6 @@ else
                             }
 
                             builder.AddContent(sequence++, displayName);
-
                             builder.CloseElement();
                         }
                     }
@@ -392,14 +360,14 @@ else
                             {
                                 columnStringValue = displayName;
                             }
-                             
+
                         }
                     }
                 }
 
                 builder.AddContent(sequence, columnStringValue);
             }
-            
+
         }
 
         await Task.CompletedTask;
@@ -409,41 +377,21 @@ else
 
     private async Task HandleFilterDataTableAsync(IEnumerable<DataRow> filteredRows)
     {
-        _filteredRows = filteredRows;
-        _pagedRows = _filteredRows.Skip((_currentPage - 1) * _pageSize).Take(_pageSize);
+        _node.FilteredRows = filteredRows;
+        _node.PagedRows = _node.FilteredRows.Skip((_node.CurrentPage - 1) * _node.PageSize).Take(_node.PageSize);
 
         StateHasChanged(); // Ensure UI updates after filtering
         await Task.CompletedTask;
     }
 
-    private IEnumerable<DataRow> ApplyFilter()
-    {
-        IEnumerable<DataRow> rows = default!;
-        if (string.IsNullOrWhiteSpace(_searchQuery))
-        {
-            rows = _dataTable?.AsEnumerable() ?? rows;
-            return rows;
-        }
-
-        rows = _dataTable?
-        .AsEnumerable()?
-        .Where(row => _dataTable
-            .Columns
-            .Cast<DataColumn>()
-            .Any(column => row[column]?.ToString()?.IndexOf(_searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
-        ) ?? rows;
-
-        return rows;
-    }
-
     private async Task ShowAddRowModalAsync()
     {
-        if (_dataTable != null)
+        if (_node.DataTable != null)
         {
-            _newRowData = _dataTable.NewRow();
+            _node.NewRowData = _node.DataTable.NewRow();
             //await _sessionManager.SaveToSessionTableAsync("_newRowData", _newRowData, serialize: true);
 
-            _showAddRowModal = true;
+            _node.ShowAddRowModal = true;
             StateHasChanged();
         }
 
@@ -452,18 +400,20 @@ else
 
     private async Task PageSizeChangedAsync(ChangeEventArgs e)
     {
-        _pageSize = Convert.ToInt32(e.Value);
-        _currentPage = 1; // Reset to first page when changing page size
+        _node.PageSize = Convert.ToInt32(e.Value);
+        _node.CurrentPage = 1; // Reset to first page when changing page size
 
         // await _sessionManager.SaveToSessionTableAsync("_pageSize", _pageSize, serialize: true);
         // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
-        StateHasChanged(); // Refresh UI after changing page size
 
+        _node.UpdateDisplayFromPageSize();
+
+        StateHasChanged();
         await Task.CompletedTask;
     }
     private async Task GoToFirstPageAsync()
     {
-        _currentPage = 1;
+        _node.CurrentPage = 1;
         //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
         StateHasChanged();
 
@@ -472,9 +422,9 @@ else
 
     private async Task GoToPreviousPageAsync()
     {
-        if (_currentPage > 1)
+        if (_node.CurrentPage > 1)
         {
-            _currentPage--;
+            _node.CurrentPage--;
             //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
             StateHasChanged();
         }
@@ -484,9 +434,9 @@ else
 
     private async Task GoToNextPageAsync()
     {
-        if (_currentPage < _totalPages)
+        if (_node.CurrentPage < _node.TotalPages)
         {
-            _currentPage++;
+            _node.CurrentPage++;
             //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
 
             StateHasChanged();
@@ -497,7 +447,7 @@ else
 
     private async Task GoToLastPageAsync()
     {
-        _currentPage = _totalPages;
+        _node.CurrentPage = _node.TotalPages;
         // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
 
         StateHasChanged();
@@ -507,7 +457,7 @@ else
 
     private async Task GoToSpecifiedPageAsync()
     {
-        if (_currentPage >= 1 && _currentPage <= _totalPages)
+        if (_node.CurrentPage >= 1 && _node.CurrentPage <= _node.TotalPages)
         {
             // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
             StateHasChanged();
@@ -523,8 +473,8 @@ else
 
     private async Task ClearSelectionAsync(MouseEventArgs e)
     {
-        _startCell = string.Empty;
-        _endCell = string.Empty;
+        _node.StartCell = string.Empty;
+        _node.EndCell = string.Empty;
 
         // await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);
         // await _sessionManager.SaveToSessionTableAsync("_endCell", _endCell);
@@ -537,21 +487,21 @@ else
 
     private void CloseAddRowModal()
     {
-        _showAddRowModal = false;
+        _node.ShowAddRowModal = false;
         StateHasChanged(); // Ensure UI updates to hide the modal
     }
 
     private async Task AddRowAsync()
     {
-        if (_dataTable != null)
+        if (_node.DataTable != null)
         {
-            DataRow newRow = _dataTable.NewRow();
-            foreach (DataColumn column in _dataTable.Columns)
+            DataRow newRow = _node.DataTable.NewRow();
+            foreach (DataColumn column in _node.DataTable.Columns)
             {
-                newRow[column.ColumnName] = _newRowData[column.ColumnName];
+                newRow[column.ColumnName] = _node.NewRowData[column.ColumnName];
             }
 
-            _dataTable.Rows.Add(newRow);
+            _node.DataTable.Rows.Add(newRow);
             //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable, serialize: true);
             StateHasChanged(); // Ensure UI updates after adding row
         }
