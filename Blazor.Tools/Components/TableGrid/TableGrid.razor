@@ -1,7 +1,7 @@
 ﻿@* TableGrid.razor *@
 
 @using Blazor.Tools.Components.DTSearchBox
-@using BlazorBootstrap
+@* @using BlazorBootstrap *@
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Data
@@ -17,16 +17,71 @@
 else
 {
     @RenderTable
+
+    @* <Icon Name="IconName.PlusCircleFill" @onclick="ShowAddRowModalAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" /> *@
+
+    <div>        
+        <div class="pagination-container">
+            <label for="pageSize">Page Size:</label>
+            <select id="pageSize" @onchange="PageSizeChangedAsync">
+                <option value=@_totalItems selected>@_totalItems</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <!-- First Page -->
+            @* <Icon Name="IconName.ChevronDoubleLeft" @onclick="GoToFirstPageAsync" class="pagination-icon" title="First" /> *@
+
+            <!-- Previous Page -->
+            @* <Icon Name="IconName.ChevronLeft" @onclick="GoToPreviousPageAsync" class="pagination-icon" title="Previous" /> *@
+
+            <!-- Next Page -->
+            @* <Icon Name="IconName.ChevronRight" @onclick="GoToNextPageAsync" class="pagination-icon" title="Next" /> *@
+
+            <!-- Last Page -->
+            @* <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon" title="Last" /> *@
+
+            <!-- Go To Page -->
+            <input type="number" min="1" max="@_totalPages" @bind="_currentPage" />
+            @* <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon" title="Go" /> *@
+        </div>
+    </div>
+    @if (AllowCellSelection)
+    {
+        <!-- Start cell and End cell textboxes -->
+        <div class="row mb-2">
+            <div class="col-auto">
+                @* <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" /> *@
+            </div>
+            <div class="col">
+                <input @bind="_startCell" class="form-control" placeholder="Start Cell" />
+            </div>
+            <div class="col">
+                <input @bind="_endCell" class="form-control" placeholder="End Cell" />
+            </div>
+        </div>
+    }
+    <!-- Add Row Modal -->
+    @if (_showAddRowModal)
+    {
+        <AddRowModal ShowAddRowModal="_showAddRowModal"
+                     DataTable="_dataTable"NewRowData="_newRowData"
+                     OnClose="CloseAddRowModal"
+                     OnSave="AddRowAsync" />
+    }
 }
 
 @code {
 
     [Parameter] public string Title { get; set; } = "Sample Table";
     [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public bool AllowCellSelection { get; set; } = false;
 
     private bool _renderTable = false; // Flag to control when to render RenderTable()
 
-    private DataTable _dataTable = default!;
+    private DataTable? _dataTable = default!;
     private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
     private TableGrid TableGridContext = null!;
     private List<TableSource> _tableSources = new List<TableSource>();
@@ -40,9 +95,16 @@ else
     private int _totalItems = 0;
     private string? _selectedTableName;
     private string _searchQuery = string.Empty;
-    private DataRow _editedRow = default!;
+    private DataRow? _editedRow = default!;
     private Dictionary<string, object> _editValues = null!;
     private bool _isEditing = false;
+    private bool _showAddRowModal = false;
+    private DataRow _newRowData = default!;
+    // New state variables for cell selection
+    private string _startCell = string.Empty;
+    private string _endCell = string.Empty;
+    private bool _isFirstCellClicked = true;
+
 
     protected override void OnParametersSet()
     {
@@ -163,49 +225,49 @@ else
         builder.OpenElement(sequence++, "td");
         builder.AddAttribute(sequence++, "class", "icons-td");
 
-        if (!_isEditing || row != _editedRow)
-        {
-            // Edit icon
-            // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
-            
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Edit");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
-            builder.CloseComponent();
+        // if (!_isEditing || row != _editedRow)
+        // {
+        //     // Edit icon
+        //     // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
 
-            // Delete icon
-            // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
-            
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Delete");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
-            builder.CloseComponent();
-        }
-        else
-        {
-            // Save icon
-            // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
-            
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Save");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
-            builder.CloseComponent();
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Edit");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
+        //     builder.CloseComponent();
 
-            // Cancel icon
-            // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
-            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Cancel");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
-            builder.CloseComponent();
-        }
+        //     // Delete icon
+        //     // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
+
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Delete");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
+        //     builder.CloseComponent();
+        // }
+        // else
+        // {
+        //     // Save icon
+        //     // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
+
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Save");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
+        //     builder.CloseComponent();
+
+        //     // Cancel icon
+        //     // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
+        //     builder.OpenComponent<Icon>(sequence++);
+        //     builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
+        //     builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
+        //     builder.AddAttribute(sequence++, "title", "Cancel");
+        //     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
+        //     builder.CloseComponent();
+        // }
 
         builder.CloseElement();
 
@@ -214,24 +276,26 @@ else
         return builder;
     }
 
-    private void EditRow(DataRow row)
+    private void EditRow(DataRow? row)
     {
-        if (_dataTable != null)
+        if (_dataTable != null && row != null)
         {
             _editedRow = row;
             _editValues = _dataTable.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]);
             _isEditing = true;
         }
     }
-    
-    private async Task DeleteRowAsync(DataRow row)
+
+    private async Task DeleteRowAsync(DataRow? row)
     {
-        if (_dataTable != null)
+        if (_dataTable != null && row != null)
         {
             _dataTable.Rows.Remove(row);
             //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable);
             StateHasChanged(); // Refresh UI after deleting row
         }
+
+        await Task.CompletedTask;
     }
 
     private async Task SaveRowAsync()
@@ -250,6 +314,8 @@ else
 
             StateHasChanged();
         }
+
+        await Task.CompletedTask;
     }
 
     private void CancelEdit()
@@ -283,7 +349,7 @@ else
                     {
                         var displayName = row[column.DisplayFieldName].ToString();
                         var displayValue = row[column.DisplayFieldValue].ToString();
-                        
+
                         builder.OpenElement(sequence++, "option");
                         builder.AddAttribute(sequence++, "value", displayValue);
                         // Set selected attribute if current row index matches the selected index
@@ -293,7 +359,7 @@ else
                         }
 
                         builder.AddContent(sequence++, displayName);
-                        
+
                         builder.CloseElement();
                     }
                 }
@@ -334,6 +400,131 @@ else
         ) ?? rows;
 
         return rows;
+    }
+
+    private async Task ShowAddRowModalAsync()
+    {
+        if (_dataTable != null)
+        {
+            _newRowData = _dataTable.NewRow();
+            //await _sessionManager.SaveToSessionTableAsync("_newRowData", _newRowData, serialize: true);
+
+            _showAddRowModal = true;
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task PageSizeChangedAsync(ChangeEventArgs e)
+    {
+        _pageSize = Convert.ToInt32(e.Value);
+        _currentPage = 1; // Reset to first page when changing page size
+
+        // await _sessionManager.SaveToSessionTableAsync("_pageSize", _pageSize, serialize: true);
+        // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+        StateHasChanged(); // Refresh UI after changing page size
+
+        await Task.CompletedTask;
+    }
+    private async Task GoToFirstPageAsync()
+    {
+        _currentPage = 1;
+        //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToPreviousPageAsync()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToNextPageAsync()
+    {
+        if (_currentPage < _totalPages)
+        {
+            _currentPage++;
+            //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToLastPageAsync()
+    {
+        _currentPage = _totalPages;
+        // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToSpecifiedPageAsync()
+    {
+        if (_currentPage >= 1 && _currentPage <= _totalPages)
+        {
+            // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+            StateHasChanged();
+        }
+        else
+        {
+            // Handle invalid page number
+            // For example, display a toast message or an error message
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task ClearSelectionAsync(MouseEventArgs e)
+    {
+        _startCell = string.Empty;
+        _endCell = string.Empty;
+
+        // await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);
+        // await _sessionManager.SaveToSessionTableAsync("_endCell", _endCell);
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+
+    private void CloseAddRowModal()
+    {
+        _showAddRowModal = false;
+        StateHasChanged(); // Ensure UI updates to hide the modal
+    }
+
+    private async Task AddRowAsync()
+    {
+        if (_dataTable != null)
+        {
+            DataRow newRow = _dataTable.NewRow();
+            foreach (DataColumn column in _dataTable.Columns)
+            {
+                newRow[column.ColumnName] = _newRowData[column.ColumnName];
+            }
+
+            _dataTable.Rows.Add(newRow);
+            //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable, serialize: true);
+            StateHasChanged(); // Ensure UI updates after adding row
+        }
+
+        CloseAddRowModal();
+
+        await Task.CompletedTask;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
-    <BlazorBundlerPackageVersion>3.0.5</BlazorBundlerPackageVersion>
+    <BlazorBundlerPackageVersion>3.0.8</BlazorBundlerPackageVersion>
     <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)</SourcePath>
     <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
     <PackagesPath>$(SourcePath)\packages</PackagesPath>
@@ -55,12 +55,16 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install.ps1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install.ps1"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall.ps1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.ps1"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.psm1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-Tools.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
     <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\README.md')"
@@ -96,6 +100,9 @@
     <!-- Invoke PowerShell script to install all packages -->
     <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
     <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Install.ps1&quot; -SourcePath &quot;$(SourcePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
+
+    <!-- Invoke PowerShell script to load PowerShell Modules -->
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Get-Tools.ps1&quot; " />
 
   </Target>
 </Project>

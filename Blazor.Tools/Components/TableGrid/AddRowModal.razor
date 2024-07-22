@@ -5,17 +5,18 @@
     Purpose       : Modal dialog box for adding DataTable rows.
 ===================================================================================================*@
 @using System.Data
+@* @using BlazorBootstrap *@
 
 <div class="data-table-grid-modal @(ShowAddRowModal ? "show" : "")">
     <!-- Buttons -->
     <div class="data-table-grid-modal-close-button">
-        <Icon Icon="fa fa-check-circle" Size="IconSize.Large" Color="Color.Primary"
+        @* <Icon Icon="fa fa-check-circle" Size="IconSize.Large" Color="Color.Primary"
                                           class="text-success icon-button" Title="Add"
                                           OnClick="@(() => OnSave.InvokeAsync())" />
 
         <Icon Icon="fa fa-times-circle" Size="IconSize.Large" Color="Color.Secondary"
                                           class="text-danger icon-button" Title="Close"
-                                          OnClick="@(() => OnClose.InvokeAsync())" />
+                                          OnClick="@(() => OnClose.InvokeAsync())" /> *@
 
     </div>
     <div class="data-table-grid-modal-content">

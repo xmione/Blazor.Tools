@@ -30,7 +30,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.5"
+$PackageVersion = "3.0.8"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -38,6 +38,7 @@ $nugetApiKey = $Env:MY_NUGET_API_KEY
 # Update project file - using dotnet msbuild
 $projectFile = "Blazor.Tools.BlazorBundler.csproj"
 
+Write-Host "Building project with the updated PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
 # Update AssemblyVersion and FileVersion
 dotnet msbuild $projectFile  /p:Configuration=Release /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion
 
@@ -56,18 +57,16 @@ File Version: $FileVersion
 - None.
 
 ### Patches
-- Added js folder with these files in wwwroot folder:
-    bootstrap.bundle.min.js
-    site.js
-
-- Added cleanup scripts to uninstall files and remove them from the .csproj file
+- Fixed compilation errors.
+- Added instructions on README document
 
 ### Revisions
 - None.
 "@
 
-# Save changelog to file
+# Save change log to file
 $changelogPath = "changelog_$PackageVersion.md"
+Write-Host "Saving change log to file $changelogPath"
 Set-Content -Path $changelogPath -Value $changelogContent
 
 # List all change log files in the directory
@@ -92,19 +91,25 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 - Bundle:
     - Blazor.Bootstrap version 1.11.1
     - Blazored.Typeahead version 4.7.0
+    - Bogus version 35.6.0
     - Bootstrap Icons version 1.11.3
+    - Dapper version 2.1.35
+    - HtmlAgilityPack version 1.11.61
+    - Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore version 8.0.6
+    - Microsoft.AspNetCore.Identity.EntityFrameworkCore version 8.0.6
+    - Microsoft.Build version 17.10.4
+    - Microsoft.EntityFrameworkCore.SqlServer version 8.0.6
+    - Microsoft.EntityFrameworkCore.Tools version 8.0.6
+    - Microsoft.ML version 3.0.1
+    - Microsoft.VisualStudio.Azure.Containers.Tools.Targets version 1.21.0
+    - Newtonsoft.Json version 13.0.3    
 
 ## Installation
 
 You can install BlazorBundler via NuGet Package Manager, Package Manager Console or from a terminal:
 
 ### Nuget Package Manager
-- Search for Blazor.Tools.BlazorBundler in nuget.org.
-
-
-```
-dotnet add package Blazor.Tools.BlazorBundler
-```
+- Search for Blazor.Tools.BlazorBundler in nuget.org and click Install.
 
 ### Package Manager Console
 ```
@@ -117,15 +122,27 @@ dotnet add package Blazor.Tools.BlazorBundler
 ```
 
 ## Install Pre-requesites
-Note: After installing the package, you have to manually run the Install.ps1 file to install required nuget packages.
 
-In the BlazorBundler folder, run: 
-    .\Install.ps1 -SourcePath "C:\Users\{user}\.nuget\packages\blazor.tools.blazorbundler\{version}" -TargetProjectPath "{TargetProjectPath}"
-    .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
+      First replace the values of the `$userProfileName` and `$targetPath` variables.
+      
+      `$userProfileName` should contain your Windows UserProfile Name
+      `$sourcePath` should not be changed
+      `$targetPath` should contain the full path of your project file
 
+Open PowerShell and run: 
+
+```
+    `$version` = "3.0.8"
+    `$userProfileName` = "solom"
+    `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\$version"
+    `$targetPath` = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+    Install-Pkgs -SourcePath `$sourcePath` -TargetProjectPath `$targetPath`
+```
 ## Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
+
 ```
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
@@ -149,23 +166,38 @@ First, uninstall the package from the Nuget Package Manager, Package Manager Con
 - Search Blazor.Tools.BlazorBundler and uninstall it.
 
 ### Package Manager Console
+
 ```
 Uninstall-Package Blazor.Tools.BlazorBundler
 ```
 
 ### Terminal console
+
 ```
 dotnet remove package Blazor.Tools.BlazorBundler
 ```
 
-There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
+## Clean-up
+Note: After uninstalling the package, you have to manually run the Uninstall module file to uninstall the packages.
+      First replace the values of the `$userProfileName` and `$targetPath` variables.
+      
+      `$projectPath` should contain the path to your project folder
+      `$projectName` should contain the name of your project
 
+Open PowerShell and run:
+
+```
+    `$projectPath` = "C:\repo\Blazor.Tools\Blazor.Tools\"
+    `$projectName` = "Blazor.Tools.csproj"
+    Uninstall -ProjectPath  `$projectPath` -ProjectName `$projectName`
+```
 
 ## Change Logs
 "@
 
 $changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/"
 # Append change log files to README.md
+Write-Host "Appending change log files to README.md..."
 $readmeContent += "`n"
 foreach ($file in $changeLogFiles) {
     $fileName = $file.Name
@@ -177,29 +209,36 @@ foreach ($file in $changeLogFiles) {
 
 # Save updated README.md
 $readmePath = "README.md"
+Write-Host "Saving updated README.md"
 Set-Content -Path $readmePath -Value $readmeContent
 
 # Save updated readme.txt
 $readmePath = "readme.txt"
+Write-Host "Saving updated readme.txt"
 Set-Content -Path $readmePath -Value $readmeContent
 
 <# Run the following codes only if boolean parameter Publish is true #>
 if($Publish -eq $true)
 {
 
+    Write-Host "Pushing changes to GitHub Repository..."
     git add .
     git commit -m $GitComment
     git push origin master
 
+    Write-Host "Packing the project..."
     # Pack the project
     dotnet pack -c Release /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed
 
+    Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
     # Dockerize
     docker build -t solomiosisante/blazor-bundler:latest .
 
+    Write-Host "Publishing the Docker image to Docker Hub..."
     # Publish the Docker image to Docker Hub (replace with your publish command)
     docker push solomiosisante/blazor-bundler:latest
 
-    # Publish the package (replace with your publish command)
+    Write-Host "Publishing the Package to nuget.org..."
+    # Publish the package to nuget.org (replace with your publish command)
     dotnet nuget push bin/Release/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
 }

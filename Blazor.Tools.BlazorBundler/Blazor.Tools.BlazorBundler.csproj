@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Version>3.0.5</Version>
+    <Version>3.0.8</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -22,13 +22,19 @@
 
   <ItemGroup>
     <!-- None items in the root -->
-    <None Include="changelog_*.md;readme.txt;icon.png">
+    <None Include="changelog_*.md;icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
 
     <!-- Add README.md -->
     <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+
+    <!-- Add readme.txt -->
+    <None Include="readme.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
@@ -51,17 +57,29 @@
       <PackagePath>\tools\</PackagePath>
     </None>
     
-    <!-- Add Uninstall.ps1 -->
-    <None Include="tools/Install.ps1">
+    <!-- Add Get-Tools.ps1 -->
+    <None Include="tools\Get-Tools.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
     
-    <!-- Add Uninstall.ps1 -->
-    <Content Include="tools/Uninstall.ps1">
+    <!-- Add Install-Pkgs.psm1 -->
+    <None Include="tools\Install-Pkgs.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
-    </Content>
+    </None>
+    
+    <!-- Add Print-Folder-Structure.psm1 -->
+    <None Include="tools\Print-Folder-Structure.psm1">
+      <Pack>True</Pack>
+      <PackagePath>\tools\</PackagePath>
+    </None>
+    
+    <!-- Add Uninstall.psm1 -->
+    <None Include="tools\Uninstall.psm1">
+      <Pack>True</Pack>
+      <PackagePath>\tools\</PackagePath>
+    </None>
     
     <!-- Add blazor-bootstrap files -->
     <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.*">
@@ -98,7 +116,7 @@
     </Content>
     
   </ItemGroup>
-  
+ 
   <Target Name="CustomPack" AfterTargets="Build">
     <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
   </Target>
