@@ -1,26 +1,18 @@
-﻿@page "/test-table-grid"
+﻿@page "/test-data-table-grid"
 @rendermode InteractiveServer
-
+@* @using Blazor.Tools.Components.AI *@
+@using Blazor.Tools
 @* @using Bogus *@
 @using System.Data
 
 @inject NavigationManager Navigation
 
-<PageTitle>Test Table Grid</PageTitle>
+<PageTitle>Test Data Table Grid</PageTitle>
 
-<h1>Testing Sample Table Grid Component</h1>
+<h1>Testing Sample Data Table Grid Component</h1>
 
-@* <TableGrid Title="Employee Table" AllowCellSelection="true">
-    <TableSource Name="EmployeeDS" DataSource="@_employees" />
-    <TableSource Name="CountryDS" DataSource="@_countries" />
-    <TableNode Title="AccSol Table" DataSource="EmployeeDS">
-        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" />
-        <TableColumn DataSourceName="EmployeeDS" FieldName="FirstName" Type="TextBox" HeaderName="First Name" />
-        <TableColumn DataSourceName="EmployeeDS" FieldName="MiddleName" Type="TextBox" HeaderName="Middle Name" />
-        <TableColumn DataSourceName="EmployeeDS" FieldName="LastName" Type="TextBox" HeaderName="Last Name" />
-        <TableColumn DataSourceName="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" HeaderName="Country" />
-    </TableNode>
-</TableGrid> *@
+ @* <DataTableGrid SelectedTable="@_employees" />
+ <DataTableGrid SelectedTable="@_countries" /> *@
  
 @code {
 
@@ -30,7 +22,7 @@
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
         // Initialize _employees DataTable
-        _employees = new DataTable();
+        _employees = new DataTable("Employee");
         _employees.Columns.Add("ID", typeof(int));
         _employees.Columns.Add("FirstName", typeof(string));
         _employees.Columns.Add("MiddleName", typeof(string));
@@ -54,10 +46,10 @@
         //     _employees.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
         // }
 
-        // Initialize and generate country data
-        _countries = new DataTable();
-        _countries.Columns.Add("ID", typeof(int));
-        _countries.Columns.Add("Name", typeof(string));
+        // // Initialize and generate country data
+        // _countries = new DataTable("Country");
+        // _countries.Columns.Add("ID", typeof(int));
+        // _countries.Columns.Add("Name", typeof(string));
 
         // for (int i = 0; i < 101; i++)
         // {
