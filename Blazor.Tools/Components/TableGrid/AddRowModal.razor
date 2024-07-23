@@ -7,13 +7,13 @@
 @using System.Data
 @using BlazorBootstrap
 
-<div class="data-table-grid-modal @(ShowAddRowModal ? "show" : "") custom-scope-identifier">
+<div class="data-table-grid-modal @(ShowAddRowModal ? "show" : "")" custom-scope-identifier>
     <!-- Buttons -->
-    <div class="data-table-grid-modal-close-button custom-scope-identifier">
+    <div class="data-table-grid-modal-close-button" custom-scope-identifier>
         <Icon Name="IconName.CheckCircleFill" @onclick="e => OnSave.InvokeAsync()" title="Add" />
         <Icon Name="IconName.XCircleFill" title="Close" @onclick="e => OnClose.InvokeAsync()" />
     </div>
-    <div class="data-table-grid-modal-content custom-scope-identifier">
+    <div class="data-table-grid-modal-content" custom-scope-identifier>
         @foreach (DataColumn column in DataTable.Columns)
         {
             <div class="form-group">
