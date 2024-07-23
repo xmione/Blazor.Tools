@@ -4,7 +4,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
-    <ScopedCssEnabled>true</ScopedCssEnabled>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="blazor.bootstrap" Version="1.11.1" />
@@ -37,7 +36,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Components\TableGrid\TableGrid.razor.css" CssScope="custom-scope-identifier" >
+    <None Update="Components\TableGrid\TableGrid.razor.css" CssScope="custom-scope-identifier">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Data\ML\v1.0-simplified_nq-dev-all.jsonl">
