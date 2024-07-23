@@ -145,17 +145,31 @@ Add these to your <head> section:
 
 ```````
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="blazor-bootstrap/blazor.bootstrap.css" />
+    <link rel="stylesheet" href="bundler/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="bundler/blazor-bootstrap/blazor.bootstrap.css" />
+    <link rel="stylesheet" href="bundler/css/bundler.css" />
+    
+    <!-- This is the <ASSEMBLY_NAME>.styles.css file-->
+    <link rel="stylesheet" href="Blazor.Tools.styles.css" /> 
 
-    <script src="blazored-typeahead/blazored-typeahead.js"></script>
-    <script src="js/site.js"></script>
+    <script src="bundler/blazored-typeahead/blazored-typeahead.js"></script>
+    <script src="bundler/js/site.js"></script>
+    
+    <!-- It needs to be in InteractiveServer mode to work -->
+    <HeadOutlet @rendermode="@InteractiveServer" />
 ```````
 
 Add these to your <body> section:
 ```````
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="blazor-bootstrap/blazor.bootstrap.js"></script>
+    <!-- Once again, this is needed -->
+    <Routes @rendermode="@InteractiveServer" />
+    
+    <!-- The script initializes the Blazor runtime, which is essential for a Blazor application to run -->
+    <script src="_framework/blazor.web.js"></script>
+
+    <!-- Use local Bootstrap JS -->
+    <script src="bundler/js/bootstrap.bundle.min.js"></script>
+    <script src="bundler/blazor-bootstrap/blazor.bootstrap.js"></script>
 ```````
     
 ## Uninstallation
