@@ -13,12 +13,16 @@
     <link rel="stylesheet" href="Blazor.Tools.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <script src="bundler/blazored-typeahead/blazored-typeahead.js"></script>
+    <script src="bundler/js/site.js"></script>
     <HeadOutlet @rendermode="@InteractiveServer" />
 </head>
 
 <body>
     <Routes @rendermode="@InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
+    <!-- Use local Bootstrap JS -->
+    <script src="bundler/js/bootstrap.bundle.min.js"></script>
+    <script src="bundler/blazor-bootstrap/blazor.bootstrap.js"></script>
 </body>
 
 </html>

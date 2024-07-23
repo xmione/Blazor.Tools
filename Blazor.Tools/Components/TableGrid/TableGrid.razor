@@ -23,7 +23,7 @@ else
     <div>        
         <div class="pagination-container">
             <label for="pageSize">Page Size:</label>
-            <select id="pageSize" @onchange="PageSizeChangedAsync">
+            <select id="pageSize" @onchange="PageSizeChangedAsync" class="cursor-pointer">
                 <option value=@_node.TotalItems selected>@_node.TotalItems</option>
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -32,20 +32,20 @@ else
                 <option value="100">100</option>
             </select>
             <!-- First Page -->
-            <Icon Name="IconName.ChevronDoubleLeft" @onclick="GoToFirstPageAsync" class="pagination-icon" title="First" />
+            <Icon Name="IconName.ChevronDoubleLeft" @onclick="GoToFirstPageAsync" class="pagination-icon cursor-pointer" title="First" />
 
             <!-- Previous Page -->
-            <Icon Name="IconName.ChevronLeft" @onclick="GoToPreviousPageAsync" class="pagination-icon" title="Previous" /> 
+            <Icon Name="IconName.ChevronLeft" @onclick="GoToPreviousPageAsync" class="pagination-icon cursor-pointer" title="Previous" /> 
 
             <!-- Next Page -->
-            <Icon Name="IconName.ChevronRight" @onclick="GoToNextPageAsync" class="pagination-icon" title="Next" />
+            <Icon Name="IconName.ChevronRight" @onclick="GoToNextPageAsync" class="pagination-icon cursor-pointer" title="Next" />
 
             <!-- Last Page -->
-            <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon" title="Last" />
+            <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon cursor-pointer" title="Last" />
 
             <!-- Go To Page -->
-            <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" />
-            <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon" title="Go" />
+            <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" class="form-control cursor-pointer" />
+            <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon cursor-pointer" title="Go" />
         </div>
     </div>
     @if (AllowCellSelection)
@@ -128,17 +128,19 @@ else
     {
         _node.UpdateDisplayFromPageSize();
         // <div>
-        // <div class="data-table-grid-div">
+        // <div class="data-table-grid-div custom-scope-identifier">
         //     <table class="data-table-grid">
         int sequence = 0;
         builder.OpenElement(sequence, "div");
         builder.AddContent(sequence++, Title);
         builder.OpenElement(sequence++, "div");
         builder.AddAttribute(sequence++, "class", "data-table-grid-div");
-        
+        builder.AddAttribute(sequence++, "custom-scope-identifier");
+
         builder.OpenElement(sequence++, "table");
         builder.AddAttribute(sequence++, "title", _node.Title);
         builder.AddAttribute(sequence++, "class", "data-table-grid");
+        builder.AddAttribute(sequence++, "custom-scope-identifier");
 
         builder.OpenElement(sequence++, "thead");
         builder.OpenElement(sequence++, "tr");
@@ -163,15 +165,22 @@ else
         {
             var totalRows = _node.PagedRows.Count();
             var pagedRows = _node.PagedRows.ToList();
-            for ( int i=0; i < totalRows; i++)
+
+            for ( int i = 0; i < totalRows; i++)
             {
                 builder.OpenElement(sequence++, "tr");
                 var currentRow = pagedRows[i];
                 builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
-                foreach (var column in _node.Columns)
+
+                for (var c = 0; c < _node.Columns.Count; c++)
                 {
+                    var column = _node.Columns[c];
                     int rowIndex = i;
+                    int columnIndex = c;
                     builder.OpenElement(sequence++, "td");
+                    builder.AddAttribute(sequence++, "title", $"R{rowIndex}C{columnIndex}");
+                    builder.AddAttribute(sequence++, "custom-scope-identifier");
+                    builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleCellClickAsync(rowIndex, columnIndex)));
                     builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
                     builder.CloseElement(); // td
                 }
@@ -193,6 +202,7 @@ else
     {
         builder.OpenElement(sequence++, "td");
         builder.AddAttribute(sequence++, "class", "icons-td");
+        builder.AddAttribute(sequence++, "custom-scope-identifier");
 
         if (!_node.IsEditing || row != _node.EditedRow)
         {
@@ -508,6 +518,28 @@ else
         }
 
         CloseAddRowModal();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task HandleCellClickAsync(int rowIndex, int columnIndex)
+    {
+        string cellIdentifier = $"R{rowIndex}C{columnIndex}";
+
+        if (string.IsNullOrEmpty(_node.StartCell) || _node.IsFirstCellClicked)
+        {
+            _node.StartCell = cellIdentifier;
+            _node.IsFirstCellClicked = false;
+            //await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);
+        }
+        else
+        {
+            _node.EndCell = cellIdentifier;
+            _node.IsFirstCellClicked = true;
+            //await _sessionManager.SaveToSessionTableAsync("_endCell", _endCell);
+        }
+
+        StateHasChanged(); // Refresh UI to reflect the changes in cell selection
 
         await Task.CompletedTask;
     }

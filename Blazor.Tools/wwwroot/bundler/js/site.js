@@ -35,7 +35,7 @@ window.downloadFile = function (filePath) {
         .catch(error => console.error('Error:', error));
 }
 
-window.sendAlert= (message) => {
+window.sendAlert = (message) => {
     alert(message);
 };
 
@@ -178,3 +178,23 @@ window.DOMCleanup = {
         observer.observe(element, { attributes: true });
     }
 };
+
+window.handleCellClick = (dotnetHelper) => {
+    // Log to console to verify the function is called
+    console.log('handleCellClick function initialized.');
+
+    document.querySelectorAll('td[title]').forEach(cell => {
+        // Remove existing event listener to avoid duplicates
+        cell.removeEventListener('click', cellClickHandler);
+        cell.addEventListener('click', cellClickHandler);
+    });
+
+    function cellClickHandler(event) {
+        // Log to console to verify the event listener is working
+        console.log('Cell clicked: ', event.currentTarget.title);
+
+        dotnetHelper.invokeMethodAsync('UpdateCellTitle', event.currentTarget.title);
+    }
+};
+
+
