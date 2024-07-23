@@ -46,26 +46,34 @@
 
     private IEnumerable<DataRow> FilterDataTable()
     {
+        IEnumerable<DataRow> dataRows = default!;
+
         if (DataTable == null)
         {
             throw new InvalidOperationException($"DataTable parameter must be provided or cascaded for {nameof(DTSearchBox)} component.");
         }
 
         if (string.IsNullOrWhiteSpace(_searchQuery))
-            return DataTable.AsEnumerable();
+        {
+            dataRows = DataTable.AsEnumerable();
+        }
+        else
+        { 
+            dataRows = DataTable.AsEnumerable()
+                        .Where(row =>
+                        {
+                            foreach (DataColumn col in DataTable.Columns)
+                            {
+                                var cellValue = row[col];
+                                if (cellValue != DBNull.Value && cellValue.ToString()?.IndexOf(_searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                                {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+        }
 
-        return DataTable.AsEnumerable()
-            .Where(row =>
-            {
-                foreach (DataColumn col in DataTable.Columns)
-                {
-                    var cellValue = row[col];
-                    if (cellValue != DBNull.Value && cellValue.ToString()?.IndexOf(_searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            });
+        return dataRows;
     }
 }

@@ -22,6 +22,7 @@
     public DataTable DataTable = default!;
     public int TotalPages = 0;
     public int TotalItems = 0;
+    public int FilteredItems = 0;
     public int PageSize = 0;
     public int CurrentPage = 1;
     public IEnumerable<DataRow>? FilteredRows;
@@ -46,6 +47,7 @@
         }
 
         TotalItems = DataTable?.Rows?.Count ?? 0;
+        FilteredItems = TotalItems;
         PageSize = TotalItems;
         UpdateDisplayFromPageSize();
 
@@ -57,11 +59,20 @@
     public void UpdateDisplayFromPageSize()
     {
         FilteredRows = DataTable != null ? ApplyFilter() : FilteredRows;
+        FilteredItems = FilteredRows.Count();
         PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
         TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
         SelectedTableName = DataTable?.TableName;
     }
 
+    public void FilterData(IEnumerable<DataRow> filteredRows)
+    {
+        FilteredRows = filteredRows;
+        FilteredItems = FilteredRows.Count();
+        PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+        TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
+        SelectedTableName = DataTable?.TableName;
+    }
     private IEnumerable<DataRow> ApplyFilter()
     {
         IEnumerable<DataRow> rows = default!;

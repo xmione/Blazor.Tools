@@ -22,6 +22,7 @@ else
 
     <div>        
         <div class="pagination-container">
+            <label for="totalItems">Total Items: @_node.FilteredItems/@_node.TotalItems</label>
             <label for="pageSize">Page Size:</label>
             <select id="pageSize" @onchange="PageSizeChangedAsync" class="cursor-pointer">
                 <option value=@_node.TotalItems selected>@_node.TotalItems</option>
@@ -44,7 +45,7 @@ else
             <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon cursor-pointer" title="Last" />
 
             <!-- Go To Page -->
-            <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" class="form-control cursor-pointer" />
+            <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" class="cursor-pointer" />
             <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon cursor-pointer" title="Go" />
         </div>
     </div>
@@ -126,7 +127,6 @@ else
 
     private async Task RenderTableContentAsync(RenderTreeBuilder builder)
     {
-        _node.UpdateDisplayFromPageSize();
         // <div>
         // <div class="data-table-grid-div custom-scope-identifier">
         //     <table class="data-table-grid">
@@ -388,8 +388,7 @@ else
 
     private async Task HandleFilterDataTableAsync(IEnumerable<DataRow> filteredRows)
     {
-        _node.FilteredRows = filteredRows;
-        _node.PagedRows = _node.FilteredRows.Skip((_node.CurrentPage - 1) * _node.PageSize).Take(_node.PageSize);
+        _node.FilterData(filteredRows);
 
         StateHasChanged(); // Ensure UI updates after filtering
         await Task.CompletedTask;
