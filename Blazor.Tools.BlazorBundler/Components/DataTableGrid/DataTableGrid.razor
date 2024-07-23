@@ -5,8 +5,11 @@
     Purpose       : To provide a reusable table grid to display any DataTable data.
 ===================================================================================================*@
 
+@using Blazor.Tools.BlazorBundler.Entities
+@using BlazorBootstrap
+@using Blazor.Tools.BlazorBundler.Components.TableGrid
 @using System.Data
-@using Blazor.Tools.Components.TableGrid 
+@namespace Blazor.Tools.BlazorBundler.Components.DataTableGrid
 
 <TableGrid Title="@Title" AllowCellSelection="@AllowCellSelection">
     <TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
@@ -27,7 +30,7 @@
         {
             //var dt = _sessionManager.DeserializeAsync<DataTable>(targetTable.DT).Result;
             @* <TableGrid DataTable="@dt" /> *@
-            <TableGrid DataTable="@targetTable.DT" />
+            @* <TableGrid DataTable="@targetTable.DT" /> *@
         }
     }
 }
@@ -109,10 +112,12 @@
 
     private async Task HandleSelectedDataComb(DataRow[] selectedData)
     {
-        _node.SelectedData = selectedData;
+        // _node.SelectedData = selectedData;
         //await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
-        await _tableGrid.HandleSelectedDataComb(selectedData);
-        StateHasChanged(); 
+        // await _tableGrid.HandleSelectedDataComb(selectedData);
+        // StateHasChanged(); 
+
+        await Task.CompletedTask;
     }
 
     private async Task HandleFieldValueChangedAsync(string newValue)

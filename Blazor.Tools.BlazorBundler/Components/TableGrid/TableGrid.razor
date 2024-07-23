@@ -1,10 +1,12 @@
 ﻿@* TableGrid.razor *@
 
-@using Blazor.Tools.Components.DTSearchBox
+@using Blazor.Tools.BlazorBundler.Components.DTSearchBox
 @using BlazorBootstrap
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Data
+@using Microsoft.AspNetCore.Components.Web
+@namespace Blazor.Tools.BlazorBundler.Components.TableGrid
 
 <DTSearchBox DataTable="@_node.DataTable" OnFilterDataTable="HandleFilterDataTableAsync" />
 
@@ -139,7 +141,7 @@ else
         builder.AddAttribute(sequence++, "custom-scope-identifier");
 
         builder.OpenElement(sequence++, "table");
-        builder.AddAttribute(sequence++, "title", _node.Title);
+        builder.AddAttribute(sequence++, "title", Title);
         builder.AddAttribute(sequence++, "class", "data-table-grid");
         builder.AddAttribute(sequence++, "custom-scope-identifier");
 
@@ -148,7 +150,7 @@ else
         // Add a blank th column for edit/delete buttons.
         builder.OpenElement(sequence++, "th");
         builder.CloseElement(); // th
-        // Add a blank th column for Row number.
+                                // Add a blank th column for Row number.
         builder.OpenElement(sequence++, "th");
         builder.AddContent(sequence++, "Row");
         builder.CloseElement(); // th
@@ -179,14 +181,14 @@ else
                 builder.OpenElement(sequence++, "tr");
                 var currentRow = pagedRows[i];
                 builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
-                
+
                 //Row number column
                 var rowNumber = i + 1;
                 builder.OpenElement(sequence++, "td");
                 builder.AddAttribute(sequence++, "custom-scope-identifier");
                 builder.AddContent(sequence++, $"{rowNumber}");        
                 builder.CloseElement(); // td
-                
+
                 for (var c = 0; c < _node.Columns.Count; c++)
                 {
                     var column = _node.Columns[c];
@@ -202,7 +204,7 @@ else
                         builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
                         builder.CloseElement(); // td
                     }
-                    
+
                 }
 
                 builder.CloseElement(); // tr
@@ -328,7 +330,7 @@ else
     {
         var dataSource = column.GetDataSource();
         var dataSourceRows = dataSource.Rows;
-        var rows = _node.PagedRows.ToList();
+        var rows = _node?.PagedRows?.ToList();
 
         if (rows != null)
         {
@@ -573,6 +575,60 @@ else
 
         StateHasChanged();
         await Task.CompletedTask;
+    }
+
+    public async Task<DataRow[]> ShowSetTargetTableModalAsync()
+    {
+        if (!string.IsNullOrEmpty(_node.StartCell) && !string.IsNullOrEmpty(_node.EndCell))
+        {
+            // Extracting start row and column from startCell
+            int startRow = int.Parse(_node.StartCell.Substring(1, _node.StartCell.IndexOf('C') - 1));
+            int startCol = int.Parse(_node.StartCell.Substring(_node.StartCell.IndexOf('C') + 1));
+
+            // Extracting end row and column from endCell
+            int endRow = int.Parse(_node.EndCell.Substring(1, _node.EndCell.IndexOf('C') - 1));
+            int endCol = int.Parse(_node.EndCell.Substring(_node.EndCell.IndexOf('C') + 1));
+
+            _selectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+            //await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
+
+            await Task.CompletedTask;
+        }
+
+        StateHasChanged();
+
+        return _selectedData;
+    }
+
+    private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
+    {
+        List<DataRow> dataInRange = new List<DataRow>();
+
+        if (_node.DataTable != null)
+        {
+            // Create a new DataTable with the selected columns
+            DataTable filteredDataTable = new DataTable();
+            for (int i = startCol; i <= endCol; i++)
+            {
+                DataColumn column = _node.DataTable.Columns[i];
+                filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
+            }
+
+            for (int i = startRow; i <= endRow; i++)
+            {
+                DataRow newRow = filteredDataTable.NewRow();
+
+                for (int j = startCol; j <= endCol; j++)
+                {
+                    newRow[j - startCol] = _node.DataTable.Rows[i][j];
+                }
+
+                dataInRange.Add(newRow);
+            }
+
+        }
+
+        return dataInRange.ToArray();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

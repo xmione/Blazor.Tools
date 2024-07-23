@@ -4,8 +4,16 @@
     Created On    : June 5, 2024
     Purpose       : Modal dialog box for setting the target DataTable.
 ===================================================================================================*@
+
+@* @using AccSol.Common.Extensions
+@using AccSol.Common.Tools
+@using AccSol.Components.TableGrid
+@using AccSol.Interfaces *@
+@using BlazorBootstrap
+@using Microsoft.AspNetCore.Components.Web
 @using System.Data;
 @using System.Reflection
+@namespace Blazor.Tools.BlazorBundler.Components.DataTableGrid
 
 <PageTitle>SetTargetTableModal</PageTitle>
 <div class="data-table-grid-modal @(ShowSetTargetTableModal ? "show" : "")">
@@ -225,9 +233,9 @@
     [Parameter] public DataRow[] SelectedData { get; set; } = Array.Empty<DataRow>();
     [Parameter] public EventCallback<DataRow[]> OnSelectedDataComb { get; set; }
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
-    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
 
-    //private SessionManager _sessionManager = default!;
+    private SessionManager _sessionManager = default!;
     private TableEnum _selectedTableValueEnum;
     private TableEnum _selectedCheckOnTableValueEnum;
     private string? _selectedTableValue;
@@ -252,12 +260,12 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        // _sessionManager = new SessionManager(_sessionTableService);
+        _sessionManager = new SessionManager(_sessionTableService);
 
-        // if (!_isRetrieved)
-        // {
-        //     await RetrieveDataFromSessionTableAsync();
-        // }
+        if (!_isRetrieved)
+        {
+            await RetrieveDataFromSessionTableAsync();
+        }
 
         if (SelectedData != null)
         {
@@ -297,24 +305,24 @@
         await base.OnParametersSetAsync();
     }
 
-    // private async Task RetrieveDataFromSessionTableAsync()
-    // {
-    //     try
-    //     {
-    //         SelectedData = (await _sessionManager.RetrieveFromSessionTableAsync<DataRow[]>("_selectedData")) ?? SelectedData;
-    //         _uniqueField = (await _sessionManager.RetrieveFromSessionTableAsync<string>("_uniqueField")) ?? _uniqueField;
-    //         _targetTableColumnList = (await _sessionManager.RetrieveFromSessionTableAsync<List<TargetTableColumn>>("_targetTableColumnList")) ?? _targetTableColumnList;
-    //         _columnProperties = (await _sessionManager.RetrieveFromSessionTableAsync<List<string>>("_columnProperties")) ?? _columnProperties;
+    private async Task RetrieveDataFromSessionTableAsync()
+    {
+        try
+        {
+            SelectedData = (await _sessionManager.RetrieveFromSessionTableAsync<DataRow[]>("_selectedData")) ?? SelectedData;
+            _uniqueField = (await _sessionManager.RetrieveFromSessionTableAsync<string>("_uniqueField")) ?? _uniqueField;
+            _targetTableColumnList = (await _sessionManager.RetrieveFromSessionTableAsync<List<TargetTableColumn>>("_targetTableColumnList")) ?? _targetTableColumnList;
+            _columnProperties = (await _sessionManager.RetrieveFromSessionTableAsync<List<string>>("_columnProperties")) ?? _columnProperties;
 
-    //         _isRetrieved = true;
+            _isRetrieved = true;
 
-    //         StateHasChanged();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("Error: {0}", ex.Message);
-    //     }
-    // }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+    }
 
     private async Task OnSourceFieldValueChanged(ChangeEventArgs e)
     {
@@ -336,8 +344,7 @@
         // Handle the selected value here
         Console.WriteLine("selectedValue: {0}", _selectedTableValueEnum);
 
-        // await _sessionManager.SaveToSessionTableAsync("_selectedTableValue", _selectedTableValue);
-        await Task.CompletedTask;
+        await _sessionManager.SaveToSessionTableAsync("_selectedTableValue", _selectedTableValue);
     }
 
     private async Task OnSelectedCheckOnTableValueChanged(ChangeEventArgs e)
@@ -362,8 +369,7 @@
         _selectedTableValue = Enum.GetName(typeof(TableEnum), _selectedTableValueEnum) ?? string.Empty;
         _selectedFieldValue = e?.Value?.ToString() ?? string.Empty;
 
-        // await _sessionManager.SaveToSessionTableAsync("_selectedFieldValue", _selectedFieldValue);
-        await Task.CompletedTask;
+        await _sessionManager.SaveToSessionTableAsync("_selectedFieldValue", _selectedFieldValue);
     }
 
     private async Task OnPrimaryKeyFieldChanged(ChangeEventArgs e)
@@ -426,8 +432,8 @@
             _columnProperties = new List<string>();
         }
 
-        // await _sessionManager.SaveToSessionTableAsync("_targetTableColumnList", _targetTableColumnList, serialize: true);
-        // await _sessionManager.SaveToSessionTableAsync("_columnProperties", _columnProperties, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync("_targetTableColumnList", _targetTableColumnList, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync("_columnProperties", _columnProperties, serialize: true);
         await SetTargetTableColumnList.InvokeAsync(_targetTableColumnList);
         StateHasChanged();
     }
@@ -587,7 +593,7 @@
     {
         _uniqueField = e?.Value?.ToString() ?? string.Empty;
 
-        // await _sessionManager.SaveToSessionTableAsync("_uniqueField", _uniqueField, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync("_uniqueField", _uniqueField, serialize: true);
         await DataCombAsync();
     }
 

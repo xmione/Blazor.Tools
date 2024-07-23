@@ -88,10 +88,6 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\DataTableGrid\SetTargetTableModal.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
     <Content Include="Components\DTSearchBox\DTSearchBox.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -155,9 +151,11 @@
   <ItemGroup>
     <RazorComponent Remove="Components\AI\AIChatBot.razor" />
     <RazorComponent Remove="Components\AI\SentimentAnalysis.razor" />
+    <RazorComponent Remove="Components\DataTableGrid\SetTargetTableModal.razor" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.26" />
