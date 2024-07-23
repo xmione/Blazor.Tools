@@ -1,4 +1,4 @@
-﻿namespace Blazor.Tools.BlazorBundler
+﻿namespace Blazor.Tools.BlazorBundler.Entities
 {
     public class ProcessManager
     {

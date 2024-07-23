@@ -203,7 +203,7 @@ Open PowerShell and run:
 ```````
     `$projectPath` = "C:\repo\Blazor.Tools\Blazor.Tools\"
     `$projectName` = "Blazor.Tools.csproj"
-    Uninstall -ProjectPath  `$projectPath` -ProjectName `$projectName`
+    Uninstall-Pkgs -ProjectPath  `$projectPath` -ProjectName `$projectName`
 ```````
 
 ## Change Logs

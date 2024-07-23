@@ -59,8 +59,8 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall.psm1"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall-Pkgs.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall-Pkgs.psm1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1')"

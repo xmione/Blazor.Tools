@@ -1,14 +1,14 @@
 <#
-    File Name       : Uninstall.psm1
+    File Name       : Uninstall-Pkgs.psm1
     Purpose         : To automate the uninstallation of nuget packages.
     Created By      : Solomio S. Sisante
     Created On      : July 20, 2024
     Sample command  : 
                         $projectPath = "C:\repo\Blazor.Tools\Blazor.Tools\"
                         $projectName = "Blazor.Tools.csproj"
-                        Uninstall -ProjectPath  $projectPath -$ProjectName $projectName
+                        Uninstall-Pkgs -ProjectPath  $projectPath -$ProjectName $projectName
 #>
-Function UnInstall 
+Function Uninstall-Pkgs
 {
     param(
             [string]$ProjectPath,
@@ -64,4 +64,4 @@ Function UnInstall
 
 }
 
-Export-ModuleMember -Function Uninstall
+Export-ModuleMember -Function Uninstall-Pkgs

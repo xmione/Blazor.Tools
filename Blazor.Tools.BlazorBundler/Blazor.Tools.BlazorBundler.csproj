@@ -63,17 +63,58 @@
       <PackagePath>\tools\</PackagePath>
     </None>
     
-    <!-- Add Uninstall.psm1 -->
-    <None Include="tools\Uninstall.psm1">
+    <!-- Add Uninstall-Pkgs.psm1 -->
+    <None Include="tools\Uninstall-Pkgs.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
     <!-- Add blazor-bootstrap files -->
     <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.*">
       <Pack>true</Pack>
       <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\AI\AIChatBot.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\AI\SentimentAnalysis.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\DataTableGrid\DataTableGrid.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\DataTableGrid\SearchFieldsEntryModal.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\DataTableGrid\SetTargetTableModal.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\DTSearchBox\DTSearchBox.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\TableGrid\AddRowModal.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\TableGrid\TableColumn.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\TableGrid\TableGrid.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\TableGrid\TableNode.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\TableGrid\TableSource.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
 
     <!-- Add blazored-typeahead files -->
@@ -103,6 +144,67 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     
+    <RazorComponent Include="Components\**\*.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Components\AI\AIChatBot.razor" />
+    <None Remove="Components\AI\SentimentAnalysis.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RazorComponent Remove="Components\AI\AIChatBot.razor" />
+    <RazorComponent Remove="Components\AI\SentimentAnalysis.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.26" />
+    <PackageReference Include="Microsoft.Build" Version="17.10.4" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Entities\SearchField.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\CheckOnFieldValueEnum.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\DataTableJsonConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\ITargetTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\ITargetTableColumn.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\RenderFragmentExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TableEnum.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TargetTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TargetTableColumn.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TargetTableColumnConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Components\TableGrid\TableGrid.razor.css">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CssScope>custom-scope-identifier</CssScope>
+    </None>
   </ItemGroup>
  
   <Target Name="CustomPack" AfterTargets="Build">

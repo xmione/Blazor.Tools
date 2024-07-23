@@ -9,6 +9,11 @@ $ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
 # Path to the user's PowerShell profile script
 $ProfilePath = $PROFILE
 
+# Remove the profile script if it exists
+if (Test-Path -Path $ProfilePath) {
+    Remove-Item -Path $ProfilePath -Force
+}
+
 # Ensure the profile directory exists
 $ProfileDir = [System.IO.Path]::GetDirectoryName($ProfilePath)
 if (-not (Test-Path -Path $ProfileDir)) {
@@ -25,12 +30,12 @@ $ModuleImports = @"
 # Import custom modules
 Import-Module '$ScriptDir\Print-Folder-Structure.psm1'
 Import-Module '$ScriptDir\Install-Pkgs.psm1'
-Import-Module '$ScriptDir\Uninstall.psm1'
+Import-Module '$ScriptDir\Uninstall-Pkgs.psm1'
 "@
 
 # Remove existing import statements from the profile script
 $ProfileContent = Get-Content -Path $ProfilePath
-$Pattern = "Print-Folder-Structure.psm1|Install-Pkgs.psm1|Uninstall.psm1"
+$Pattern = "Print-Folder-Structure.psm1|Install-Pkgs.psm1|Uninstall-Pkgs.psm1"
 $FilteredContent = $ProfileContent | Where-Object { $_ -notmatch $Pattern }
 
 # Write the filtered content back to the profile script
