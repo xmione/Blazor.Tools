@@ -8,18 +8,19 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// Gets the property names of an object.
         /// </summary>
         /// <param name="obj">The object to get the property names from.</param>
-        /// <returns>A list of property names.</returns>
-        public static List<string> GetProperties(this object obj)
+        /// <returns>IEnumerable<string> that contains all the object's property names.</returns>
+        public static IEnumerable<string> GetProperties(this object obj)
         {
             if (obj == null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            return obj.GetType()
+            var properties = obj.GetType()
                       .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                      .Select(p => p.Name)
-                      .ToList();
+                      .Select(p => p.Name);
+
+            return properties;
         }
 
         /// <summary>
@@ -56,9 +57,9 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// <param name="typeName">The type name string. Example: "IClient" </param>
         /// <param name="isInterface">If value is true, gets the properties from an interface.
         /// If value is false, gets the properties from a class. Default value is false.</param>
-        /// <returns>PropertyInfo[]</returns>
+        /// <returns>IEnumerable<string> that contains all the object's property names.</returns>
         /// <exception cref="ArgumentException"></exception>
-        public static PropertyInfo[] GetProperties(string assemblyName, string typeName, bool isInterface = false)
+        public static IEnumerable<string> GetProperties(string assemblyName, string typeName, bool isInterface = false)
         {
             // Load the assembly
             Assembly assembly = Assembly.Load(assemblyName);
@@ -86,7 +87,9 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
 
             // Get properties of the type
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var properties = type
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Select(p => p.Name); 
             
             return properties;
         }

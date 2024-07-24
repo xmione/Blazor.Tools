@@ -45,6 +45,7 @@
                          OnSave="SaveToTargetTableAsync"
                          SelectedData="@_selectedData"
                          OnSelectedDataComb="HandleSelectedDataComb"
+                         TableList="@TableList"
                          />
 }
 
@@ -52,6 +53,9 @@
     [Parameter] public string Title { get; set; } = default!;
     [Parameter] public DataTable SelectedTable { get; set; } = default!;
     [Parameter] public bool AllowCellSelection { get; set; } = false;
+    [Parameter] public List<AssemblyTable> TableList { get; set; } = default!;
+
+
     // [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
     // [Inject] public SessionTable _sessionTable { get; set; } = default!;
 
@@ -87,6 +91,7 @@
             // _isRetrieved = true;
 
             StateHasChanged();
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {

@@ -335,7 +335,8 @@ else
         if (rows != null)
         {
             var row = rows[rowIndex];
-            var isEditing = _node.IsEditing && _node.EditedRow != null && row == _node.EditedRow;
+            var isEditing = _node?.IsEditing == true && _node?.EditedRow != null && row == _node.EditedRow;
+
             if(isEditing)
             {
                 if (column.Type == "TextBox")

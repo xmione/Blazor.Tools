@@ -136,11 +136,12 @@
             <div class="col">
                 <label for="targetTable">Target Table:</label>
                 <select class="form-control" id="targetTable" @onchange="OnTargetTableValueChanged">
-                    @foreach (var enumValue in Enum.GetValues(typeof(TableEnum)))
+                    @foreach (var table in TableList)
                     {
-                        int enumIntValue = (int)enumValue;
-                        <option value="@enumIntValue" selected="@(_selectedTableValueEnum.Equals(enumIntValue))">
-                            @enumValue
+                        int id = (int)table.ID;
+                        string tableName = table.TableName;
+                        <option value="@id" selected="@(_selectedTableID.Equals(id))">
+                            @tableName
                         </option>
                     }
                 </select>
@@ -148,20 +149,26 @@
             <div class="col">
                 <label for="targetField">Target Field:</label>
                 <select class="form-control" id="targetField" @onchange="OnTargetFieldChanged">
-                    @foreach (var field in GetFieldValues(_selectedTableValueEnum))
-                    {
-                        <option value="@field" selected="@(_selectedFieldValue?.Equals(field))">@field</option>
+                    @{
+                        var fieldValues = GetFieldValues(_selectedTableID);
+                        if (fieldValues != null)
+                        {
+                            foreach (var field in fieldValues)
+                            {
+                                <option value="@field" selected="@(_selectedFieldValue?.Equals(field))">@field</option>
+                            }
+                        }
                     }
                 </select>
             </div>
             <div class="col">
                 <label for="checkOnTable">Check On Table:</label>
                 <select class="form-control" id="checkOnTable" @onchange="OnSelectedCheckOnTableValueChanged">
-                    @foreach (var enumValue in Enum.GetValues(typeof(TableEnum)))
+                    @foreach (var table in TableList)
                     {
-                        int enumIntValue = (int)enumValue;
-                        <option value="@enumIntValue" selected="@(_selectedCheckOnTableValueEnum.Equals(enumIntValue))">
-                            @enumValue
+                        int id = table.ID;
+                        <option value="@id" selected="@(_selectedCheckOnTableID.Equals(id))">
+                            @table.TableName
                         </option>
                     }
                 </select>
@@ -169,9 +176,15 @@
             <div class="col">
                 <label for="primaryKeyField">Primary Key Field:</label>
                 <select class="form-control" id="primaryKeyField" @onchange="OnPrimaryKeyFieldChanged">
-                    @foreach (var field in GetFieldValues(_selectedCheckOnTableValueEnum))
-                    {
-                        <option value="@field" selected="@(_selectedPrimaryKeyFieldValue?.Equals(field))">@field</option>
+                    @{
+                        var fieldCheckValues = GetFieldValues(_selectedCheckOnTableID);
+                        if (fieldCheckValues != null)
+                        {
+                            foreach (var field in fieldCheckValues)
+                            {
+                                <option value="@field" selected="@(_selectedPrimaryKeyFieldValue?.Equals(field))">@field</option>
+                            }
+                        }
                     }
                 </select>
             </div>
@@ -236,13 +249,13 @@
     [Parameter] public DataRow[] SelectedData { get; set; } = Array.Empty<DataRow>();
     [Parameter] public EventCallback<DataRow[]> OnSelectedDataComb { get; set; }
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
-    [Parameter] public List<string> TableList { get; set; } = default!;
+    [Parameter] public List<AssemblyTable> TableList { get; set; } = default!;
 
     [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
 
     private SessionManager _sessionManager = default!;
-    private TableEnum _selectedTableValueEnum;
-    private TableEnum _selectedCheckOnTableValueEnum;
+    private int _selectedTableID;
+    private int _selectedCheckOnTableID;
     private string? _selectedTableValue;
     private string? _selectedCheckOnTableValue;
     private string? _selectedFieldValue;
@@ -299,7 +312,7 @@
             if (_totalItemsSelectedData > 0 && string.IsNullOrEmpty(_selectedSourceField))
             {
                 _selectedSourceField = SelectedData[0].Table.Columns[0].ColumnName;
-                var selectedFieldValue = GetFieldValues(_selectedTableValueEnum).FirstOrDefault();
+                var selectedFieldValue = GetFieldValues(_selectedTableID)?.FirstOrDefault();
 
                 var selectedTableValue = Enum.GetName(typeof(TableEnum), TableEnum.Client) ?? string.Empty;
                 _selectedFieldValue = selectedFieldValue ?? string.Empty;
@@ -339,54 +352,59 @@
     {
         // Parse selected value from int to TableEnum
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
-        _selectedTableValueEnum = (TableEnum)selectedIntValue;
+        _selectedTableID = selectedIntValue;
 
-        var selectedTableValue = Enum.GetName(typeof(TableEnum), _selectedTableValueEnum) ?? string.Empty;
+        var selectedTableValue = TableList.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedFieldValue = string.Empty;
 
         // Handle the selected value here
-        Console.WriteLine("selectedValue: {0}", _selectedTableValueEnum);
+        Console.WriteLine("selectedValue: {0}", _selectedTableID);
 
-        await _sessionManager.SaveToSessionTableAsync("_selectedTableValue", _selectedTableValue);
+        //await _sessionManager.SaveToSessionTableAsync("_selectedTableValue", _selectedTableValue);
+
+        await Task.CompletedTask;
     }
 
     private async Task OnSelectedCheckOnTableValueChanged(ChangeEventArgs e)
     {
         // Parse selected value from int to TableEnum
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
-        _selectedCheckOnTableValueEnum = (TableEnum)selectedIntValue;
+        _selectedCheckOnTableID = selectedIntValue;
 
-        var selectedCheckOnTableValueEnum = Enum.GetName(typeof(TableEnum), _selectedCheckOnTableValueEnum) ?? string.Empty;
+        var selectedTableValue = TableList.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
+
+        var selectedCheckOnTableValueEnum = TableList.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedPrimaryKeyFieldValue = string.Empty;
 
         // Handle the selected value here
-        Console.WriteLine("selectedValue: {0}", _selectedCheckOnTableValueEnum);
+        Console.WriteLine("selectedValue: {0}", _selectedCheckOnTableID);
 
         await Task.CompletedTask;
     }
 
     private async Task OnTargetFieldChanged(ChangeEventArgs e)
     {
-        _selectedTableValue = Enum.GetName(typeof(TableEnum), _selectedTableValueEnum) ?? string.Empty;
+        _selectedTableValue = TableList.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
         _selectedFieldValue = e?.Value?.ToString() ?? string.Empty;
 
-        await _sessionManager.SaveToSessionTableAsync("_selectedFieldValue", _selectedFieldValue);
+        //await _sessionManager.SaveToSessionTableAsync("_selectedFieldValue", _selectedFieldValue);
+        await Task.CompletedTask;
     }
 
     private async Task OnPrimaryKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = Enum.GetName(typeof(TableEnum), _selectedCheckOnTableValueEnum) ?? string.Empty;
+        _selectedCheckOnTableValue = TableList.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
         _selectedPrimaryKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
 
     private async Task OnForeignKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = Enum.GetName(typeof(TableEnum), _selectedCheckOnTableValueEnum) ?? string.Empty;
+        _selectedCheckOnTableValue = TableList.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
         _selectedForeignKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
@@ -400,7 +418,7 @@
 
         var targetTableColumn = _targetTableColumnList.FirstOrDefault(s => s.SourceFieldName == _selectedSourceField)
                                 ?? new TargetTableColumn();
-        _selectedTableValue = Enum.GetName(typeof(TableEnum), _selectedTableValueEnum) ?? string.Empty;
+        _selectedTableValue = Enum.GetName(typeof(TableEnum), _selectedTableID) ?? string.Empty;
         var sourceFieldName = _selectedSourceField ?? string.Empty;
         var targetTableName = _selectedTableValue ?? string.Empty;
         var targetFieldName = _selectedFieldValue ?? string.Empty;
@@ -443,43 +461,52 @@
         StateHasChanged();
     }
 
-    private IEnumerable<string> GetFieldValues(TableEnum table)
+    private IEnumerable<string>? GetFieldValues(int id)
     {
-        switch (table)
-        {
-            case TableEnum.Client:
-                return GetPropertiesNames(typeof(IClient));
-            case TableEnum.Coa:
-                return GetPropertiesNames(typeof(ICoa));
-            case TableEnum.Department:
-                return GetPropertiesNames(typeof(IDepartment));
-            case TableEnum.Employee:
-                return GetPropertiesNames(typeof(IEmployee));
-            case TableEnum.JournalEntry:
-                return GetPropertiesNames(typeof(IJournal));
-            case TableEnum.Payee:
-                return GetPropertiesNames(typeof(IPayee));
-            case TableEnum.PayeeCategory:
-                return GetPropertiesNames(typeof(IPayeeCategory));
-            case TableEnum.PettyCash:
-                return GetPropertiesNames(typeof(IPettyCash));
-            case TableEnum.ProjectCategory:
-                return GetPropertiesNames(typeof(IProjectCategory));
-            case TableEnum.ProjectCode:
-                return GetPropertiesNames(typeof(IProjectCode));
-            default:
-                return Enumerable.Empty<string>();
-        }
+        var selectedTable = TableList.FirstOrDefault(t => t.ID == id);
+        var properties = selectedTable?.GetPropertyNames();
+
+        return properties;
+
     }
 
-    private IEnumerable<string> GetPropertiesNames(Type type)
-    {
-        // Get the properties of the specified type
-        PropertyInfo[] properties = type.GetProperties();
+    // private IEnumerable<string> GetFieldValues(TableEnum table)
+    // {
+    //     switch (table)
+    //     {
+    //         case TableEnum.Client:
+    //             return GetPropertiesNames(typeof(IClient));
+    //         case TableEnum.Coa:
+    //             return GetPropertiesNames(typeof(ICoa));
+    //         case TableEnum.Department:
+    //             return GetPropertiesNames(typeof(IDepartment));
+    //         case TableEnum.Employee:
+    //             return GetPropertiesNames(typeof(IEmployee));
+    //         case TableEnum.JournalEntry:
+    //             return GetPropertiesNames(typeof(IJournal));
+    //         case TableEnum.Payee:
+    //             return GetPropertiesNames(typeof(IPayee));
+    //         case TableEnum.PayeeCategory:
+    //             return GetPropertiesNames(typeof(IPayeeCategory));
+    //         case TableEnum.PettyCash:
+    //             return GetPropertiesNames(typeof(IPettyCash));
+    //         case TableEnum.ProjectCategory:
+    //             return GetPropertiesNames(typeof(IProjectCategory));
+    //         case TableEnum.ProjectCode:
+    //             return GetPropertiesNames(typeof(IProjectCode));
+    //         default:
+    //             return Enumerable.Empty<string>();
+    //     }
+    // }
 
-        // Extract and return the names of the properties
-        return properties.Select(p => p.Name);
-    }
+    // private IEnumerable<string> GetPropertiesNames(Type type)
+    // {
+    //     // Get the properties of the specified type
+    //     PropertyInfo[] properties = type.GetProperties();
+
+    //     // Extract and return the names of the properties
+    //     return properties.Select(p => p.Name);
+    // }
 
     private IEnumerable<DataRow> ApplyFilterSelectedData()
     {
@@ -598,8 +625,9 @@
     {
         _uniqueField = e?.Value?.ToString() ?? string.Empty;
 
-        await _sessionManager.SaveToSessionTableAsync("_uniqueField", _uniqueField, serialize: true);
+        //await _sessionManager.SaveToSessionTableAsync("_uniqueField", _uniqueField, serialize: true);
         await DataCombAsync();
+
     }
 
     private async Task SaveTargetTablesAsync()
