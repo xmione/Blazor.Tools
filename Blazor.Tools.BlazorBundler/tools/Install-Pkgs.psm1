@@ -20,7 +20,7 @@ Function Install-Pkgs
     Write-Host "SourcePath: $SourcePath"
     Write-Host "TargetProjectPath: $TargetProjectPath"
 
-    $packagesPath = "${SourcePath}packages"
+    $packagesPath = "${SourcePath}\packages"
     $targetPath = Split-Path $TargetProjectPath
 
     Write-Host "packagesPath: $packagesPath"
