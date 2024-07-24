@@ -133,9 +133,9 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
 Open PowerShell and run: 
 
 ```````
-    `$version` = "3.0.8"
+    `$version` = "$PackageVersion"
     `$userProfileName` = "solom"
-    `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\$version"
+    `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\`$version`"
     `$targetPath` = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
     Install-Pkgs -SourcePath `$sourcePath` -TargetProjectPath `$targetPath`
 ```````
@@ -223,12 +223,12 @@ foreach ($file in $changeLogFiles) {
 
 # Save updated README.md
 $readmePath = "README.md"
-Write-Host "Saving updated README.md"
+Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
 # Save updated readme.txt
 $readmePath = "readme.txt"
-Write-Host "Saving updated readme.txt"
+Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
 <# Run the following codes only if boolean parameter Publish is true #>

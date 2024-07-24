@@ -59,7 +59,7 @@ Open PowerShell and run:
 ```
     $version = "3.0.8"
     $userProfileName = "solom"
-    $sourcePath = "C:\Users\$userProfileName\.nuget\packages\blazor.tools.blazorbundler\"
+    $sourcePath = "C:\Users\$userProfileName\.nuget\packages\blazor.tools.blazorbundler\$version"
     $targetPath = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
     Install-Pkgs -SourcePath $sourcePath -TargetProjectPath $targetPath
 ```
