@@ -74,44 +74,6 @@
       <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\AI\AIChatBot.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\AI\SentimentAnalysis.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\DataTableGrid\DataTableGrid.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\DataTableGrid\SearchFieldsEntryModal.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\DTSearchBox\DTSearchBox.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\TableGrid\AddRowModal.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\TableGrid\TableColumn.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\TableGrid\TableGrid.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\TableGrid\TableNode.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\TableGrid\TableSource.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
 
     <!-- Add blazored-typeahead files -->
     <Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
@@ -142,18 +104,7 @@
     
     <RazorComponent Include="Components\**\*.razor" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Components\AI\AIChatBot.razor" />
-    <None Remove="Components\AI\SentimentAnalysis.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <RazorComponent Remove="Components\AI\AIChatBot.razor" />
-    <RazorComponent Remove="Components\AI\SentimentAnalysis.razor" />
-    <RazorComponent Remove="Components\DataTableGrid\SetTargetTableModal.razor" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
     <PackageReference Include="Dapper" Version="2.1.35" />

@@ -11,6 +11,7 @@ $ProfilePath = $PROFILE
 
 # Remove the profile script if it exists
 if (Test-Path -Path $ProfilePath) {
+    Write-Output "Removing Profile file $ProfilePath..."
     Remove-Item -Path $ProfilePath -Force
 }
 
@@ -22,6 +23,7 @@ if (-not (Test-Path -Path $ProfileDir)) {
 
 # Create the profile script if it does not exist
 if (-not (Test-Path -Path $ProfilePath)) {
+    Write-Output "Creating new Profile file $ProfilePath..."
     New-Item -ItemType File -Path $ProfilePath -Force
 }
 

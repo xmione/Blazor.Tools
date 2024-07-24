@@ -12,7 +12,7 @@
 @namespace Blazor.Tools.BlazorBundler.Components.DataTableGrid
 
 <TableGrid Title="@Title" AllowCellSelection="@AllowCellSelection">
-    <Blazor.Tools.BlazorBundler.Components.TableGrid.TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
+    <TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
     <TableNode DataSource="@_tableSourceName">
         @foreach(DataColumn column in SelectedTable.Columns)
         {
