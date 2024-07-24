@@ -9,6 +9,9 @@
 @using AccSol.Common.Tools
 @using AccSol.Components.TableGrid
 @using AccSol.Interfaces *@
+@using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Extensions
+@using Blazor.Tools.BlazorBundler.Interfaces
 @using BlazorBootstrap
 @using Microsoft.AspNetCore.Components.Web
 @using System.Data;
@@ -233,6 +236,8 @@
     [Parameter] public DataRow[] SelectedData { get; set; } = Array.Empty<DataRow>();
     [Parameter] public EventCallback<DataRow[]> OnSelectedDataComb { get; set; }
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
+    [Parameter] public List<string> TableList { get; set; } = default!;
+
     [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
 
     private SessionManager _sessionManager = default!;

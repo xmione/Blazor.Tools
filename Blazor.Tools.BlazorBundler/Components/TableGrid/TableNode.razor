@@ -58,7 +58,7 @@
     public void UpdateDisplayFromPageSize()
     {
         FilteredRows = DataTable != null ? ApplyFilter() : FilteredRows;
-        FilteredItems = FilteredRows.Count();
+        FilteredItems = FilteredRows?.Count() ?? FilteredItems;
         PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
         TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
         SelectedTableName = DataTable?.TableName;
@@ -100,15 +100,16 @@
 
     public RenderFragment RenderTableColumn(TableColumn column, int rowNumber)
     {
+        var tableColumn = new TableColumn();
         RenderFragment fragment = builder =>
         {
             builder.OpenComponent(0, typeof(TableColumn));
-            builder.AddAttribute(1, nameof(TableColumn.DataSourceName), column.DataSourceName);
-            builder.AddAttribute(2, nameof(TableColumn.FieldName), column.FieldName);
-            builder.AddAttribute(3, nameof(TableColumn.Type), column.Type);
-            builder.AddAttribute(4, nameof(TableColumn.DisplayFieldName), column.DisplayFieldName);
-            builder.AddAttribute(5, nameof(TableColumn.DisplayFieldValue), column.DisplayFieldValue);
-            builder.AddAttribute(6, nameof(TableColumn.RowNumber), rowNumber);
+            builder.AddAttribute(1, nameof(tableColumn.DataSourceName), column.DataSourceName);
+            builder.AddAttribute(2, nameof(tableColumn.FieldName), column.FieldName);
+            builder.AddAttribute(3, nameof(tableColumn.Type), column.Type);
+            builder.AddAttribute(4, nameof(tableColumn.DisplayFieldName), column.DisplayFieldName);
+            builder.AddAttribute(5, nameof(tableColumn.DisplayFieldValue), column.DisplayFieldValue);
+            builder.AddAttribute(6, nameof(tableColumn.RowNumber), rowNumber);
             builder.CloseComponent();
         };
 
