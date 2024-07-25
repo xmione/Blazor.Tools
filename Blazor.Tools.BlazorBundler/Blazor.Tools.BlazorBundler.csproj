@@ -62,7 +62,7 @@
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+     
     <!-- Add Uninstall-Pkgs.psm1 -->
     <None Include="tools\Uninstall-Pkgs.psm1">
       <Pack>True</Pack>
