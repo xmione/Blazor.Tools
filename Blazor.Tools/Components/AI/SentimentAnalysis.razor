@@ -1,0 +1,37 @@
+﻿@* @page "/sentiment-analysis"
+@rendermode InteractiveServer
+@using Microsoft.ML
+@using System.IO
+
+<h3>Sentiment Analysis</h3>
+
+<input @bind="userInput" type="text" />
+<button @onclick="AnalyzeSentiment">Analyze</button>
+
+<div>
+    @if (prediction != null)
+    {
+        <p><strong>Sentiment:</strong> @prediction.Prediction.ToString()</p>
+        <p><strong>Probability:</strong> @prediction.Probability.ToString("P2")</p>
+    }
+</div>
+
+@code {
+    private string userInput;
+    private SentimentPrediction prediction;
+
+    private async Task AnalyzeSentiment()
+    {
+        var modelPath = "MLModels/SentimentAnalysisModel.zip";
+        var mlContext = new MLContext();
+
+        // Load the model
+        ITransformer mlModel = mlContext.Model.Load(modelPath, out _);
+        var predictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(mlModel);
+
+        // Make prediction
+        var sentimentData = new SentimentData { SentimentText = userInput };
+        prediction = predictionEngine.Predict(sentimentData);
+    }
+}
+ *@
