@@ -3,13 +3,14 @@
 
 @* @using Bogus *@
 @using System.Data
-
+@* @using Blazor.Tools.BlazorBundler.Components.Grid
+ *@
 @inject NavigationManager Navigation
 
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-
+@* <TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  /> *@
 @* <TableGrid Title="Employee Table" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
