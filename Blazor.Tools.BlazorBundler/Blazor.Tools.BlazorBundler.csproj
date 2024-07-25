@@ -103,6 +103,24 @@
     </Content>
     <!-- Add files in the Components folder-->
 
+    <Content Include="Components\AI\AIChatBot.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\AI\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    
+    <Content Include="Components\AI\AITables.sql">
+      <Pack>True</Pack>
+      <PackagePath>\Components\AI\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\AI\SentimentAnalysis.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\AI\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
     <Content Include="Components\Grid\AddRowModal.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>

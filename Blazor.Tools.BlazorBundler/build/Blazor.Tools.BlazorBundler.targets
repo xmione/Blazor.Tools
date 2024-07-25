@@ -71,6 +71,18 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AIChatBot.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\AIChatBot.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AITables.sql')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\AITables.sql"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\SentimentAnalysis.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\SentimentAnalysis.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddRowModal.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddRowModal.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />

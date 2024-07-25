@@ -1,9 +1,9 @@
 ﻿@page "/test-table-grid"
 @rendermode InteractiveServer
 
-@using Bogus
+@* @using Blazor.Tools.Components.Grid
+@using Bogus *@
 @using System.Data
-@using Blazor.Tools.Components.Grid
 
 @inject NavigationManager Navigation
 
@@ -11,7 +11,7 @@
 
 <h1>Testing Sample Table Grid Component</h1>
 @* <TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  /> *@
-<TableGrid Title="Employee Table" AllowCellSelection="true">
+@* <TableGrid Title="Employee Table" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
     <TableNode DataSource="EmployeeDS">
@@ -22,65 +22,65 @@
         <TableColumn DataSourceName="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" HeaderName="Country" />
     </TableNode>
 </TableGrid>
- 
+ *@ 
 @code {
 
-    private DataTable _employees = default!;
-    private DataTable _countries = default!;
-    protected override void OnParametersSet()
-    {
-        Console.WriteLine("TestTableGrid OnParametersSetAsync");
-        // Initialize _employees DataTable
-        _employees = new DataTable();
-        _employees.Columns.Add("ID", typeof(int));
-        _employees.Columns.Add("FirstName", typeof(string));
-        _employees.Columns.Add("MiddleName", typeof(string));
-        _employees.Columns.Add("LastName", typeof(string));
-        _employees.Columns.Add("CountryID", typeof(int));
+    // private DataTable _employees = default!;
+    // private DataTable _countries = default!;
+    // protected override void OnParametersSet()
+    // {
+    //     Console.WriteLine("TestTableGrid OnParametersSetAsync");
+    //     // Initialize _employees DataTable
+    //     _employees = new DataTable();
+    //     _employees.Columns.Add("ID", typeof(int));
+    //     _employees.Columns.Add("FirstName", typeof(string));
+    //     _employees.Columns.Add("MiddleName", typeof(string));
+    //     _employees.Columns.Add("LastName", typeof(string));
+    //     _employees.Columns.Add("CountryID", typeof(int));
 
-        var employeeFaker = new Faker<Employee>()
-           .RuleFor(e => e.ID, f => f.IndexFaker + 1)
-           .RuleFor(e => e.FirstName, f => f.Name.FirstName())
-           .RuleFor(e => e.MiddleName, f => f.Name.FirstName().Substring(0, 1) + ".")
-           .RuleFor(e => e.LastName, f => f.Name.LastName())
-           .RuleFor(e => e.CountryID, f => f.Random.Int(1, 2));
+    //     var employeeFaker = new Faker<Employee>()
+    //        .RuleFor(e => e.ID, f => f.IndexFaker + 1)
+    //        .RuleFor(e => e.FirstName, f => f.Name.FirstName())
+    //        .RuleFor(e => e.MiddleName, f => f.Name.FirstName().Substring(0, 1) + ".")
+    //        .RuleFor(e => e.LastName, f => f.Name.LastName())
+    //        .RuleFor(e => e.CountryID, f => f.Random.Int(1, 2));
 
-        var countryFaker = new Faker<Country>()
-        .RuleFor(c => c.ID, f => f.IndexFaker + 1)
-        .RuleFor(c => c.Name, f => f.Address.Country());
+    //     var countryFaker = new Faker<Country>()
+    //     .RuleFor(c => c.ID, f => f.IndexFaker + 1)
+    //     .RuleFor(c => c.Name, f => f.Address.Country());
 
-        for (int i = 0; i < 101; i++)
-        {
-            var employee = employeeFaker.Generate();
-            _employees.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
-        }
+    //     for (int i = 0; i < 101; i++)
+    //     {
+    //         var employee = employeeFaker.Generate();
+    //         _employees.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
+    //     }
 
-        // Initialize and generate country data
-        _countries = new DataTable();
-        _countries.Columns.Add("ID", typeof(int));
-        _countries.Columns.Add("Name", typeof(string));
+    //     // Initialize and generate country data
+    //     _countries = new DataTable();
+    //     _countries.Columns.Add("ID", typeof(int));
+    //     _countries.Columns.Add("Name", typeof(string));
 
-        for (int i = 0; i < 101; i++)
-        {
-            var country = countryFaker.Generate();
-            _countries.Rows.Add(i+ 1, country.Name);
-        }
+    //     for (int i = 0; i < 101; i++)
+    //     {
+    //         var country = countryFaker.Generate();
+    //         _countries.Rows.Add(i+ 1, country.Name);
+    //     }
 
-    }
+    // }
 
-    public class Employee
-    {
-        public int ID { get; set; }
-        public string FirstName { get; set; } = default!;
-        public string MiddleName { get; set; } = default!;
-        public string LastName { get; set; } = default!;
-        public int CountryID { get; set; } 
-    }
+    // public class Employee
+    // {
+    //     public int ID { get; set; }
+    //     public string FirstName { get; set; } = default!;
+    //     public string MiddleName { get; set; } = default!;
+    //     public string LastName { get; set; } = default!;
+    //     public int CountryID { get; set; } 
+    // }
 
-    public class Country
-    {
-        public int ID { get; set; }
-        public string Name { get; set; } = default!;
-    }
+    // public class Country
+    // {
+    //     public int ID { get; set; }
+    //     public string Name { get; set; } = default!;
+    // }
 
 }
