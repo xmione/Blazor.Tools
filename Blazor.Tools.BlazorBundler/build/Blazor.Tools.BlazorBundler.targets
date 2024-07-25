@@ -71,6 +71,10 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
     <!--<ItemGroup>
       <PackageReferenceToUpdate Include="Blazor.Bootstrap" Version="1.11.1" />
       <PackageReferenceToUpdate Include="Blazor.Typeahead" Version="4.7.0" />

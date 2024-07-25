@@ -101,8 +101,21 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Add files in the Components folder-->
+
+    <Content Include="Components\Grid\TestComponent.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!--<RazorComponent Include="Components\Grid\TestComponent.razor" />-->
     
-    <RazorComponent Include="Components\**\*.razor" />
+    <!--<Content Include="Components\**\*.*">
+      <Pack>True</Pack>
+      <PackagePath>contentFiles\any\any\Components\%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <RazorComponent Include="Components\**\*.razor" />-->
   </ItemGroup>
   
   <ItemGroup>
@@ -148,7 +161,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
- 
   <Target Name="CustomPack" AfterTargets="Build">
     <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
   </Target>
