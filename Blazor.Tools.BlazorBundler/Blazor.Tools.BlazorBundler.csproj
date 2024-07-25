@@ -148,13 +148,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Components\TableGrid\TableGrid.razor.css">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CssScope>custom-scope-identifier</CssScope>
-    </None>
-  </ItemGroup>
  
   <Target Name="CustomPack" AfterTargets="Build">
     <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
