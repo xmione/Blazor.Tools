@@ -54,7 +54,7 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
       $sourcePath should not be changed
       $targetPath should contain the full path of your project file
 
-Open PowerShell and run: 
+### Open PowerShell and run: 
 
 ```
     $version = "3.0.8"
@@ -63,7 +63,7 @@ Open PowerShell and run:
     $targetPath = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
     Install-Pkgs -SourcePath $sourcePath -TargetProjectPath $targetPath
 ```
-## Setup your App.razor stylesheets and javascripts
+### Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
 
@@ -95,7 +95,12 @@ Add these to your <body> section:
     <script src="bundler/js/bootstrap.bundle.min.js"></script>
     <script src="bundler/blazor-bootstrap/blazor.bootstrap.js"></script>
 ```
-    
+
+### Add this to your Program.cs file:
+`
+builder.Services.AddBlazorBootstrap();
+`
+
 ## Uninstallation
 
 First, uninstall the package from the Nuget Package Manager, Package Manager Console or from a terminal.

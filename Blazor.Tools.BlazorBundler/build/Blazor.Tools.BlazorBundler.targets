@@ -71,6 +71,42 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddRowModal.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddRowModal.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\DataTableGrid.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\DataTableGrid.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\DTSearchBox.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\DTSearchBox.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SearchFieldsEntryModal.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\SearchFieldsEntryModal.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SetTargetTableModal.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\SetTargetTableModal.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableColumn.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableColumn.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableGrid.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableGrid.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableNode.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableNode.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableSource.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableSource.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
