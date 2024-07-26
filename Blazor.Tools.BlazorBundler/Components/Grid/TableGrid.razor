@@ -341,40 +341,51 @@ else
         {
             var row = rows[rowIndex];
             var isEditing = _node?.IsEditing == true && _node?.EditedRow != null && row == _node.EditedRow;
-
-            if(isEditing)
+            var editValues = _node?.EditValues != null ? _node.EditValues[column.FieldName]?.ToString() : null;
+        
+            if (isEditing)
             {
                 if (column.Type == "TextBox")
                 {
                     builder.OpenElement(sequence, "input");
                     builder.AddAttribute(sequence++, "type", "text");
                     builder.AddAttribute(sequence++, "class", "form-control");
-                    builder.AddAttribute(sequence++, "value", row[column.FieldName]);
+                    builder.AddAttribute(sequence++, "value", editValues);
+                    builder.AddAttribute(sequence++, "oninput", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+                    {
+                        if (_node != null)
+                        {
+                            _node.EditValues[column.FieldName] = e?.Value?.ToString() ?? default!;
+                        }
+                    }));
                     builder.CloseElement();
                 }
                 else if (column.Type == "DropdownList")
                 {
                     builder.OpenElement(sequence, "select");
                     builder.AddAttribute(sequence++, "class", "form-control");
+                    builder.AddAttribute(sequence++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+                    {
+                        if (_node != null)
+                        {
+                            _node.EditValues[column.FieldName] = e?.Value?.ToString() ?? default!;
+                        }
+                    }));
+
                     for (int i = 0; i < dataSourceRows.Count; i++)
                     {
                         DataRow iRow = dataSourceRows[i];
-                        if (row != null)
+                        var displayName = iRow[column.DisplayFieldName].ToString();
+                        var displayValue = iRow[column.DisplayFieldValue].ToString();
+
+                        builder.OpenElement(sequence++, "option");
+                        builder.AddAttribute(sequence++, "value", displayValue);
+                        if (displayValue == editValues)
                         {
-                            var displayName = iRow[column.DisplayFieldName].ToString();
-                            var displayValue = iRow[column.DisplayFieldValue].ToString();
-
-                            builder.OpenElement(sequence++, "option");
-                            builder.AddAttribute(sequence++, "value", displayValue);
-                            // Set selected attribute if current row index matches the selected index
-                            if (i == rowIndex)
-                            {
-                                builder.AddAttribute(sequence++, "selected", "selected");
-                            }
-
-                            builder.AddContent(sequence++, displayName);
-                            builder.CloseElement();
+                            builder.AddAttribute(sequence++, "selected", "selected");
                         }
+                        builder.AddContent(sequence++, displayName);
+                        builder.CloseElement();
                     }
 
                     builder.CloseElement();
@@ -382,31 +393,22 @@ else
             }
             else
             {
-                var columnStringValue = row[column.FieldName];
-
+                var columnStringValue = row[column.FieldName]?.ToString();
                 if (column.Type == "DropdownList")
                 {
                     for (int i = 0; i < dataSourceRows.Count; i++)
                     {
                         DataRow iRow = dataSourceRows[i];
-                        if (row != null)
+                        var displayValue = iRow[column.DisplayFieldValue].ToString();
+                        if (displayValue == columnStringValue)
                         {
-                            var displayName = iRow[column.DisplayFieldName].ToString();
-                            var displayValue = iRow[column.DisplayFieldValue].ToString();
-
-                            // Set selected attribute if current row index matches the selected index
-                            if (i == rowIndex)
-                            {
-                                columnStringValue = displayName;
-                            }
-
+                            columnStringValue = iRow[column.DisplayFieldName].ToString();
+                            break;
                         }
                     }
                 }
-
                 builder.AddContent(sequence, columnStringValue);
             }
-
         }
 
         await Task.CompletedTask;
