@@ -9,12 +9,16 @@
 @using BlazorBootstrap
 @using System.Data
 
-<TableGrid Title="@Title" AllowCellSelection="@AllowCellSelection">
+<TableGrid Title="@Title" AllowCellSelection="@AllowCellSelection" HiddenColumnNames="@HiddenColumnNames">
     <TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
     <TableNode DataSource="@_tableSourceName">
         @foreach(DataColumn column in SelectedTable.Columns)
         {
-            <TableColumn DataSourceName="@_tableSourceName" FieldName="@column.ColumnName" Type="TextBox" />
+            var isHidden = HiddenColumnNames.Contains(column.ColumnName);
+            if (!isHidden)
+            {
+                <TableColumn DataSourceName="@_tableSourceName" FieldName="@column.ColumnName" Type="TextBox" />
+            }
         }
     </TableNode>
 </TableGrid>
@@ -52,6 +56,7 @@
     [Parameter] public DataTable SelectedTable { get; set; } = default!;
     [Parameter] public bool AllowCellSelection { get; set; } = false;
     [Parameter] public List<AssemblyTable> TableList { get; set; } = default!;
+    [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
 
     // [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;

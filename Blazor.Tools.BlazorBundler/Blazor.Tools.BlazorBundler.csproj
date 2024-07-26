@@ -74,6 +74,36 @@
       <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Components\Grid\AddRowModal.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\DataTableGrid.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\DTSearchBox.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\SetTargetTableModal.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\TableColumn.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\TableGrid.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\TableNode.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\TableSource.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="Components\Grid\TestComponent.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
 
     <!-- Add blazored-typeahead files -->
     <Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
@@ -94,6 +124,8 @@
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bundler\css\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <!-- Add files in the js folder-->
     <Content Include="wwwroot\bundler\js\*.js">
@@ -101,6 +133,17 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Remove="Components\Grid\AddRowModal.razor" />
+    <None Remove="Components\Grid\DataTableGrid.razor" />
+    <None Remove="Components\Grid\DTSearchBox.razor" />
+    <None Remove="Components\Grid\SearchFieldsEntryModal.razor" />
+    <None Remove="Components\Grid\SetTargetTableModal.razor" />
+    <None Remove="Components\Grid\TableColumn.razor" />
+    <None Remove="Components\Grid\TableGrid.razor" />
+    <None Remove="Components\Grid\TableNode.razor" />
+    <None Remove="Components\Grid\TableSource.razor" />
+    <None Remove="Components\Grid\TestComponent.razor" />
+
     <!-- Add files in the Components folder-->
 
     <Content Include="Components\AI\AIChatBot.razor">
@@ -118,72 +161,6 @@
     <Content Include="Components\AI\SentimentAnalysis.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\AI\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\AddRowModal.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\DataTableGrid.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\DTSearchBox.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\SetTargetTableModal.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\TableColumn.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\TableGrid.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\TableGrid.razor.css">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    
-    <Content Include="Components\Grid\TableNode.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TableSource.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TestComponent.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 

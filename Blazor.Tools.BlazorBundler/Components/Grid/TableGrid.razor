@@ -70,7 +70,9 @@ else
         <AddRowModal ShowAddRowModal="_node.ShowAddRowModal"
                      DataTable="_node.DataTable"NewRowData="_node.NewRowData"
                      OnClose="CloseAddRowModal"
-                     OnSave="AddRowAsync" />
+                     OnSave="AddRowAsync"
+                     HiddenColumnNames="@HiddenColumnNames"
+                     />
     }
 }
 
@@ -80,6 +82,7 @@ else
     [Parameter] public RenderFragment ChildContent { get; set; } = null!;
     [Parameter] public DataTable DataTable { get; set; } = null!;
     [Parameter] public bool AllowCellSelection { get; set; } = false;
+    [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
     private bool _renderTable = false; // Flag to control when to render RenderTable()
 
@@ -129,19 +132,17 @@ else
     private async Task RenderTableContentAsync(RenderTreeBuilder builder)
     {
         // <div>
-        // <div class="data-table-grid-div custom-scope-identifier">
+        // <div class="data-table-grid-div">
         //     <table class="data-table-grid">
         int sequence = 0;
         builder.OpenElement(sequence, "div");
         builder.AddContent(sequence++, Title);
         builder.OpenElement(sequence++, "div");
         builder.AddAttribute(sequence++, "class", "data-table-grid-div");
-        builder.AddAttribute(sequence++, "custom-scope-identifier");
 
         builder.OpenElement(sequence++, "table");
         builder.AddAttribute(sequence++, "title", Title);
         builder.AddAttribute(sequence++, "class", "data-table-grid");
-        builder.AddAttribute(sequence++, "custom-scope-identifier");
 
         builder.OpenElement(sequence++, "thead");
         builder.OpenElement(sequence++, "tr");
@@ -183,7 +184,6 @@ else
                 //Row number column
                 var rowNumber = i + 1;
                 builder.OpenElement(sequence++, "td");
-                builder.AddAttribute(sequence++, "custom-scope-identifier");
                 builder.AddContent(sequence++, $"{rowNumber}");        
                 builder.CloseElement(); // td
 
@@ -191,16 +191,24 @@ else
                 {
                     var column = _node.Columns[c];
 
-                    if(column.Visible)
+                    if (column.Visible)
                     {
                         int rowIndex = i;
                         int columnIndex = c;
                         builder.OpenElement(sequence++, "td");
                         builder.AddAttribute(sequence++, "title", $"R{rowIndex}C{columnIndex}");
-                        builder.AddAttribute(sequence++, "custom-scope-identifier");
                         builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleCellClickAsync(rowIndex, columnIndex)));
                         builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
                         builder.CloseElement(); // td
+                    }
+                    else
+                    {
+                        if (HiddenColumnNames == null)
+                        {
+                            HiddenColumnNames = new List<string>();    
+                        }
+
+                        HiddenColumnNames.Add(column.FieldName);
                     }
 
                 }
@@ -222,7 +230,6 @@ else
     {
         builder.OpenElement(sequence++, "td");
         builder.AddAttribute(sequence++, "class", "icons-td");
-        builder.AddAttribute(sequence++, "custom-scope-identifier");
 
         if (!_node.IsEditing || row != _node.EditedRow)
         {

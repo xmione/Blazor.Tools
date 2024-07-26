@@ -7,19 +7,23 @@
 @using System.Data
 @using BlazorBootstrap
 
-<div class="data-table-grid-modal @(ShowAddRowModal ? "show" : "")" custom-scope-identifier>
+<div class="data-table-grid-modal @(ShowAddRowModal ? "show" : "")">
     <!-- Buttons -->
-    <div class="data-table-grid-modal-close-button" custom-scope-identifier>
+    <div class="data-table-grid-modal-close-button">
         <Icon Name="IconName.CheckCircleFill" @onclick="e => OnSave.InvokeAsync()" title="Add" />
         <Icon Name="IconName.XCircleFill" title="Close" @onclick="e => OnClose.InvokeAsync()" />
     </div>
-    <div class="data-table-grid-modal-content" custom-scope-identifier>
+    <div class="data-table-grid-modal-content">
         @foreach (DataColumn column in DataTable.Columns)
         {
-            <div class="form-group">
-                <label>@column.ColumnName</label>
-                <input value="@NewRowData[column.ColumnName]?.ToString()" @oninput="e => UpdateNewRowData(column, e?.Value?.ToString() ?? string.Empty)" class="form-control" />
-            </div>
+            var isHidden = HiddenColumnNames.Contains(column.ColumnName);
+            if (!isHidden)
+            {
+                <div class="form-group">
+                    <label>@column.ColumnName</label>
+                    <input value="@NewRowData[column.ColumnName]?.ToString()" @oninput="e => UpdateNewRowData(column, e?.Value?.ToString() ?? string.Empty)" class="form-control" />
+                </div>
+            }
         }
         
     </div>
@@ -31,6 +35,7 @@
     [Parameter] public DataRow NewRowData { get; set; } = default!;
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
     protected override void OnParametersSet()
     {
