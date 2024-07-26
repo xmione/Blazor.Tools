@@ -2,8 +2,8 @@
 @rendermode InteractiveServer
 
 @using Blazor.Tools
-@using Blazor.Tools.Components.Grid
-@using Bogus
+@* @using Blazor.Tools.Components.Grid
+@using Bogus *@
 @using System.Data
 @inject NavigationManager Navigation
 
@@ -11,7 +11,7 @@
 
 <h1>Testing Sample Data Table Grid Component</h1>
 
- <DataTableGrid SelectedTable="@_employees" />
+ @* <DataTableGrid SelectedTable="@_employees" />
  <DataTableGrid SelectedTable="@_countries" />
  
 @code {
@@ -75,3 +75,4 @@
     }
 
 }
+ *@
