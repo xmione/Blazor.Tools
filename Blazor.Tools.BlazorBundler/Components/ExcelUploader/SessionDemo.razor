@@ -1,0 +1,68 @@
+﻿@page "/sessionTable-demo"
+@using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Interfaces
+
+<h3>SessionTable Demo</h3>
+<label>User Name: </label>
+<input type="text" @bind="UserName" />
+
+<button @onclick="SaveToSessionTable">Save to SessionTable</button>
+<button @onclick="RetrieveFromSessionTable">Retrieve from SessionTable</button>
+
+@code {
+    [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    [Inject] public SessionTable _sessionTable { get; set; } = default!;
+
+    private string UserName = string.Empty;
+    private string serializedUserName = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RetrieveFromSessionTable();
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task SaveToSessionTable()
+    {
+        try
+        {
+            if (serializedUserName != null)
+            {
+                SessionTable sessionTable = new SessionTable();
+                sessionTable.Name = "UserName";
+                sessionTable.Value = System.Text.Encoding.UTF8.GetBytes(UserName);
+                sessionTable.ExpiresAtTime = DateTimeOffset.Now.AddMinutes(5);
+
+                await _sessionTableService.SaveAsync(sessionTable);
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+    }
+
+    private async Task RetrieveFromSessionTable()
+    {
+        try
+        {
+            if (serializedUserName != null)
+            {
+                var sessionTable = await _sessionTableService.GetByNameAsync("UserName");
+
+                if (sessionTable != null)
+                {
+                    UserName = System.Text.Encoding.UTF8.GetString(sessionTable.Value);
+                }
+            }
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+    }
+}

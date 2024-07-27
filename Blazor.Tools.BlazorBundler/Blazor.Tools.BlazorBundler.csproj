@@ -26,43 +26,43 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    
+
     <!-- None item for MSBuild targets file -->
     <None Include="build\Blazor.Tools.BlazorBundler.targets">
       <Pack>True</Pack>
       <PackagePath>\build\</PackagePath>
     </None>
-    
+
     <!-- None items in the packages folder -->
     <None Include="packages/*.nupkg">
       <Pack>True</Pack>
       <PackagePath>\packages\</PackagePath>
     </None>
-    
+
     <!-- None items in the tools folder -->
     <None Include=" tools/install-nupkg.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+
     <!-- Add Get-Tools.ps1 -->
     <None Include="tools\Get-Tools.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+
     <!-- Add Install-Pkgs.psm1 -->
     <None Include="tools\Install-Pkgs.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+
     <!-- Add Print-Folder-Structure.psm1 -->
     <None Include="tools\Print-Folder-Structure.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-     
+
     <!-- Add Uninstall-Pkgs.psm1 -->
     <None Include="tools\Uninstall-Pkgs.psm1">
       <Pack>True</Pack>
@@ -74,34 +74,19 @@
       <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\Grid\AddRowModal.razor">
+    <Content Include="Components\ExcelUploader\ExcelUploader.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Include="Components\Grid\DataTableGrid.razor">
+    <Content Include="Components\ExcelUploader\ExcelUploaderDetail.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Include="Components\Grid\DTSearchBox.razor">
+    <Content Include="Components\ExcelUploader\ExcelUploaderHeader.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
+    <Content Include="Components\ExcelUploader\ExcelUploaderTitle.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Include="Components\Grid\SetTargetTableModal.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\Grid\TableColumn.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\Grid\TableGrid.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\Grid\TableNode.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\Grid\TableSource.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="Components\Grid\TestComponent.razor">
+    <Content Include="Components\ExcelUploader\SessionDemo.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
@@ -111,8 +96,8 @@
       <PackagePath>\wwwroot\bundler\blazored-typeahead\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <!-- Add bootstrap-icons files --> 
+
+    <!-- Add bootstrap-icons files -->
     <Content Include="wwwroot\bundler\bootstrap-icons\**\*">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
@@ -124,8 +109,6 @@
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bundler\css\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <!-- Add files in the js folder-->
     <Content Include="wwwroot\bundler\js\*.js">
@@ -133,17 +116,13 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Remove="Components\Grid\AddRowModal.razor" />
-    <None Remove="Components\Grid\DataTableGrid.razor" />
-    <None Remove="Components\Grid\DTSearchBox.razor" />
-    <None Remove="Components\Grid\SearchFieldsEntryModal.razor" />
-    <None Remove="Components\Grid\SetTargetTableModal.razor" />
-    <None Remove="Components\Grid\TableColumn.razor" />
-    <None Remove="Components\Grid\TableGrid.razor" />
-    <None Remove="Components\Grid\TableNode.razor" />
-    <None Remove="Components\Grid\TableSource.razor" />
-    <None Remove="Components\Grid\TestComponent.razor" />
-
+    <None Remove="Components\ExcelUploader\ExcelUploader.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploaderDetail.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploaderHeader.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploaderTitle.razor" />
+    <None Remove="Components\ExcelUploader\SessionDemo.razor" />
+    <None Remove="packages\epplus.7.2.2.nupkg" />
+    <None Remove="packages\epplus.7.2.2.nupkg" />
     <!-- Add files in the Components folder-->
 
     <Content Include="Components\AI\AIChatBot.razor">
@@ -151,7 +130,7 @@
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
+
     <Content Include="Components\AI\AITables.sql">
       <Pack>True</Pack>
       <PackagePath>\Components\AI\</PackagePath>
@@ -164,10 +143,71 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 
+    <Content Include="Components\Grid\AddRowModal.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\DataTableGrid.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\DTSearchBox.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\SetTargetTableModal.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableColumn.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableGrid.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableNode.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableSource.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TestComponent.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
+    <PackageReference Include="ClosedXML" Version="0.102.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.26" />
@@ -175,6 +215,8 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,135 @@
+﻿@using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Interfaces
+@using Blazor.Tools.Components.Grid
+@using BlazorBootstrap
+@using System.Data
+@*====================================================================================================
+    Component Name: ExcelUploaderDetail.razor
+    Created By    : Solomio S. Sisante
+    Created On    : June 3, 2024
+    Purpose       : To provide the ExcelUploader component a Detail component.
+  ====================================================================================================*@
+@* @using Blazor.Tools.Common.Tools
+@using Blazor.Tools.Components.DataTableGrid
+@using System.Data
+@using System.Linq
+@using Blazor.Tools.Interfaces
+@using Newtonsoft.Json
+@using Blazor.Tools.Models
+@using Blazor.Tools.Services *@
+
+@if (_excelDataSet != null && _excelDataSet.Tables.Count > 0)
+{
+    <div>
+        <ul class="nav nav-tabs">
+            @foreach (var table in _excelDataSet.Tables.Cast<DataTable>())
+            {
+                <li class="nav-item">
+                    <a class="cursor-pointer nav-link @(table == _selectedTable ? "active" : "")" @onclick="() => SelectTableAsync(table)">@table.TableName</a>
+                </li>
+            }
+        </ul>
+
+        <div class="tab-content">
+            @if (_selectedTable != null)
+            {
+                <div class="tab-pane fade show active">
+                    <h4>@_selectedTable.TableName</h4>
+                    <DataTableGrid SelectedTable="@_selectedTable" />
+                </div>
+            }
+            else
+            {
+                <p>Select a table to view its data.</p>
+            }
+        </div>
+        <div class="mt-3">
+            <Icon Name="IconName.Upload" Class="cursor-pointer" @onclick="UploadData" title="Upload to new tables" />
+        </div>
+    </div>
+}
+else
+{
+    <p>No data available.</p>
+}
+
+@code {
+    [Parameter] public DataSet? _excelDataSet { get; set; } = default!;
+    [Parameter] public ExcelProcessor _excelProcessor { get; set; } = default!;
+    // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    // [Inject] public SessionTable _sessionTable { get; set; } = default!;
+
+    private DataTable? _selectedTable;
+    private string? _selectedTableName;
+    private bool _isReceived = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        // if (!_isReceived)
+        // {
+        //     await RetrieveDataFromSessionTableAsync();
+        // }
+    }
+
+    private async Task SelectTableAsync(DataTable table)
+    {
+        _selectedTable = table;
+        _selectedTableName = table.TableName;
+        //await SaveDataToSessionTableAsync();
+        await Task.CompletedTask;
+    }
+
+    // private async Task RetrieveDataFromSessionTableAsync()
+    // {
+    //     try
+    //     {
+    //         var sessionManager = new SessionManager(_sessionTableService);
+    //         _excelDataSet = await sessionManager.RetrieveFromSessionTableAsync<DataSet>("_excelDataSet");
+    //         _selectedTable = await sessionManager.RetrieveFromSessionTableAsync<DataTable>("_selectedTable");
+    //         _selectedTableName = await sessionManager.RetrieveFromSessionTableAsync<string?>("_selectedTableName");
+
+    //         if (_selectedTable != null)
+    //         {
+    //             _selectedTable.TableName = _selectedTableName;
+    //         }
+
+    //         _isReceived = true;
+
+    //         StateHasChanged();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine("Error: {0}", ex.Message);
+    //     }
+    // }
+
+    // private async Task SaveDataToSessionTableAsync()
+    // {
+    //     try
+    //     {
+    //         var sessionManager = new SessionManager(_sessionTableService);
+    //         await sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);
+    //         await sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
+    //         await sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTableName, serialize: false);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine("Error: {0}", ex.Message);
+    //     }
+    // }
+
+    private async Task UploadData()
+    {
+        if (_excelDataSet != null)
+        {
+            if (_excelProcessor != null)
+            {
+                await _excelProcessor.SaveDataToDatabaseAsync(_excelDataSet);
+            }
+            
+            //TODO: sol: Optionally, show a success message or handle post-upload actions
+        }
+    }
+}

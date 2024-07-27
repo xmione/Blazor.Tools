@@ -21,6 +21,11 @@
       "path": "bogus.35.6.0.nupkg"
     },
     {
+      "version": "0.102.3",
+      "id": "closedxml",
+      "path": "closedxml.0.102.3.nupkg"
+    },
+    {
       "version": "2.1.35",
       "id": "dapper",
       "path": "dapper.2.1.35.nupkg"
@@ -146,9 +151,24 @@
       "path": "opentelemetry.instrumentation.runtime.1.8.0.nupkg"
     },
     {
+      "version": "8.0.0",
+      "id": "system.configuration.configurationmanager",
+      "path": "system.configuration.configurationmanager.8.0.0.nupkg"
+    },
+    {
+      "version": "8.0.0",
+      "id": "system.data.oledb",
+      "path": "system.data.oledb.8.0.0.nupkg"
+    },
+    {
       "version": "4.8.6",
       "id": "system.data.sqlclient",
       "path": "system.data.sqlclient.4.8.6.nupkg"
+    },
+    {
+      "version": "8.0.0",
+      "id": "system.diagnostics.performancecounter",
+      "path": "system.diagnostics.performancecounter.8.0.0.nupkg"
     }
   ]
 }
