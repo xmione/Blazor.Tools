@@ -101,11 +101,29 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Remove="Components\AI\AIChatBot.razor" />
+    <None Remove="Components\AI\SentimentAnalysis.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploader.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploaderDetail.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploaderHeader.razor" />
+    <None Remove="Components\ExcelUploader\ExcelUploaderTitle.razor" />
+    <None Remove="Components\ExcelUploader\SessionDemo.razor" />
+    <None Remove="Components\Grid\AddRowModal.razor" />
+    <None Remove="Components\Grid\DataTableGrid.razor" />
+    <None Remove="Components\Grid\DTSearchBox.razor" />
+    <None Remove="Components\Grid\SearchFieldsEntryModal.razor" />
+    <None Remove="Components\Grid\SetTargetTableModal.razor" />
+    <None Remove="Components\Grid\TableColumn.razor" />
+    <None Remove="Components\Grid\TableGrid.razor" />
+    <None Remove="Components\Grid\TableNode.razor" />
+    <None Remove="Components\Grid\TableSource.razor" />
+    <None Remove="Components\Grid\TestComponent.razor" />
     <!-- Add files in the Components folder-->
     <Content Include="Components\AI\AIChatBot.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\AI\AITables.sql">
@@ -118,6 +136,7 @@
       <Pack>True</Pack>
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
     <Compile Update="Components\ExcelUploader\DataRowViewModel.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -129,86 +148,98 @@
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
     <Content Include="Components\ExcelUploader\ExcelUploaderDetail.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
     <Content Include="Components\ExcelUploader\ExcelUploaderHeader.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
     <Content Include="Components\ExcelUploader\ExcelUploaderTitle.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
     <Content Include="Components\ExcelUploader\SessionDemo.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\AddRowModal.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\DataTableGrid.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\DTSearchBox.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\SetTargetTableModal.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\TableColumn.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\TableGrid.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\TableNode.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\TableSource.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
     <Content Include="Components\Grid\TestComponent.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
   </ItemGroup>

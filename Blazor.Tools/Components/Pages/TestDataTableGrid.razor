@@ -2,8 +2,8 @@
 @rendermode InteractiveServer
 
 @using Blazor.Tools
-@* @using Blazor.Tools.Components.Grid
-@using Bogus *@
+@using Blazor.Tools.Components.Grid
+@using Bogus
 @using System.Data
 @inject NavigationManager Navigation
 
@@ -11,16 +11,27 @@
 
 <h1>Testing Sample Data Table Grid Component</h1>
 
- @* <DataTableGrid SelectedTable="@_employees" />
- <DataTableGrid SelectedTable="@_countries" />
+ <DataTableGrid SelectedTable="@_employees" HiddenColumnNames="@_hiddenEmployeeColumns" />
+<DataTableGrid SelectedTable="@_countries" HiddenColumnNames="@_hiddenCountryColumns" />
  
 @code {
 
     private DataTable _employees = default!;
     private DataTable _countries = default!;
+    private List<string>? _hiddenEmployeeColumns;
+    private List<string>? _hiddenCountryColumns;
+
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
+
+        // Initialize hidden column lists
+        _hiddenEmployeeColumns = new List<string>();
+        _hiddenCountryColumns = new List<string>();
+
+        _hiddenEmployeeColumns.Add("ID");
+        _hiddenCountryColumns.Add("ID");
+
         // Initialize _employees DataTable
         _employees = new DataTable("Employee");
         _employees.Columns.Add("ID", typeof(int));
@@ -75,4 +86,3 @@
     }
 
 }
- *@

@@ -22,7 +22,7 @@ else
 
     <div>        
         <div class="pagination-container">
-            <label class="form-control">Total Items: @_node.FilteredItems/@_node.TotalItems</label>
+            <label>Total Items: @_node.FilteredItems/@_node.TotalItems</label>
             <label for="pageSize">Page Size:</label>
             <select id="pageSize" @onchange="PageSizeChangedAsync" class="cursor-pointer">
                 <option value=@_node.TotalItems selected>@_node.TotalItems</option>
@@ -45,7 +45,7 @@ else
             <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon cursor-pointer" title="Last" />
 
             <!-- Go To Page -->
-            <span class="form-control">Go to Page: </span>
+            <span>Go to Page: </span>
             <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" class="cursor-pointer" />
             <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon cursor-pointer" title="Go" />
         </div>
@@ -183,7 +183,7 @@ else
                 builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
 
                 //Row number column
-                var rowNumber = i + 1;
+                var rowNumber = ((_node.CurrentPage - 1) * _node.PageSize ) + i + 1;
                 builder.OpenElement(sequence++, "td");
                 builder.AddContent(sequence++, $"{rowNumber}");        
                 builder.CloseElement(); // td
