@@ -6,24 +6,6 @@
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Components\Grid\**" />
-    <Content Remove="Components\Grid\**" />
-    <EmbeddedResource Remove="Components\Grid\**" />
-    <None Remove="Components\Grid\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\AddRowModal.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\DataTableGrid.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\DTSearchBox.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\SearchFieldsEntryModal.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\SetTargetTableModal.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\TableColumn.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\TableGrid.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\TableNode.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\TableSource.razor" />
-    <Content Remove="C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.8\contentFiles\any\net8.0\Components\Grid\TestComponent.razor" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
