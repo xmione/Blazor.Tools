@@ -83,6 +83,26 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\SentimentAnalysis.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\ExcelUploader\ExcelUploader.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\ExcelUploader\ExcelUploader.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\ExcelUploader\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\ExcelUploader\ExcelUploaderDetail.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\ExcelUploader\ExcelUploaderDetail.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\ExcelUploader\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\ExcelUploader\ExcelUploaderHeader.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\ExcelUploader\ExcelUploaderHeader.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\ExcelUploader\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\ExcelUploader\ExcelUploaderTitle.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\ExcelUploader\ExcelUploaderTitle.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\ExcelUploader\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\ExcelUploader\SessionDemo.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\ExcelUploader\SessionDemo.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\ExcelUploader\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddRowModal.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddRowModal.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />

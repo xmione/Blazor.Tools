@@ -4,7 +4,7 @@
     Created On    : June 3, 2024
     Purpose       : To contain a Dictionary for the Excel columns.
   ====================================================================================================*/
-namespace Blazor.Tools.Components.ExcelUploader
+namespace Blazor.Tools.BlazorBundler.Components.ExcelUploader
 {
     public class DataRowViewModel
     {

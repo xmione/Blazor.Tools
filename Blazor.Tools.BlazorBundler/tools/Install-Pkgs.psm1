@@ -121,7 +121,7 @@ Function Install-Pkgs
         @{ PackageName = "newtonsoft.json"; Version = "13.0.3" },
         @{ PackageName = "system.configuration.configurationmanager"; Version = "8.0.0" },
         @{ PackageName = "system.data.oledb"; Version = "8.0.0" },
-        @{ PackageName = "system.diagnostics.performancecounter"; Version = "8.0.0" },
+        @{ PackageName = "system.diagnostics.performancecounter"; Version = "8.0.0" }
     )
  
     # Install NuGet packages
