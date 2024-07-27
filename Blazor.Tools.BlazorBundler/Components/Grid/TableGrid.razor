@@ -58,10 +58,10 @@ else
                 <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" />
             </div>
             <div class="col">
-                <input @bind="_node.StartCell" class="form-control" placeholder="Start Cell" />
+                <input @bind="@_node.StartCell" class="form-control" placeholder="Start Cell" />
             </div>
             <div class="col">
-                <input @bind="_node.EndCell" class="form-control" placeholder="End Cell" />
+                <input @bind="@_node.EndCell" class="form-control" placeholder="End Cell" />
             </div>
         </div>
     }

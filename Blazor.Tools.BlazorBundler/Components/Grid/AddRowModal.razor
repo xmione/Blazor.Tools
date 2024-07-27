@@ -16,7 +16,7 @@
     <div class="data-table-grid-modal-content">
         @foreach (DataColumn column in DataTable.Columns)
         {
-            var isHidden = HiddenColumnNames.Contains(column.ColumnName);
+            var isHidden = HiddenColumnNames?.Contains(column.ColumnName) ?? false;
             if (!isHidden)
             {
                 <div class="form-group">

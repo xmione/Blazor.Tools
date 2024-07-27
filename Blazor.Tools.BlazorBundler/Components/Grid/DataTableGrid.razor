@@ -9,7 +9,7 @@
 @using BlazorBootstrap
 @using System.Data
 
-<TableGrid Title="@Title" AllowCellSelection="@AllowCellSelection" HiddenColumnNames="@HiddenColumnNames">
+<TableGrid @ref="_tableGrid" Title="@Title" AllowCellSelection="@AllowCellSelection" HiddenColumnNames="@HiddenColumnNames">
     <TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
     <TableNode DataSource="@_tableSourceName">
         @foreach(DataColumn column in SelectedTable.Columns)
@@ -81,7 +81,6 @@
         //     await RetrieveDataFromSessionTableAsync();
         // }
 
-        _tableGrid = new TableGrid();
         _tableSourceName = SelectedTable?.TableName + "DS";
         await base.OnParametersSetAsync();
     }

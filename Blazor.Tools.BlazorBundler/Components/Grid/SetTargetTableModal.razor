@@ -246,7 +246,7 @@
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
     [Parameter] public List<AssemblyTable> TableList { get; set; } = default!;
 
-    [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
 
     private SessionManager _sessionManager = default!;
     private int _selectedTableID;
@@ -273,12 +273,12 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _sessionManager = new SessionManager(_sessionTableService);
+        // _sessionManager = new SessionManager(_sessionTableService);
 
-        if (!_isRetrieved)
-        {
-            await RetrieveDataFromSessionTableAsync();
-        }
+        // if (!_isRetrieved)
+        // {
+        //     await RetrieveDataFromSessionTableAsync();
+        // }
 
         if (SelectedData != null)
         {
@@ -322,12 +322,12 @@
     {
         try
         {
-            SelectedData = (await _sessionManager.RetrieveFromSessionTableAsync<DataRow[]>("_selectedData")) ?? SelectedData;
-            _uniqueField = (await _sessionManager.RetrieveFromSessionTableAsync<string>("_uniqueField")) ?? _uniqueField;
-            _targetTableColumnList = (await _sessionManager.RetrieveFromSessionTableAsync<List<TargetTableColumn>>("_targetTableColumnList")) ?? _targetTableColumnList;
-            _columnProperties = (await _sessionManager.RetrieveFromSessionTableAsync<List<string>>("_columnProperties")) ?? _columnProperties;
+            // SelectedData = (await _sessionManager.RetrieveFromSessionTableAsync<DataRow[]>("_selectedData")) ?? SelectedData;
+            // _uniqueField = (await _sessionManager.RetrieveFromSessionTableAsync<string>("_uniqueField")) ?? _uniqueField;
+            // _targetTableColumnList = (await _sessionManager.RetrieveFromSessionTableAsync<List<TargetTableColumn>>("_targetTableColumnList")) ?? _targetTableColumnList;
+            // _columnProperties = (await _sessionManager.RetrieveFromSessionTableAsync<List<string>>("_columnProperties")) ?? _columnProperties;
 
-            _isRetrieved = true;
+            // _isRetrieved = true;
 
             StateHasChanged();
         }
@@ -450,8 +450,8 @@
             _columnProperties = new List<string>();
         }
 
-        await _sessionManager.SaveToSessionTableAsync("_targetTableColumnList", _targetTableColumnList, serialize: true);
-        await _sessionManager.SaveToSessionTableAsync("_columnProperties", _columnProperties, serialize: true);
+        // await _sessionManager.SaveToSessionTableAsync("_targetTableColumnList", _targetTableColumnList, serialize: true);
+        // await _sessionManager.SaveToSessionTableAsync("_columnProperties", _columnProperties, serialize: true);
         await SetTargetTableColumnList.InvokeAsync(_targetTableColumnList);
         StateHasChanged();
     }
