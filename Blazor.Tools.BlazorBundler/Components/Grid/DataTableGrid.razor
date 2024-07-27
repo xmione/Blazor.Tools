@@ -14,7 +14,7 @@
     <TableNode DataSource="@_tableSourceName">
         @foreach(DataColumn column in SelectedTable.Columns)
         {
-            var isHidden = HiddenColumnNames.Contains(column.ColumnName);
+            var isHidden = HiddenColumnNames?.Contains(column.ColumnName) ?? false;
             if (!isHidden)
             {
                 <TableColumn DataSourceName="@_tableSourceName" FieldName="@column.ColumnName" Type="TextBox" />

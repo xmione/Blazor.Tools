@@ -1,8 +1,8 @@
 ﻿@page "/test-table-grid"
 @rendermode InteractiveServer
 
-@* @using Blazor.Tools.Components.Grid
-@using Bogus *@
+@using Blazor.Tools.Components.Grid
+@using Bogus
 @using System.Data
 
 @inject NavigationManager Navigation
@@ -11,11 +11,11 @@
 
 <h1>Testing Sample Table Grid Component</h1>
 @* <TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  /> *@
-@* <TableGrid Title="Employee Table" AllowCellSelection="true">
+<TableGrid Title="Employee Table" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
     <TableNode DataSource="EmployeeDS">
-        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" Visible="false" />
         <TableColumn DataSourceName="EmployeeDS" FieldName="FirstName" Type="TextBox" HeaderName="First Name" />
         <TableColumn DataSourceName="EmployeeDS" FieldName="MiddleName" Type="TextBox" HeaderName="Middle Name" />
         <TableColumn DataSourceName="EmployeeDS" FieldName="LastName" Type="TextBox" HeaderName="Last Name" />
@@ -84,4 +84,3 @@
     }
 
 }
- *@
