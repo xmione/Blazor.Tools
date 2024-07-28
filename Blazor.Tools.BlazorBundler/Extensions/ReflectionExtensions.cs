@@ -126,6 +126,30 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             
             return properties;
         }
-    }
 
+        /// <summary>
+        /// This static method gets the list of interface full names and short names.
+        /// </summary>
+        /// <param name="assembly">The Assembly instance.</param>
+        /// <returns>IEnumerable<Tuple<string, string>></string> - The list of interface full name and short name.</returns>
+        public static IEnumerable<Tuple<string, string>> GetAssemblyInterfaceNames(this Assembly assembly)
+        {
+            // Get all types defined in the assembly
+            Type[] types = assembly.GetTypes();
+
+            // Filter the types to get only interfaces
+            Type[] interfaces = Array.FindAll(types, t => t.IsInterface);
+
+            // List to hold the interface names
+            List<Tuple<string, string>> interfaceNames = new List<Tuple<string, string>>();
+
+            // Add the full name and short name of each interface to the list
+            foreach (Type iface in interfaces)
+            {
+                interfaceNames.Add(new Tuple<string, string>(iface.FullName, iface.Name));
+            }
+
+            return interfaceNames;
+        }
+    }
 }

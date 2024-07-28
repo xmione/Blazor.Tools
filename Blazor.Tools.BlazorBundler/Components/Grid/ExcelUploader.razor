@@ -23,6 +23,7 @@
             ModelsAssemblyName="@ModelsAssemblyName"
             ModelsAssemblyPath="@ModelsAssemblyPath"
             LoadAssemblyFromDLLFile="@LoadAssemblyFromDLLFile"
+            IsInterface = "@IsInterface"
             />
     </div>
 </div>
@@ -34,6 +35,7 @@
     [Parameter] public string ServicesAssemblyPath { get; set; } = default!;
     [Parameter] public string ServicesAssemblyName { get; set; } = default!;
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
+    [Parameter] public bool IsInterface { get; set; } = false;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
     // [Inject] public SessionTable _sessionTable { get; set; } = default!;

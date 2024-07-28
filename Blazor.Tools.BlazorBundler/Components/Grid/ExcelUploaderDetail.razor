@@ -6,10 +6,11 @@
   ====================================================================================================*@
 @using Blazor.Tools.BlazorBundler.Components.Grid
 @using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Extensions
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using BlazorBootstrap
 @using System.Data
-
+@using System.Reflection
 
 @if (ExcelDataSet != null && ExcelDataSet.Tables.Count > 0)
 {
@@ -56,6 +57,7 @@ else
     [Parameter] public string ServicesAssemblyName { get; set; } = default!; //"AccSol.Services"
     [Parameter] public string ServicesAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll"
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
+    [Parameter] public bool IsInterface { get; set; } = false;
 
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
     // [Inject] public SessionTable _sessionTable { get; set; } = default!;
@@ -66,14 +68,50 @@ else
     private List<AssemblyTable>? _tableList = null;
     protected override async Task OnParametersSetAsync()
     {
-        if (LoadAssemblyFromDLLFile && ModelsAssemblyPath == null)
+        Assembly? assembly = null;
+        if (LoadAssemblyFromDLLFile)
         {
-            throw new ArgumentException("ModelsAssemblyPath is required.");
+            if (ModelsAssemblyPath == null)
+            {
+                throw new ArgumentException("ModelsAssemblyPath is required.");
+            }
+            else
+            {
+                assembly = ReflectionExtensions.LoadAssemblyFromDLLFile(ModelsAssemblyPath);
+            }
+
         }
 
-        if (!LoadAssemblyFromDLLFile && ModelsAssemblyName == null)
+        if (!LoadAssemblyFromDLLFile)
         {
-            throw new ArgumentException("ModelsAssemblyName is required.");
+            if (ModelsAssemblyName == null)
+            {
+                throw new ArgumentException("ModelsAssemblyName is required.");
+            }
+            else
+            {
+                assembly = ReflectionExtensions.LoadAssemblyFromName(ModelsAssemblyName);
+            }
+        }
+
+        var interfaceNames = assembly?.GetAssemblyInterfaceNames();
+
+        if (interfaceNames != null)
+        {
+            foreach (var iFace in interfaceNames)
+            {
+                var assemblyTable = new AssemblyTable()
+                    {
+                        ID = i,
+                        AssemblyName = ModelsAssemblyName,
+                        AssemblyPath = ModelsAssemblyPath,
+                        IsInterface = IsInterface,
+                        TableName = iFace.Item2.SubString(1, iFace.Item2.Length - 1),
+                        TypeName = iFace.Item2
+                    };
+
+                _tableList.Add(assemblyTable);
+            }
         }
 
         if (_tableList == null)
