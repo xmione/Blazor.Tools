@@ -63,7 +63,7 @@
     // [Inject] public SessionTable _sessionTable { get; set; } = default!;
 
     private bool showSetTargetTableModal = false;
-    private DataRow[] _selectedData = default!;
+    private DataRow[]? _selectedData = default!;
     private string _selectedFieldValue = string.Empty;
     //private SessionManager _sessionManager = default!;
     //private bool _isRetrieved = false;
@@ -138,6 +138,10 @@
     {
         showSetTargetTableModal = true;
         _selectedData = await _tableGrid.ShowSetTargetTableModalAsync();
+        if (_selectedData == null)
+        {
+            showSetTargetTableModal = false;   
+        }
 
         StateHasChanged(); 
     }

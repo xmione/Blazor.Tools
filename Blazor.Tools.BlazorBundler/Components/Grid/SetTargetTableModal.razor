@@ -247,7 +247,7 @@
     [Parameter] public bool ShowSetTargetTableModal { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<List<TargetTable>> OnSave { get; set; }
-    [Parameter] public DataRow[] SelectedData { get; set; } = Array.Empty<DataRow>();
+    [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
     [Parameter] public EventCallback<DataRow[]> OnSelectedDataComb { get; set; }
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
     [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
@@ -313,9 +313,11 @@
             if (_totalItemsSelectedData > 0 && string.IsNullOrEmpty(_selectedSourceField))
             {
                 _selectedSourceField = SelectedData[0].Table.Columns[0].ColumnName;
+                var selectedTableValue = TableList?.FirstOrDefault();
+                _selectedTableID = selectedTableValue?.ID ?? 0;
                 var selectedFieldValue = GetFieldValues(_selectedTableID)?.FirstOrDefault();
 
-                var selectedTableValue = Enum.GetName(typeof(TableEnum), TableEnum.Client) ?? string.Empty;
+
                 _selectedFieldValue = selectedFieldValue ?? string.Empty;
                 _uniqueField = _selectedSourceField;
             }

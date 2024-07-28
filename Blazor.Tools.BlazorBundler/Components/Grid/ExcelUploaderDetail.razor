@@ -70,7 +70,9 @@ else
     {
         try
         {
-            Assembly? assembly = null;
+            Assembly? modelsAssembly = null;
+            Assembly? servicesAssembly = null;
+
             if (LoadAssemblyFromDLLFile)
             {
                 if (ModelsAssemblyPath == null)
@@ -79,12 +81,20 @@ else
                 }
                 else
                 {
-                    assembly = ReflectionExtensions.LoadAssemblyFromDLLFile(ModelsAssemblyPath);
+                    modelsAssembly = ReflectionExtensions.LoadAssemblyFromDLLFile(ModelsAssemblyPath);
+                }
+
+                if (ServicesAssemblyPath == null)
+                {
+                    throw new ArgumentException("ServicesAssemblyPath is required.");
+                }
+                else
+                {
+                    servicesAssembly = ReflectionExtensions.LoadAssemblyFromDLLFile(ServicesAssemblyPath);
                 }
 
             }
-
-            if (!LoadAssemblyFromDLLFile)
+            else
             {
                 if (ModelsAssemblyName == null)
                 {
@@ -92,7 +102,16 @@ else
                 }
                 else
                 {
-                    assembly = ReflectionExtensions.LoadAssemblyFromName(ModelsAssemblyName);
+                    modelsAssembly = ReflectionExtensions.LoadAssemblyFromName(ModelsAssemblyName);
+                }
+
+                if (ServicesAssemblyName == null)
+                {
+                    throw new ArgumentException("ServicesAssemblyName is required.");
+                }
+                else
+                {
+                    servicesAssembly = ReflectionExtensions.LoadAssemblyFromName(ServicesAssemblyName);
                 }
             }
 
@@ -101,8 +120,9 @@ else
                 _tableList = new List<AssemblyTable>();
             }
 
-            var interfaceNames = assembly?.GetAssemblyInterfaceNames().ToList();
-
+            var interfaceNames = modelsAssembly?.GetAssemblyInterfaceNames().ToList();
+            var modelsAssemblyName = ModelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
+            var servicesAssemblyName = ServicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
             if (interfaceNames != null)
             {
                 for (int i = 0; i < interfaceNames.Count(); i++)
@@ -110,9 +130,12 @@ else
                     var iFace = interfaceNames[i];
                     var assemblyTable = new AssemblyTable()
                         {
-                            ID = i,
-                            AssemblyName = ModelsAssemblyName,
+                            ID = i + 1,
+                            AssemblyName = modelsAssemblyName,
                             AssemblyPath = ModelsAssemblyPath,
+                            ServiceName = servicesAssemblyName,
+                            ServicePath = ServicesAssemblyPath,
+                            LoadAssemblyFromDLLFile = LoadAssemblyFromDLLFile,
                             IsInterface = IsInterface,
                             TableName = iFace.Item2.Substring(1, iFace.Item2.Length - 1),
                             TypeName = iFace.Item2

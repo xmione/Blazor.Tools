@@ -91,7 +91,7 @@ else
     private TableGrid TableGridContext = null!;
     private List<TableSource> _tableSources = new List<TableSource>();
     private TableNode _node = new TableNode();
-    private DataRow[] _selectedData = Array.Empty<DataRow>();
+    private DataRow[]? _selectedData = default!;
     protected override void OnParametersSet()
     {
         Console.WriteLine("TableGrid OnParametersSet");

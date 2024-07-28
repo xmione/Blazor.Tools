@@ -15,11 +15,11 @@ namespace Blazor.Tools.BlazorBundler.Entities
         public string TableName { get; set; } = default!;
         public bool IsInterface { get; set; }
 
-        public IEnumerable<string> GetPropertyNames(bool loadAssemblyFromDLLFile = false) 
+        public IEnumerable<string> GetPropertyNames() 
         {
             Assembly? assembly = null;
             var typeName = string.Join(AssemblyName, ".", TypeName);
-            if (loadAssemblyFromDLLFile)
+            if (LoadAssemblyFromDLLFile)
             {
                 assembly = ReflectionExtensions.LoadAssemblyFromDLLFile(AssemblyPath);
             }
