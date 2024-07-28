@@ -4,10 +4,12 @@
     Created On    : June 3, 2024
     Purpose       : To have a reusable component to facilitate the uploading of Excel files.
   ====================================================================================================*@
-@using Blazor.Tools.BlazorBundler.Components.ExcelUploader
+@using Blazor.Tools.BlazorBundler.Components.Grid
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using System.Data
+@using Microsoft.Extensions.Configuration
+@using Microsoft.AspNetCore.Components.Forms
 
 <div class="col-md-12">
     <div class="card-header">
@@ -15,12 +17,21 @@
         <ExcelUploaderHeader OnFileUpload="HandleFileUpload" />
     </div>
     <div class="card-body">
-        <ExcelUploaderDetail _excelDataSet="@_excelDataSet" _excelProcessor="@_excelProcessor"/>
+        <ExcelUploaderDetail 
+            ExcelDataSet="@_excelDataSet" 
+            ExcelProcessor="@_excelProcessor"
+            ModelsAssemblyName="@ModelsAssemblyName"
+            ModelsAssemblyPath="@ModelsAssemblyPath"
+            LoadAssemblyFromDLLFile="@LoadAssemblyFromDLLFile"
+            />
     </div>
 </div>
 
 @code {
     [Parameter] public string Title { get; set; } = "Upload Excel File";
+    [Parameter] public string ModelsAssemblyPath { get; set; } = default!;
+    [Parameter] public string ModelsAssemblyName { get; set; } = default!;
+    [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
     // [Inject] public SessionTable _sessionTable { get; set; } = default!;

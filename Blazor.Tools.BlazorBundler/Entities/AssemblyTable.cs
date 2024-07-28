@@ -8,6 +8,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
         public int ID { get; set; }
         public string AssemblyName { get; set; } = default!;
         public string AssemblyPath { get; set; } = default!;
+        public bool LoadAssemblyFromDLLFile { get; set; } = default!;
         public string TypeName { get; set; } = default!;
         public string TableName { get; set; } = default!;
         public bool IsInterface { get; set; }
