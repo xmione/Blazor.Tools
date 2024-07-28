@@ -34,10 +34,10 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         public static Assembly LoadAssemblyFromName(string assemblyName)
         {
             // Load the assembly
-            Assembly assembly = Assembly.Load(assemblyPath);
+            Assembly assembly = Assembly.Load(assemblyName);
             if (assembly == null)
             {
-                throw new ArgumentException($"Assembly '{assemblyPath}' could not be loaded.");
+                throw new ArgumentException($"Assembly '{assemblyName}' could not be loaded.");
             }
             
             return assembly;

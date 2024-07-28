@@ -119,33 +119,28 @@
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Update="Components\ExcelUploader\DataRowViewModel.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Components\ExcelUploader\ExcelUploader.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Content Include="Components\ExcelUploader\ExcelUploader.razor">
+    
+    <Content Include="Components\Grid\ExcelUploader.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\ExcelUploader\ExcelUploaderDetail.razor">
+    <Content Include="Components\Grid\ExcelUploaderDetail.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\ExcelUploader\ExcelUploaderHeader.razor">
+    <Content Include="Components\Grid\ExcelUploaderHeader.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\ExcelUploader\ExcelUploaderTitle.razor">
+    <Content Include="Components\Grid\ExcelUploaderTitle.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Components\ExcelUploader\SessionDemo.razor">
+    <Content Include="Components\Grid\SessionDemo.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\ExcelUploader\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -228,6 +223,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Components\Grid\DataRowViewModel.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Components\Grid\ExcelUploader.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
     <Compile Update="Entities\AIDataAccess.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
