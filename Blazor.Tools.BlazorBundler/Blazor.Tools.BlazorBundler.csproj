@@ -122,27 +122,27 @@
     
     <Content Include="Components\Grid\ExcelUploader.razor">
       <Pack>True</Pack>
-      <PackagePath>\Components\ExcelUploader\</PackagePath>
+      <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Components\Grid\ExcelUploaderDetail.razor">
       <Pack>True</Pack>
-      <PackagePath>\Components\ExcelUploader\</PackagePath>
+      <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Components\Grid\ExcelUploaderHeader.razor">
       <Pack>True</Pack>
-      <PackagePath>\Components\ExcelUploader\</PackagePath>
+      <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Components\Grid\ExcelUploaderTitle.razor">
       <Pack>True</Pack>
-      <PackagePath>\Components\ExcelUploader\</PackagePath>
+      <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Components\Grid\SessionDemo.razor">
       <Pack>True</Pack>
-      <PackagePath>\Components\ExcelUploader\</PackagePath>
+      <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 
