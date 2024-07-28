@@ -31,6 +31,8 @@
     [Parameter] public string Title { get; set; } = "Upload Excel File";
     [Parameter] public string ModelsAssemblyPath { get; set; } = default!;
     [Parameter] public string ModelsAssemblyName { get; set; } = default!;
+    [Parameter] public string ServicesAssemblyPath { get; set; } = default!;
+    [Parameter] public string ServicesAssemblyName { get; set; } = default!;
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;

@@ -52,8 +52,9 @@ else
     [Parameter] public DataSet? ExcelDataSet { get; set; } = default!;
     [Parameter] public ExcelProcessor ExcelProcessor { get; set; } = default!;
     [Parameter] public string ModelsAssemblyName { get; set; } = default!; //"AccSol.EF.Interfaces"
-    [Parameter] public string ModelsAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Interfaces\bin\Release\AccSol.Interfaces.dll"
-    [Parameter] public string ServicesAssemblyName { get; set; } = default!; //"AccSol.EF.Services"
+    [Parameter] public string ModelsAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll"
+    [Parameter] public string ServicesAssemblyName { get; set; } = default!; //"AccSol.Services"
+    [Parameter] public string ServicesAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll"
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
 
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
@@ -62,7 +63,7 @@ else
     private DataTable? _selectedTable;
     private string? _selectedTableName;
     private bool _isReceived = false;
-    private List<AssemblyTable>? _tableList;
+    private List<AssemblyTable>? _tableList = null;
     protected override async Task OnParametersSetAsync()
     {
         if (LoadAssemblyFromDLLFile && ModelsAssemblyPath == null)
