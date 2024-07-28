@@ -27,6 +27,7 @@
 param(
     [Parameter(Mandatory=$true)]
     [bool] $Publish,
+    [bool] $IsRelease = $false,
     [string] $GitComment = "Update project with the latest changes"
 )
 
@@ -35,12 +36,19 @@ $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
 
+# Determine the configuration based on the IsRelease parameter
+$Configuration = if ($IsRelease) { "Release" } else { "Debug" }
+
 # Update project file - using dotnet msbuild
 $projectFile = "Blazor.Tools.BlazorBundler.csproj"
 
 Write-Host "Building project with the updated PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
 # Update AssemblyVersion and FileVersion
-dotnet msbuild $projectFile  /p:Configuration=Release /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion
+dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+
+Write-Host "Packing the project..."
+# Pack the project
+dotnet pack -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true
 
 # Generate Changelog with dynamic version information
 $changelogContent = @"
@@ -244,10 +252,6 @@ if($Publish -eq $true)
     git add .
     git commit -m $GitComment
     git push origin master
-
-    Write-Host "Packing the project..."
-    # Pack the project
-    dotnet pack -c Release /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed
 
     Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
     # Dockerize

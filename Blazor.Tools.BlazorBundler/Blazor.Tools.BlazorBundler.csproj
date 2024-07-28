@@ -327,7 +327,4 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
-  <Target Name="CustomPack" AfterTargets="Build">
-    <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
-  </Target>
 </Project>
