@@ -15,7 +15,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         public static Assembly LoadAssemblyFromDLLFile(string assemblyPath)
         {
             // Load the assembly
-            Assembly assembly = Assembly.Load(assemblyPath);
+            Assembly assembly = Assembly.LoadFrom(assemblyPath);
             if (assembly == null)
             {
                 throw new ArgumentException($"Assembly '{assemblyPath}' could not be loaded.");
