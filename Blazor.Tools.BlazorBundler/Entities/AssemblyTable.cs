@@ -7,14 +7,25 @@ namespace Blazor.Tools.BlazorBundler.Entities
     {
         public int ID { get; set; }
         public string AssemblyName { get; set; } = default!;
+        public string AssemblyPath { get; set; } = default!;
         public string TypeName { get; set; } = default!;
         public string TableName { get; set; } = default!;
         public bool IsInterface { get; set; }
 
-        public IEnumerable<string> GetPropertyNames() 
+        public IEnumerable<string> GetPropertyNames(bool loadAssemblyFromDLLFile = false) 
         {
+            Assembly? assembly = null;
             var typeName = string.Join(AssemblyName, ".", TypeName);
-            var properties = ReflectionExtensions.GetProperties(AssemblyName, typeName, IsInterface);
+            if (loadAssemblyFromDLLFile)
+            {
+                assembly = ReflectionExtensions.LoadAssemblyFromDLLFile(AssemblyPath);
+            }
+            else 
+            {
+                assembly = ReflectionExtensions.LoadAssemblyFromName(AssemblyName);
+            }
+            
+            var properties = ReflectionExtensions.GetProperties(assembly, typeName, IsInterface);
 
             return properties;
         }

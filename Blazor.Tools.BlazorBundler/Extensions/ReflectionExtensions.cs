@@ -4,6 +4,45 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 {
     public static class ReflectionExtensions
     {
+
+        /// <summary>
+        /// This extension method loads a specific assembly from its .dll assembly file.
+        /// </summary>
+        /// <param name="assemblyPath">The full path of the dll assembly file. 
+        /// Example: "C:\repo\AccSol\AccSol.Interfaces\bin\Release\AccSol.Interfaces.dll".</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <returns>Assembly</returns>
+        public static Assembly LoadAssemblyFromDLLFile(string assemblyPath)
+        {
+            // Load the assembly
+            Assembly assembly = Assembly.Load(assemblyPath);
+            if (assembly == null)
+            {
+                throw new ArgumentException($"Assembly '{assemblyPath}' could not be loaded.");
+            }
+            
+            return assembly;
+        }
+
+        /// <summary>
+        /// This extension method loads a specific assembly from its assembly name.
+        /// </summary>
+        /// <param name="assemblyName">The assembly name string. Example: "AccSol.Interfaces".
+        /// The assembly (e.g: "AccSol.Interfaces") is assumed already added as project or dll reference.</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <returns>Assembly</returns>
+        public static Assembly LoadAssemblyFromName(string assemblyName)
+        {
+            // Load the assembly
+            Assembly assembly = Assembly.Load(assemblyPath);
+            if (assembly == null)
+            {
+                throw new ArgumentException($"Assembly '{assemblyPath}' could not be loaded.");
+            }
+            
+            return assembly;
+        }
+
         /// <summary>
         /// Gets the property names of an object.
         /// </summary>
@@ -53,27 +92,21 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// <summary>
         /// This extension method gets properties from a specific assembly name and class or interface.
         /// </summary>
-        /// <param name="assemblyName">The assembly name string. Example: "AccSol.Interfaces".</param>
+        /// <param name="assemblyName">The assembly name string. Example: "AccSol.Interfaces".
+        /// The assembly (e.g: "AccSol.Interfaces") is assumed already added as project or dll reference.</param>
         /// <param name="typeName">The type name string. Example: "IClient" </param>
         /// <param name="isInterface">If value is true, gets the properties from an interface.
         /// If value is false, gets the properties from a class. Default value is false.</param>
         /// <returns>IEnumerable<string> that contains all the object's property names.</returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IEnumerable<string> GetProperties(string assemblyName, string typeName, bool isInterface = false)
+        public static IEnumerable<string> GetProperties(Assembly assembly, string typeName, bool isInterface = false)
         {
-            // Load the assembly
-            Assembly assembly = Assembly.Load(assemblyName);
-            if (assembly == null)
-            {
-                throw new ArgumentException($"Assembly '{assemblyName}' could not be loaded.");
-            }
-
-            var fullTypeName = string.Join(assemblyName, ".", typeName);
+            var fullTypeName = string.Join(assembly.FullName, ".", typeName);
             // Find the type (class or interface)
             Type? type = assembly?.GetTypes()?.FirstOrDefault(t => t.FullName == typeName);
             if (type == null)
             {
-                throw new ArgumentException($"Type '{typeName}' not found in assembly '{assemblyName}'.");
+                throw new ArgumentException($"Type '{typeName}' not found in assembly '{assembly.FullName}'.");
             }
 
             // Check if the type matches the expected kind (interface or class)

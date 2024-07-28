@@ -50,15 +50,57 @@ else
 @code {
     [Parameter] public DataSet? _excelDataSet { get; set; } = default!;
     [Parameter] public ExcelProcessor _excelProcessor { get; set; } = default!;
+    [Parameter] public string ModelsAssemblyName { get; set; } = default!; //"AccSol.EF.Interfaces"
+    [Parameter] public string ModelsAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Interfaces\bin\Release\AccSol.Interfaces.dll"
+    [Parameter] public string ServicesAssemblyName { get; set; } = default!; //"AccSol.EF.Services"
+    [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
+
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
     // [Inject] public SessionTable _sessionTable { get; set; } = default!;
 
     private DataTable? _selectedTable;
     private string? _selectedTableName;
     private bool _isReceived = false;
-
+    private List<AssemblyTable>? _tableList;
     protected override async Task OnParametersSetAsync()
     {
+        if (LoadAssemblyFromDLLFile && ModelsAssemblyPath == null)
+        {
+            throw new ArgumentException("ModelsAssemblyPath is required.");
+        }
+        
+        if (!LoadAssemblyFromDLLFile && ModelsAssemblyName == null)
+        {
+            throw new ArgumentException("ModelsAssemblyName is required.");
+        }
+
+        if (_tableList == null)
+        {
+            _tableList = new List<AssemblyTable>();    
+        }
+
+        if (_excelDataSet != null)
+        {
+
+            var tables = _excelDataSet?.Tables;
+            if (tables != null)
+            {
+                for (int i = 0; i < tables.Count; i++)
+                {
+                    DataTable table = tables[i];
+                    var assemblyTable = new AssemblyTable()
+                    {
+                        ID = i,
+                        AssemblyName = ModelsAssemblyName,
+                        AssemblyPath = ModelsAssemblyPath,
+                        IsInterface = true,
+                        TableName = table.TableName,
+                        TypeName = $"I{table.TableName}"
+                    };
+                }
+            }
+        }
+        
         await base.OnParametersSetAsync();
 
         // if (!_isReceived)

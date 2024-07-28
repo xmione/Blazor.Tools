@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using Blazor.Tools.BlazorBundler.Entities;
+using Newtonsoft.Json;
 using System.Data;
 
-namespace Blazor.Tools.BlazorBundler.Entities
+namespace Blazor.Tools.BlazorBundler.Extensions
 {
     public static class SerializationExtensions
     {

@@ -1,4 +1,5 @@
-﻿using Blazor.Tools.BlazorBundler.Interfaces;
+﻿using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.Interfaces;
 using Newtonsoft.Json;
 using System.Data;
 

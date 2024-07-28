@@ -131,13 +131,16 @@
             <div class="col">
                 <label for="targetTable">Target Table:</label>
                 <select class="form-control" id="targetTable" @onchange="OnTargetTableValueChanged">
-                    @foreach (var table in TableList)
-                    {
-                        int id = (int)table.ID;
-                        string tableName = table.TableName;
-                        <option value="@id" selected="@(_selectedTableID.Equals(id))">
-                            @tableName
-                        </option>
+                    @if (TableList != null)
+                    { 
+                        foreach (var table in TableList)
+                        {
+                            int id = (int)table.ID;
+                            string tableName = table.TableName;
+                            <option value="@id" selected="@(_selectedTableID.Equals(id))">
+                                @tableName
+                            </option>
+                        }
                     }
                 </select>
             </div>
@@ -159,12 +162,15 @@
             <div class="col">
                 <label for="checkOnTable">Check On Table:</label>
                 <select class="form-control" id="checkOnTable" @onchange="OnSelectedCheckOnTableValueChanged">
-                    @foreach (var table in TableList)
+                    @if (TableList != null) 
                     {
-                        int id = table.ID;
-                        <option value="@id" selected="@(_selectedCheckOnTableID.Equals(id))">
-                            @table.TableName
-                        </option>
+                        foreach (var table in TableList)
+                        {
+                            int id = table.ID;
+                            <option value="@id" selected="@(_selectedCheckOnTableID.Equals(id))">
+                                @table.TableName
+                            </option>
+                        }
                     }
                 </select>
             </div>
@@ -244,7 +250,7 @@
     [Parameter] public DataRow[] SelectedData { get; set; } = Array.Empty<DataRow>();
     [Parameter] public EventCallback<DataRow[]> OnSelectedDataComb { get; set; }
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
-    [Parameter] public List<AssemblyTable> TableList { get; set; } = default!;
+    [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
     // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
 
@@ -349,7 +355,7 @@
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
         _selectedTableID = selectedIntValue;
 
-        var selectedTableValue = TableList.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
+        var selectedTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedFieldValue = string.Empty;
@@ -368,9 +374,9 @@
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
         _selectedCheckOnTableID = selectedIntValue;
 
-        var selectedTableValue = TableList.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
+        var selectedTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
 
-        var selectedCheckOnTableValueEnum = TableList.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
+        var selectedCheckOnTableValueEnum = TableList?.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedPrimaryKeyFieldValue = string.Empty;
@@ -383,7 +389,7 @@
 
     private async Task OnTargetFieldChanged(ChangeEventArgs e)
     {
-        _selectedTableValue = TableList.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
+        _selectedTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
         _selectedFieldValue = e?.Value?.ToString() ?? string.Empty;
 
         //await _sessionManager.SaveToSessionTableAsync("_selectedFieldValue", _selectedFieldValue);
@@ -392,14 +398,14 @@
 
     private async Task OnPrimaryKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = TableList.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
+        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
         _selectedPrimaryKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
 
     private async Task OnForeignKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = TableList.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
+        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
         _selectedForeignKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
@@ -458,7 +464,7 @@
 
     private IEnumerable<string>? GetFieldValues(int id)
     {
-        var selectedTable = TableList.FirstOrDefault(t => t.ID == id);
+        var selectedTable = TableList?.FirstOrDefault(t => t.ID == id);
         var properties = selectedTable?.GetPropertyNames();
 
         return properties;
@@ -657,7 +663,7 @@
                     dt = BuildRowsForTargetTable(dt, targetTableColumns, SelectedData);
 
                     // Lastly, before adding the targetTable serialize the dt again and store in targetTable.DT
-                    targetTable.DT = await _sessionManager.SerializeAsync(dt);
+                    targetTable.DT = await dt.SerializeAsync();
 
                     targetTables.Add(targetTable);
                 }

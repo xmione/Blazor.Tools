@@ -30,9 +30,8 @@
     {
         if (targetTable != null && !string.IsNullOrEmpty(targetTable.DT))
         {
-            //var dt = _sessionManager.DeserializeAsync<DataTable>(targetTable.DT).Result;
-            @* <TableGrid DataTable="@dt" /> *@
-            @* <TableGrid DataTable="@targetTable.DT" /> *@
+            var dt = targetTable.DT.DeserializeAsync<DataTable>().Result;
+            <TableGrid DataTable="@dt" /> 
         }
     }
 }

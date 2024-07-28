@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.RenderTree;
 
-namespace Blazor.Tools.BlazorBundler.Entities
+namespace Blazor.Tools.BlazorBundler.Extensions
 {
     public static class RenderFragmentExtensions
     {
