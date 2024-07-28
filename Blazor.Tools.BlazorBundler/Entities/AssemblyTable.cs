@@ -18,7 +18,8 @@ namespace Blazor.Tools.BlazorBundler.Entities
         public IEnumerable<string> GetPropertyNames() 
         {
             Assembly? assembly = null;
-            var typeName = string.Join(AssemblyName, ".", TypeName);
+            var typeName = string.Join(".", AssemblyName, TypeName);
+            
             if (LoadAssemblyFromDLLFile)
             {
                 assembly = ReflectionExtensions.LoadAssemblyFromDLLFile(AssemblyPath);

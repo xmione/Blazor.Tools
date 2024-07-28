@@ -316,9 +316,11 @@
                 var selectedTableValue = TableList?.FirstOrDefault();
                 _selectedTableID = selectedTableValue?.ID ?? 0;
                 var selectedFieldValue = GetFieldValues(_selectedTableID)?.FirstOrDefault();
-
-
                 _selectedFieldValue = selectedFieldValue ?? string.Empty;
+
+                _selectedCheckOnTableID = _selectedTableID;
+                _selectedPrimaryKeyFieldValue = _selectedFieldValue;
+
                 _uniqueField = _selectedSourceField;
             }
         }

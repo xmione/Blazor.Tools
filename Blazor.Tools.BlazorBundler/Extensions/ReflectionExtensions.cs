@@ -101,7 +101,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// <exception cref="ArgumentException"></exception>
         public static IEnumerable<string> GetProperties(Assembly assembly, string typeName, bool isInterface = false)
         {
-            var fullTypeName = string.Join(assembly.FullName, ".", typeName);
+            var fullTypeName = string.Join(".", assembly.FullName, typeName);
             // Find the type (class or interface)
             Type? type = assembly?.GetTypes()?.FirstOrDefault(t => t.FullName == typeName);
             if (type == null)
