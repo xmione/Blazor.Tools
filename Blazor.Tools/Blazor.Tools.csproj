@@ -6,6 +6,15 @@
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Docs\~%24ep-by-Step Implementation.docx" />
+    <None Remove="Docs\~%24tural Language Requirements Specification Document.docx" />
+    <None Remove="Docs\~WRL0005.tmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="blazor.bootstrap" Version="1.11.1" />
+    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.0.8" />
+    <PackageReference Include="bogus" Version="35.6.0" />
+    <PackageReference Include="closedxml" Version="0.102.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
@@ -19,6 +28,9 @@
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="system.configuration.configurationmanager" Version="8.0.0" />
+    <PackageReference Include="system.data.oledb" Version="8.0.0" />
+    <PackageReference Include="system.diagnostics.performancecounter" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />

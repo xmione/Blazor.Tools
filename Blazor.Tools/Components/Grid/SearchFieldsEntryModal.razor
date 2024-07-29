@@ -1,0 +1,114 @@
+﻿@using Blazor.Tools.BlazorBundler.Entities
+@using BlazorBootstrap
+@using System.Data
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Search Field Entry Modal</PageTitle>
+<div class="data-table-grid-modal @(ShowSearchFieldsModal ? "show" : "")">
+    <!-- Buttons -->
+    <div class="data-table-grid-modal-close-button">
+        <Icon Name="IconName.CheckCircleFill" @onclick="SaveAsync" title="Add" />
+        <Icon Name="IconName.XCircleFill" title="Close" @onclick="CloseAsync" />
+    </div>
+    <div class="data-table-grid-modal-content">
+        <TableGrid Title="@_tableName" DataTable="@SelectedTable" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool ShowSearchFieldsModal { get; set; }
+    [Parameter] public DataTable? SelectedTable { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<List<SearchField>> OnSave { get; set; }
+    [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
+
+    private string _tableName = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _tableName = SelectedTable?.TableName ?? _tableName;     
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        var targetTables = new List<SearchField>();
+        // if (_targetTableColumnList != null)
+        // {
+        //     var targetTableGroups = _targetTableColumnList?
+        //                             .Where(t => !string.IsNullOrEmpty(t.TargetTableName))
+        //                             .GroupBy(t => t.TargetTableName)
+        //                             .ToList();
+
+        //     if (targetTableGroups != null)
+        //     {
+        //         foreach (var group in targetTableGroups)
+        //         {
+        //             var targetTableName = group.Key;
+        //             var targetTableColumns = group.ToList();
+
+        //             var targetTable = new TargetTable
+        //                 {
+        //                     TargetTableName = targetTableName,
+        //                     TargetTableColumns = targetTableColumns,
+        //                 };
+
+        //             var dt = new DataTable(targetTableName);
+
+        //             // Build columns for the target DataTable
+        //             dt = BuildColumnsForTargetTable(dt, targetTableColumns, SelectedData);
+
+        //             // Populate rows for the target DataTable
+        //             dt = BuildRowsForTargetTable(dt, targetTableColumns, SelectedData);
+
+        //             // Lastly, before adding the targetTable serialize the dt again and store in targetTable.DT
+        //             targetTable.DT = await _sessionManager.SerializeAsync(dt);
+
+        //             targetTables.Add(targetTable);
+        //         }
+        //     }
+        // }        // if (_targetTableColumnList != null)
+        // {
+        //     var targetTableGroups = _targetTableColumnList?
+        //                             .Where(t => !string.IsNullOrEmpty(t.TargetTableName))
+        //                             .GroupBy(t => t.TargetTableName)
+        //                             .ToList();
+
+        //     if (targetTableGroups != null)
+        //     {
+        //         foreach (var group in targetTableGroups)
+        //         {
+        //             var targetTableName = group.Key;
+        //             var targetTableColumns = group.ToList();
+
+        //             var targetTable = new TargetTable
+        //                 {
+        //                     TargetTableName = targetTableName,
+        //                     TargetTableColumns = targetTableColumns,
+        //                 };
+
+        //             var dt = new DataTable(targetTableName);
+
+        //             // Build columns for the target DataTable
+        //             dt = BuildColumnsForTargetTable(dt, targetTableColumns, SelectedData);
+
+        //             // Populate rows for the target DataTable
+        //             dt = BuildRowsForTargetTable(dt, targetTableColumns, SelectedData);
+
+        //             // Lastly, before adding the targetTable serialize the dt again and store in targetTable.DT
+        //             targetTable.DT = await _sessionManager.SerializeAsync(dt);
+
+        //             targetTables.Add(targetTable);
+        //         }
+        //     }
+        // }
+
+        await OnSave.InvokeAsync(targetTables);
+    }
+
+    private async Task CloseAsync()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+}
