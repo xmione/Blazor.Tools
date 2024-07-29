@@ -1,40 +1,21 @@
 ﻿@page "/"
 @rendermode InteractiveServer
-@using Blazor.Tools.Components.AI
-@using Blazor.Tools.Components.TableGrid
+@* @using Blazor.Tools.Components.AI *@
 @using System.Data
 @inject NavigationManager Navigation
  
 <PageTitle>Home</PageTitle>
 
-<h1>Testing Sample Table Grid Component</h1> 
- 
-<AIChatBot ConnectionString="@_connectionString" />
+@* <AIChatBot ConnectionString="@_connectionString" /> *@
 
 @code {
 
-    private DataTable _employees = default!;
-    private DataTable _countries = default!;
+     
     private readonly string _connectionString = "Server=(local);Database=AIDatabase;User Id=sa;Password=P@ssw0rd123;TrustServerCertificate=True;";
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestAccSolGridTable OnParametersSetAsync");
-        // Initialize _employees DataTable
-        _employees = new DataTable();
-        _employees.Columns.Add("ID", typeof(int));
-        _employees.Columns.Add("FirstName", typeof(string));
-        _employees.Columns.Add("MiddleName", typeof(string));
-        _employees.Columns.Add("LastName", typeof(string));
-        _employees.Columns.Add("CountryID", typeof(int));
-        _employees.Rows.Add(1, "John", "A.", "Doe", 1);
-        _employees.Rows.Add(2, "Jane", "B.", "Smith", 2);
-
-        // Initialize _countries DataTable
-        _countries = new DataTable();
-        _countries.Columns.Add("ID", typeof(int));
-        _countries.Columns.Add("Name", typeof(string));
-        _countries.Rows.Add(1, "USA");
-        _countries.Rows.Add(2, "Canada");
+         
 
         base.OnParametersSet();
     }

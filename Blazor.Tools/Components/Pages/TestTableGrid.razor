@@ -1,8 +1,8 @@
 ﻿@page "/test-table-grid"
 @rendermode InteractiveServer
-@using Blazor.Tools.Components.AI
-@using Blazor.Tools.Components.TableGrid
-@* @using Bogus *@
+
+@using Blazor.Tools.Components.Grid
+@using Bogus
 @using System.Data
 
 @inject NavigationManager Navigation
@@ -10,12 +10,12 @@
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-
+@* <TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  /> *@
 <TableGrid Title="Employee Table" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
-    <TableNode Title="AccSol Table" DataSource="EmployeeDS">
-        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" />
+    <TableNode DataSource="EmployeeDS">
+        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" Visible="false" />
         <TableColumn DataSourceName="EmployeeDS" FieldName="FirstName" Type="TextBox" HeaderName="First Name" />
         <TableColumn DataSourceName="EmployeeDS" FieldName="MiddleName" Type="TextBox" HeaderName="Middle Name" />
         <TableColumn DataSourceName="EmployeeDS" FieldName="LastName" Type="TextBox" HeaderName="Last Name" />
@@ -38,27 +38,49 @@
         _employees.Columns.Add("LastName", typeof(string));
         _employees.Columns.Add("CountryID", typeof(int));
 
-        // for (int i = 0; i < 101; i++)
-        // {
-        //     var employee = employeeFaker.Generate();
-        //     _employees.Rows.Add(employee.ID, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
-        // }
+        var employeeFaker = new Faker<Employee>()
+           .RuleFor(e => e.ID, f => f.IndexFaker + 1)
+           .RuleFor(e => e.FirstName, f => f.Name.FirstName())
+           .RuleFor(e => e.MiddleName, f => f.Name.FirstName().Substring(0, 1) + ".")
+           .RuleFor(e => e.LastName, f => f.Name.LastName())
+           .RuleFor(e => e.CountryID, f => f.Random.Int(1, 2));
+
+        var countryFaker = new Faker<Country>()
+        .RuleFor(c => c.ID, f => f.IndexFaker + 1)
+        .RuleFor(c => c.Name, f => f.Address.Country());
+
+        for (int i = 0; i < 101; i++)
+        {
+            var employee = employeeFaker.Generate();
+            _employees.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
+        }
 
         // Initialize and generate country data
         _countries = new DataTable();
         _countries.Columns.Add("ID", typeof(int));
         _countries.Columns.Add("Name", typeof(string));
 
-        var countries = new List<dynamic>
+        for (int i = 0; i < 101; i++)
         {
-            new { ID = 1, Name = "USA" },
-            new { ID = 2, Name = "Canada" }
-        };
-
-        foreach (var country in countries)
-        {
-            _countries.Rows.Add(country.ID, country.Name);
+            var country = countryFaker.Generate();
+            _countries.Rows.Add(i+ 1, country.Name);
         }
 
     }
+
+    public class Employee
+    {
+        public int ID { get; set; }
+        public string FirstName { get; set; } = default!;
+        public string MiddleName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
+        public int CountryID { get; set; } 
+    }
+
+    public class Country
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = default!;
+    }
+
 }

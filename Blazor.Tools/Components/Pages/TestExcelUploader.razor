@@ -1,0 +1,26 @@
+﻿@page "/test-excel-uploader"
+@rendermode InteractiveServer
+@using Blazor.Tools.Components.Grid
+
+<ExcelUploader 
+    Title="Upload Excel Files" 
+    ModelsAssemblyPath="@_modelsAssemblyPath" 
+    ServicesAssemblyPath="@_servicesAssemblyPath" 
+    LoadAssemblyFromDLLFile="true"
+    IsInterface="true"
+    />
+
+@code {
+    private string _modelsAssemblyPath = string.Empty;
+    private string _servicesAssemblyPath = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        _modelsAssemblyPath = @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll";
+        _servicesAssemblyPath = @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll";
+        StateHasChanged();
+
+    }
+}

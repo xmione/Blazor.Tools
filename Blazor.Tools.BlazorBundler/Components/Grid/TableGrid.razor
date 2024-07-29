@@ -1,0 +1,654 @@
+﻿@* TableGrid.razor *@
+
+@using BlazorBootstrap
+@using Microsoft.AspNetCore.Components.RenderTree
+@using Microsoft.AspNetCore.Components.Rendering
+@using Microsoft.AspNetCore.Components.Web
+@using System.Data
+
+<DTSearchBox DataTable="@_node.DataTable" OnFilterDataTable="HandleFilterDataTableAsync" />
+
+@if (!_renderTable)
+{
+    <CascadingValue Value="@TableGridContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    @RenderTable
+
+    <Icon Name="IconName.PlusCircleFill" @onclick="ShowAddRowModalAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />
+
+    <div>        
+        <div class="pagination-container">
+            <label>Total Items: @_node.FilteredItems/@_node.TotalItems</label>
+            <label for="pageSize">Page Size:</label>
+            <select id="pageSize" @onchange="PageSizeChangedAsync" class="cursor-pointer">
+                <option value=@_node.TotalItems selected>@_node.TotalItems</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <!-- First Page -->
+            <Icon Name="IconName.ChevronDoubleLeft" @onclick="GoToFirstPageAsync" class="pagination-icon cursor-pointer" title="First" />
+
+            <!-- Previous Page -->
+            <Icon Name="IconName.ChevronLeft" @onclick="GoToPreviousPageAsync" class="pagination-icon cursor-pointer" title="Previous" /> 
+
+            <!-- Next Page -->
+            <Icon Name="IconName.ChevronRight" @onclick="GoToNextPageAsync" class="pagination-icon cursor-pointer" title="Next" />
+
+            <!-- Last Page -->
+            <Icon Name="IconName.ChevronDoubleRight" @onclick="GoToLastPageAsync" class="pagination-icon cursor-pointer" title="Last" />
+
+            <!-- Go To Page -->
+            <span>Go to Page: </span>
+            <input type="number" min="1" max="@_node.TotalPages" @bind="_node.CurrentPage" class="cursor-pointer" />
+            <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon cursor-pointer" title="Go" />
+        </div>
+    </div>
+    @if (AllowCellSelection)
+    {
+        <!-- Start cell and End cell textboxes -->
+        <div class="row mb-2">
+            <div class="col-auto">
+                <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" />
+            </div>
+            <div class="col">
+                <input @bind="@_node.StartCell" class="form-control" placeholder="Start Cell" />
+            </div>
+            <div class="col">
+                <input @bind="@_node.EndCell" class="form-control" placeholder="End Cell" />
+            </div>
+        </div>
+    }
+    <!-- Add Row Modal -->
+    @if (_node.ShowAddRowModal)
+    {
+        <AddRowModal ShowAddRowModal="_node.ShowAddRowModal"
+                     DataTable="_node.DataTable"NewRowData="_node.NewRowData"
+                     OnClose="CloseAddRowModal"
+                     OnSave="AddRowAsync"
+                     HiddenColumnNames="@HiddenColumnNames"
+                     />
+    }
+}
+
+@code {
+
+    [Parameter] public string Title { get; set; } = "Sample Table";
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public DataTable DataTable { get; set; } = null!;
+    [Parameter] public bool AllowCellSelection { get; set; } = false;
+    [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
+
+    private bool _renderTable = false; // Flag to control when to render RenderTable()
+
+    private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
+    private TableGrid TableGridContext = null!;
+    private List<TableSource> _tableSources = new List<TableSource>();
+    private TableNode _node = new TableNode();
+    private DataRow[]? _selectedData = default!;
+    protected override void OnParametersSet()
+    {
+        Console.WriteLine("TableGrid OnParametersSet");
+        TableGridContext = this;
+        base.OnParametersSet();
+    }
+
+    private RenderFragment RenderTable => builder =>
+    {
+        var renderTask = RenderTableContentAsync(builder);
+        renderTask.Wait();
+    };
+
+    public void AddTableSource(TableSource source)
+    {
+        _tableSources.Add(source);
+        TableGridContext = this;
+    }
+
+    public void SetNode(TableNode node)
+    {
+        _node = node;
+        TableGridContext = this;
+    }
+
+    public void RegisterDataSource(string name, DataTable dataTable)
+    {
+        dataTable.TableName = name;
+        _dataSources[name] = dataTable;
+        TableGridContext = this;
+    }
+
+    public DataTable? GetDataSource(string name)
+    {
+        _dataSources.TryGetValue(name, out var dataTable);
+        return dataTable;
+    }
+
+    private async Task RenderTableContentAsync(RenderTreeBuilder builder)
+    {
+        // <div>
+        // <div class="data-table-grid-div">
+        //     <table class="data-table-grid">
+        int sequence = 0;
+        builder.OpenElement(sequence, "div");
+        builder.AddContent(sequence++, Title);
+        builder.OpenElement(sequence++, "div");
+        builder.AddAttribute(sequence++, "class", "data-table-grid-div");
+
+        builder.OpenElement(sequence++, "table");
+        builder.AddAttribute(sequence++, "title", Title);
+        builder.AddAttribute(sequence++, "class", "data-table-grid");
+
+        builder.OpenElement(sequence++, "thead");
+        builder.OpenElement(sequence++, "tr");
+        // Add a blank th column for edit/delete buttons.
+        builder.OpenElement(sequence++, "th");
+        builder.CloseElement(); // th
+                                // Add a blank th column for Row number.
+        builder.OpenElement(sequence++, "th");
+        builder.AddContent(sequence++, "Row");
+        builder.CloseElement(); // th
+
+        // Start displaying the proper column headers.
+        foreach (var column in _node.Columns)
+        {
+            if(column.Visible)
+            {
+                builder.OpenElement(sequence++, "th");
+                builder.AddContent(sequence++, column.HeaderName);
+                builder.CloseElement(); // th
+            }
+        }
+
+        builder.CloseElement(); // tr
+        builder.CloseElement(); // thead
+
+        builder.OpenElement(sequence++, "tbody");
+
+        if (_node.PagedRows != null)
+        {
+            var totalRows = _node.PagedRows.Count();
+            var pagedRows = _node.PagedRows.ToList();
+
+            for ( int i = 0; i < totalRows; i++)
+            {
+                builder.OpenElement(sequence++, "tr");
+                var currentRow = pagedRows[i];
+                builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
+
+                //Row number column
+                var rowNumber = ((_node.CurrentPage - 1) * _node.PageSize ) + i + 1;
+                builder.OpenElement(sequence++, "td");
+                builder.AddContent(sequence++, $"{rowNumber}");        
+                builder.CloseElement(); // td
+
+                for (var c = 0; c < _node.Columns.Count; c++)
+                {
+                    var column = _node.Columns[c];
+
+                    if (column.Visible)
+                    {
+                        int rowIndex = i;
+                        int columnIndex = c;
+                        builder.OpenElement(sequence++, "td");
+                        builder.AddAttribute(sequence++, "title", $"R{rowIndex}C{columnIndex}");
+                        builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleCellClickAsync(rowIndex, columnIndex)));
+                        builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
+                        builder.CloseElement(); // td
+                    }
+                    else
+                    {
+                        if (HiddenColumnNames == null)
+                        {
+                            HiddenColumnNames = new List<string>();    
+                        }
+
+                        HiddenColumnNames.Add(column.FieldName);
+                    }
+
+                }
+
+                builder.CloseElement(); // tr
+            }
+        }
+
+        builder.CloseElement(); // tbody
+        builder.CloseElement(); //  <table class="data-table-grid">
+
+        builder.CloseElement(); // <div class="data-table-grid-div">
+        builder.CloseElement(); // div
+
+        await Task.CompletedTask;
+    }
+
+    private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int sequence, RenderTreeBuilder builder, DataRow? row)
+    {
+        builder.OpenElement(sequence++, "td");
+        builder.AddAttribute(sequence++, "class", "icons-td");
+
+        if (!_node.IsEditing || row != _node.EditedRow)
+        {
+            // Edit icon
+            // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
+
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-primary icon-button cursor-pointer");
+            builder.AddAttribute(sequence++, "title", "Edit");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => EditRow(row)));
+            builder.CloseComponent();
+
+            // Delete icon
+            // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
+
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-danger icon-button cursor-pointer");
+            builder.AddAttribute(sequence++, "title", "Delete");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DeleteRowAsync(row)));
+            builder.CloseComponent();
+        }
+        else
+        {
+            // Save icon
+            // <Icon Name="IconName.CheckCircleFill" @onclick="SaveRowAsync" title="Save" class="text-success icon-button" />
+
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.CheckCircleFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-success icon-button cursor-pointer");
+            builder.AddAttribute(sequence++, "title", "Save");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, SaveRowAsync));
+            builder.CloseComponent();
+
+            // Cancel icon
+            // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
+            builder.OpenComponent<Icon>(sequence++);
+            builder.AddAttribute(sequence++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
+            builder.AddAttribute(sequence++, "Class", "text-secondary icon-button cursor-pointer");
+            builder.AddAttribute(sequence++, "title", "Cancel");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, CancelEdit));
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement();
+
+        await Task.CompletedTask;
+
+        return builder;
+    }
+
+    private void EditRow(DataRow? row)
+    {
+        if (_node.DataTable != null && row != null)
+        {
+            _node.EditedRow = row;
+            _node.EditValues = _node.DataTable.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]);
+            _node.IsEditing = true;
+        }
+    }
+
+    private async Task DeleteRowAsync(DataRow? row)
+    {
+        if (_node.DataTable != null && row != null)
+        {
+            _node.DataTable.Rows.Remove(row);
+            //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable);
+            StateHasChanged(); // Refresh UI after deleting row
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task SaveRowAsync()
+    {
+        if (_node.EditedRow != null && _node.EditValues != null && _node.DataTable != null)
+        {
+            foreach (var column in _node.DataTable.Columns.Cast<DataColumn>())
+            {
+                _node.EditedRow[column.ColumnName] = _node.EditValues[column.ColumnName];
+            }
+
+            _node.EditedRow = default!;
+            _node.IsEditing = false;
+
+            //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable, serialize: true);
+
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private void CancelEdit()
+    {
+        _node.EditedRow = default!;
+        _node.IsEditing = false;
+        StateHasChanged(); // Refresh UI after canceling edit
+    }
+
+    public async Task<RenderTreeBuilder> RenderTableColumn(int sequence, int rowIndex, RenderTreeBuilder builder, TableColumn column)
+    {
+        var dataSource = column.GetDataSource();
+        var dataSourceRows = dataSource.Rows;
+        var rows = _node?.PagedRows?.ToList();
+
+        if (rows != null)
+        {
+            var row = rows[rowIndex];
+            var isEditing = _node?.IsEditing == true && _node?.EditedRow != null && row == _node.EditedRow;
+            var editValues = _node?.EditValues != null ? _node.EditValues[column.FieldName]?.ToString() : null;
+        
+            if (isEditing)
+            {
+                if (column.Type == "TextBox")
+                {
+                    builder.OpenElement(sequence, "input");
+                    builder.AddAttribute(sequence++, "type", "text");
+                    builder.AddAttribute(sequence++, "class", "form-control");
+                    builder.AddAttribute(sequence++, "value", editValues);
+                    builder.AddAttribute(sequence++, "oninput", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+                    {
+                        if (_node != null)
+                        {
+                            _node.EditValues[column.FieldName] = e?.Value?.ToString() ?? default!;
+                        }
+                    }));
+                    builder.CloseElement();
+                }
+                else if (column.Type == "DropdownList")
+                {
+                    builder.OpenElement(sequence, "select");
+                    builder.AddAttribute(sequence++, "class", "form-control");
+                    builder.AddAttribute(sequence++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+                    {
+                        if (_node != null)
+                        {
+                            _node.EditValues[column.FieldName] = e?.Value?.ToString() ?? default!;
+                        }
+                    }));
+
+                    for (int i = 0; i < dataSourceRows.Count; i++)
+                    {
+                        DataRow iRow = dataSourceRows[i];
+                        var displayName = iRow[column.DisplayFieldName].ToString();
+                        var displayValue = iRow[column.DisplayFieldValue].ToString();
+
+                        builder.OpenElement(sequence++, "option");
+                        builder.AddAttribute(sequence++, "value", displayValue);
+                        if (displayValue == editValues)
+                        {
+                            builder.AddAttribute(sequence++, "selected", "selected");
+                        }
+                        builder.AddContent(sequence++, displayName);
+                        builder.CloseElement();
+                    }
+
+                    builder.CloseElement();
+                }
+            }
+            else
+            {
+                var columnStringValue = row[column.FieldName]?.ToString();
+                if (column.Type == "DropdownList")
+                {
+                    for (int i = 0; i < dataSourceRows.Count; i++)
+                    {
+                        DataRow iRow = dataSourceRows[i];
+                        var displayValue = iRow[column.DisplayFieldValue].ToString();
+                        if (displayValue == columnStringValue)
+                        {
+                            columnStringValue = iRow[column.DisplayFieldName].ToString();
+                            break;
+                        }
+                    }
+                }
+                builder.AddContent(sequence, columnStringValue);
+            }
+        }
+
+        await Task.CompletedTask;
+
+        return builder;
+    }
+
+    private async Task HandleFilterDataTableAsync(IEnumerable<DataRow> filteredRows)
+    {
+        _node.FilterData(filteredRows);
+
+        StateHasChanged(); // Ensure UI updates after filtering
+        await Task.CompletedTask;
+    }
+
+    private async Task ShowAddRowModalAsync()
+    {
+        if (_node.DataTable != null)
+        {
+            _node.NewRowData = _node.DataTable.NewRow();
+            //await _sessionManager.SaveToSessionTableAsync("_newRowData", _newRowData, serialize: true);
+
+            _node.ShowAddRowModal = true;
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task PageSizeChangedAsync(ChangeEventArgs e)
+    {
+        _node.PageSize = Convert.ToInt32(e.Value);
+        _node.CurrentPage = 1; // Reset to first page when changing page size
+
+        // await _sessionManager.SaveToSessionTableAsync("_pageSize", _pageSize, serialize: true);
+        // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+
+        _node.UpdateDisplayFromPageSize();
+
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+    private async Task GoToFirstPageAsync()
+    {
+        _node.CurrentPage = 1;
+        //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToPreviousPageAsync()
+    {
+        if (_node.CurrentPage > 1)
+        {
+            _node.CurrentPage--;
+            //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToNextPageAsync()
+    {
+        if (_node.CurrentPage < _node.TotalPages)
+        {
+            _node.CurrentPage++;
+            //await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToLastPageAsync()
+    {
+        _node.CurrentPage = _node.TotalPages;
+        // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task GoToSpecifiedPageAsync()
+    {
+        if (_node.CurrentPage >= 1 && _node.CurrentPage <= _node.TotalPages)
+        {
+            // await _sessionManager.SaveToSessionTableAsync("_currentPage", _currentPage, serialize: true);
+            StateHasChanged();
+        }
+        else
+        {
+            // Handle invalid page number
+            // For example, display a toast message or an error message
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task ClearSelectionAsync(MouseEventArgs e)
+    {
+        _node.StartCell = string.Empty;
+        _node.EndCell = string.Empty;
+
+        // await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);
+        // await _sessionManager.SaveToSessionTableAsync("_endCell", _endCell);
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+
+    private void CloseAddRowModal()
+    {
+        _node.ShowAddRowModal = false;
+        StateHasChanged(); // Ensure UI updates to hide the modal
+    }
+
+    private async Task AddRowAsync()
+    {
+        if (_node.DataTable != null)
+        {
+            DataRow newRow = _node.DataTable.NewRow();
+            foreach (DataColumn column in _node.DataTable.Columns)
+            {
+                newRow[column.ColumnName] = _node.NewRowData[column.ColumnName];
+            }
+
+            _node.DataTable.Rows.Add(newRow);
+            //await _sessionManager.SaveToSessionTableAsync("_selectedTable", _dataTable, serialize: true);
+            StateHasChanged(); // Ensure UI updates after adding row
+        }
+
+        CloseAddRowModal();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task HandleCellClickAsync(int rowIndex, int columnIndex)
+    {
+        string cellIdentifier = $"R{rowIndex}C{columnIndex}";
+
+        if (string.IsNullOrEmpty(_node.StartCell) || _node.IsFirstCellClicked)
+        {
+            _node.StartCell = cellIdentifier;
+            _node.IsFirstCellClicked = false;
+            //await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);
+        }
+        else
+        {
+            _node.EndCell = cellIdentifier;
+            _node.IsFirstCellClicked = true;
+            //await _sessionManager.SaveToSessionTableAsync("_endCell", _endCell);
+        }
+
+        StateHasChanged(); // Refresh UI to reflect the changes in cell selection
+
+        await Task.CompletedTask;
+    }
+
+    public async Task HandleSelectedDataComb(DataRow[] selectedData)
+    {
+        _node.StartCell = _node.EndCell = string.Empty;
+        _node.SelectedData = selectedData;
+        //var sessionTable = await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
+        //await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);
+        //await _sessionManager.SaveToSessionTableAsync("_endCell", _endCell);
+
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    public async Task<DataRow[]> ShowSetTargetTableModalAsync()
+    {
+        if (!string.IsNullOrEmpty(_node.StartCell) && !string.IsNullOrEmpty(_node.EndCell))
+        {
+            // Extracting start row and column from startCell
+            int startRow = int.Parse(_node.StartCell.Substring(1, _node.StartCell.IndexOf('C') - 1));
+            int startCol = int.Parse(_node.StartCell.Substring(_node.StartCell.IndexOf('C') + 1));
+
+            // Extracting end row and column from endCell
+            int endRow = int.Parse(_node.EndCell.Substring(1, _node.EndCell.IndexOf('C') - 1));
+            int endCol = int.Parse(_node.EndCell.Substring(_node.EndCell.IndexOf('C') + 1));
+
+            _selectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+            //await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
+
+            await Task.CompletedTask;
+        }
+
+        StateHasChanged();
+
+        return _selectedData;
+    }
+
+    private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
+    {
+        List<DataRow> dataInRange = new List<DataRow>();
+
+        if (_node.DataTable != null)
+        {
+            // Create a new DataTable with the selected columns
+            DataTable filteredDataTable = new DataTable();
+            for (int i = startCol; i <= endCol; i++)
+            {
+                DataColumn column = _node.DataTable.Columns[i];
+                filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
+            }
+
+            for (int i = startRow; i <= endRow; i++)
+            {
+                DataRow newRow = filteredDataTable.NewRow();
+
+                for (int j = startCol; j <= endCol; j++)
+                {
+                    newRow[j - startCol] = _node.DataTable.Rows[i][j];
+                }
+
+                dataInRange.Add(newRow);
+            }
+
+        }
+
+        return dataInRange.ToArray();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Ensure RenderTable() is rendered only after initial render
+            _renderTable = true;
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+}

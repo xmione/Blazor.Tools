@@ -27,6 +27,7 @@
 param(
     [Parameter(Mandatory=$true)]
     [bool] $Publish,
+    [bool] $IsRelease = $false,
     [string] $GitComment = "Update project with the latest changes"
 )
 
@@ -35,12 +36,19 @@ $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
 
+# Determine the configuration based on the IsRelease parameter
+$Configuration = if ($IsRelease) { "Release" } else { "Debug" }
+
 # Update project file - using dotnet msbuild
 $projectFile = "Blazor.Tools.BlazorBundler.csproj"
 
 Write-Host "Building project with the updated PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
 # Update AssemblyVersion and FileVersion
-dotnet msbuild $projectFile  /p:Configuration=Release /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion
+dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+
+Write-Host "Packing the project..."
+# Pack the project
+dotnet pack -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true
 
 # Generate Changelog with dynamic version information
 $changelogContent = @"
@@ -130,34 +138,53 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
       `$sourcePath` should not be changed
       `$targetPath` should contain the full path of your project file
 
-Open PowerShell and run: 
+### Open PowerShell and run: 
 
 ```````
-    `$version` = "3.0.8"
+    `$version` = "$PackageVersion"
     `$userProfileName` = "solom"
-    `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\$version"
+    `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\`$version`"
     `$targetPath` = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
     Install-Pkgs -SourcePath `$sourcePath` -TargetProjectPath `$targetPath`
 ```````
-## Setup your App.razor stylesheets and javascripts
+### Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
 
 ```````
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="blazor-bootstrap/blazor.bootstrap.css" />
+    <link rel="stylesheet" href="bundler/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="bundler/blazor-bootstrap/blazor.bootstrap.css" />
+    <link rel="stylesheet" href="bundler/css/bundler.css" />
+    
+    <!-- This is the <ASSEMBLY_NAME>.styles.css file-->
+    <link rel="stylesheet" href="Blazor.Tools.styles.css" /> 
 
-    <script src="blazored-typeahead/blazored-typeahead.js"></script>
-    <script src="js/site.js"></script>
+    <script src="bundler/blazored-typeahead/blazored-typeahead.js"></script>
+    <script src="bundler/js/site.js"></script>
+    
+    <!-- It needs to be in InteractiveServer mode to work -->
+    <HeadOutlet @rendermode="@InteractiveServer" />
 ```````
 
 Add these to your <body> section:
 ```````
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="blazor-bootstrap/blazor.bootstrap.js"></script>
-```````
+    <!-- Once again, this is needed -->
+    <Routes @rendermode="@InteractiveServer" />
     
+    <!-- The script initializes the Blazor runtime, which is essential for a Blazor application to run -->
+    <script src="_framework/blazor.web.js"></script>
+
+    <!-- Use local Bootstrap JS -->
+    <script src="bundler/js/bootstrap.bundle.min.js"></script>
+    <script src="bundler/blazor-bootstrap/blazor.bootstrap.js"></script>
+```````
+
+### Add this to your Program.cs file:
+```
+builder.Services.AddBlazorBootstrap();
+```
+
 ## Uninstallation
 
 First, uninstall the package from the Nuget Package Manager, Package Manager Console or from a terminal.
@@ -189,7 +216,7 @@ Open PowerShell and run:
 ```````
     `$projectPath` = "C:\repo\Blazor.Tools\Blazor.Tools\"
     `$projectName` = "Blazor.Tools.csproj"
-    Uninstall -ProjectPath  `$projectPath` -ProjectName `$projectName`
+    Uninstall-Pkgs -ProjectPath  `$projectPath` -ProjectName `$projectName`
 ```````
 
 ## Change Logs
@@ -209,12 +236,12 @@ foreach ($file in $changeLogFiles) {
 
 # Save updated README.md
 $readmePath = "README.md"
-Write-Host "Saving updated README.md"
+Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
 # Save updated readme.txt
 $readmePath = "readme.txt"
-Write-Host "Saving updated readme.txt"
+Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
 <# Run the following codes only if boolean parameter Publish is true #>
@@ -225,10 +252,6 @@ if($Publish -eq $true)
     git add .
     git commit -m $GitComment
     git push origin master
-
-    Write-Host "Packing the project..."
-    # Pack the project
-    dotnet pack -c Release /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed
 
     Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
     # Dockerize

@@ -1,0 +1,79 @@
+﻿@*====================================================================================================
+    Component Name: DTSearchBox.razor
+    Created By    : Solomio S. Sisante
+    Created On    : June 22, 2024
+    Purpose       : To provide a reusable Search Box for any DataTable data.
+===================================================================================================*@
+@using System;
+@using System.Collections.Generic;
+@using System.Data;
+@using System.Linq;
+
+<div>
+    <input @bind="_searchQuery" @oninput="SearchDataTable" placeholder="@_searchPlaceHolder" class="form-control mb-2" />
+</div>
+
+@code {
+    [CascadingParameter] private DataTable? CascadedDataTable { get; set; }
+
+    [Parameter] public DataTable? DataTable { get; set; }
+    [Parameter] public string? ColumnName { get; set; }
+    [Parameter] public EventCallback<IEnumerable<DataRow>> OnFilterDataTable { get; set; }
+
+    private string _searchQuery = "";
+    private string _searchPlaceHolder = "Search...";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _searchPlaceHolder = $"Search {ColumnName}...";
+        // If DataTable is not provided via Parameter, use CascadingDataTable if available
+        if (DataTable == null && CascadedDataTable != null)
+        {
+            DataTable = CascadedDataTable;
+        }
+
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task SearchDataTable(ChangeEventArgs e)
+    {
+        _searchQuery = e.Value?.ToString() ?? "";
+
+        // Invoke the callback to notify the parent component of the filter change
+        var filteredRows = FilterDataTable();
+        await OnFilterDataTable.InvokeAsync(filteredRows);
+    }
+
+    private IEnumerable<DataRow> FilterDataTable()
+    {
+        IEnumerable<DataRow> dataRows = default!;
+
+        if (DataTable == null)
+        {
+            throw new InvalidOperationException($"DataTable parameter must be provided or cascaded for {nameof(DTSearchBox)} component.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            dataRows = DataTable.AsEnumerable();
+        }
+        else
+        { 
+            dataRows = DataTable.AsEnumerable()
+                        .Where(row =>
+                        {
+                            foreach (DataColumn col in DataTable.Columns)
+                            {
+                                var cellValue = row[col];
+                                if (cellValue != DBNull.Value && cellValue.ToString()?.IndexOf(_searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                                {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+        }
+
+        return dataRows;
+    }
+}

@@ -22,57 +22,52 @@
 
   <ItemGroup>
     <!-- None items in the root -->
-    <None Include="changelog_*.md;icon.png">
+    <None Include="changelog_*.md;icon.png;README.md;readme.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
 
-    <!-- Add README.md -->
-
-    <!-- Add readme.txt -->
-    
     <!-- None item for MSBuild targets file -->
     <None Include="build\Blazor.Tools.BlazorBundler.targets">
       <Pack>True</Pack>
       <PackagePath>\build\</PackagePath>
     </None>
-    
+
     <!-- None items in the packages folder -->
     <None Include="packages/*.nupkg">
       <Pack>True</Pack>
       <PackagePath>\packages\</PackagePath>
     </None>
-    
+
     <!-- None items in the tools folder -->
     <None Include=" tools/install-nupkg.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+
     <!-- Add Get-Tools.ps1 -->
     <None Include="tools\Get-Tools.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+
     <!-- Add Install-Pkgs.psm1 -->
     <None Include="tools\Install-Pkgs.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
+
     <!-- Add Print-Folder-Structure.psm1 -->
     <None Include="tools\Print-Folder-Structure.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
-    <!-- Add Uninstall.psm1 -->
-    <None Include="tools\Uninstall.psm1">
+
+    <!-- Add Uninstall-Pkgs.psm1 -->
+    <None Include="tools\Uninstall-Pkgs.psm1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
-    
     <!-- Add blazor-bootstrap files -->
     <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.*">
       <Pack>true</Pack>
@@ -86,8 +81,8 @@
       <PackagePath>\wwwroot\bundler\blazored-typeahead\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <!-- Add bootstrap-icons files --> 
+
+    <!-- Add bootstrap-icons files -->
     <Content Include="wwwroot\bundler\bootstrap-icons\**\*">
       <Pack>True</Pack>
       <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
@@ -106,10 +101,230 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Add files in the Components folder-->
+    <Content Include="Components\AI\AIChatBot.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\AI\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\AI\AITables.sql">
+      <Pack>True</Pack>
+      <PackagePath>\Components\AI\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\AI\SentimentAnalysis.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\AI\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     
+    <Content Include="Components\Grid\ExcelUploader.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\Grid\ExcelUploaderDetail.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\Grid\ExcelUploaderHeader.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\Grid\ExcelUploaderTitle.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Components\Grid\SessionDemo.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\AddRowModal.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\DataTableGrid.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\DTSearchBox.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\SetTargetTableModal.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableColumn.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableGrid.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableNode.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TableSource.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Include="Components\Grid\TestComponent.razor">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
   </ItemGroup>
- 
-  <Target Name="CustomPack" AfterTargets="Build">
-    <Exec Command="dotnet pack --configuration Release /p:NoDefaultExcludes=true" />
-  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
+    <PackageReference Include="ClosedXML" Version="0.102.3" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.26" />
+    <PackageReference Include="Microsoft.Build" Version="17.10.4" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Components\Grid\DataRowViewModel.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Components\Grid\ExcelUploader.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\AIDataAccess.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\AssemblyTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\CheckOnFieldValueEnum.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\DataTableJsonConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\LanguageData.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\LanguagePrediction.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\Message.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\ProcessManager.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\SearchField.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\SentimentAnalysisBuilder.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\SentimentData.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\SentimentPrediction.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\SessionManager.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\SessionTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TableEnum.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TargetTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TargetTableColumn.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\TargetTableColumnConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\VisualStudioAutomation.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\WebScraper.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\DataTableExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\DateTimeExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\JsonExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\LinqExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\ReflectionExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\RenderFragmentExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Extensions\SerializationExtensions.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\ICommonService.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\IReportItem.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\ISessionTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\ITargetTable.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Interfaces\ITargetTableColumn.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
 </Project>
