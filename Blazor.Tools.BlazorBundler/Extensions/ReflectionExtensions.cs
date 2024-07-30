@@ -86,7 +86,8 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                 throw new ArgumentException($"Property '{propertyName}' not found on '{obj.GetType().Name}'.", nameof(propertyName));
             }
 
-            return property.GetValue(obj);
+            object? propertyValue = property.GetValue(obj);
+            return propertyValue;
         }
 
         /// <summary>

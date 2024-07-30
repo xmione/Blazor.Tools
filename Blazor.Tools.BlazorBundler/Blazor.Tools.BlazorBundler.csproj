@@ -236,7 +236,7 @@
     <Compile Update="Entities\AssemblyTable.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Entities\CheckOnFieldValueEnum.cs">
+    <Compile Update="Entities\LookupFieldConditionEnum.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\DataTableJsonConverter.cs">

@@ -47,6 +47,7 @@
                          OnSave="SaveToTargetTableAsync"
                          SelectedData="@_selectedData"
                          OnSelectedDataComb="HandleSelectedDataComb"
+                         SetTargetTableColumnList ="HandleSetTargetTableColumnList"
                          TableList="@TableList"
                          />
 }
@@ -120,10 +121,16 @@
 
     private async Task HandleSelectedDataComb(DataRow[] selectedData)
     {
-        // _node.SelectedData = selectedData;
+         _selectedData = selectedData;
         //await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
-        // await _tableGrid.HandleSelectedDataComb(selectedData);
-        // StateHasChanged(); 
+        await _tableGrid.HandleSelectedDataComb(selectedData);
+        StateHasChanged(); 
+
+        await Task.CompletedTask;
+    }
+    
+    private async Task HandleSetTargetTableColumnList(List<TargetTableColumn> targetTableColumnList)
+    {
 
         await Task.CompletedTask;
     }

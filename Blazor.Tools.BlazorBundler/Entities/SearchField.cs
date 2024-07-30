@@ -2,7 +2,7 @@
 {
     public class SearchField
     {
-        public TableEnum Table { get; set; } = default!;
-        public CheckOnFieldValueEnum Field { get; set; } = default!;
+        public string TableName { get; set; } = default!;
+        public string FieldName { get; set; } = default!;
     }
 }

@@ -160,25 +160,29 @@
                 </select>
             </div>
             <div class="col">
-                <label for="checkOnTable">Check On Table:</label>
-                <select class="form-control" id="checkOnTable" @onchange="OnSelectedCheckOnTableValueChanged">
+                <Icon Name="IconName.Table" @onclick="AddLookupTableAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add Lookup Table" />
+                @* <label for="lookupTable">Lookup Table:</label>
+                <select class="form-control" id="lookupTable" @onchange="OnSelectedLookupTableValueChanged">
                     @if (TableList != null) 
                     {
+                        <option value="0" selected="@(_selectedLookupTableID.Equals(0))">
+                                Select a Table to check on
+                        </option>
                         foreach (var table in TableList)
                         {
                             int id = table.ID;
-                            <option value="@id" selected="@(_selectedCheckOnTableID.Equals(id))">
+                            <option value="@id" selected="@(_selectedLookupTableID.Equals(id))">
                                 @table.TableName
                             </option>
                         }
                     }
-                </select>
+                </select> *@
             </div>
-            <div class="col">
+           @*  <div class="col">
                 <label for="primaryKeyField">Primary Key Field:</label>
                 <select class="form-control" id="primaryKeyField" @onchange="OnPrimaryKeyFieldChanged">
                     @{
-                        var fieldCheckValues = GetFieldValues(_selectedCheckOnTableID);
+                        var fieldCheckValues = GetFieldValues(_selectedLookupTableID);
                         if (fieldCheckValues != null)
                         {
                             foreach (var field in fieldCheckValues)
@@ -188,10 +192,14 @@
                         }
                     }
                 </select>
-            </div>
+            </div> *@
             <div class="col">
-                <label for="foreignKeyField">Search Foreign Table Search Fields:</label>
-                <Icon Name="IconName.PlusCircleFill" @onclick="SetForeignTableSearchFieldsAsync" class="text-success icon-button mb-2 cursor-pointer" title="Search Foreign Table Search Fields" />
+                <button 
+                    @onclick="AddLookupTableAsync" 
+                    class="form-control cursor-pointer" 
+                    title="Search Foreign Table Search Fields" 
+                    value="Search Foreign Table Fields"
+                    />
                 @* <select class="form-control" id="foreignKeyField" @onchange="OnForeignKeyFieldChanged">
                     @foreach (var field in GetFieldValues(_selectedCheckOnTableValueEnum))
                     {
@@ -200,7 +208,7 @@
                 </select> *@
             </div>
             <div class="col">
-                <Icon Name="IconName.PlusCircleFill" @onclick="SetTargetTableColumnListAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />
+                <Icon Name="IconName.PlusCircleFill" @onclick="SetTargetTableFieldAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />
                 <Icon Name="IconName.Tornado" @onclick="DataCombAsync" class="text-success icon-button mb-2 cursor-pointer" title="Data Comb" />
             </div>
         </div>
@@ -227,7 +235,8 @@
                                 <tr>
                                     @foreach (var prop in _columnProperties)
                                     {
-                                        <td>@col.GetProperty(prop)</td>
+                                        var colProperty = col.GetProperty(prop);
+                                        <td>@colProperty</td>
                                     }
                                 </tr>
                             }
@@ -240,7 +249,11 @@
 </div>
 @if (_showForeignTableSearchFieldsModal)
 {
-    <SearchFieldsEntryModal ShowSearchFieldsModal="@_showForeignTableSearchFieldsModal" SelectedTable="@_searchFieldsTable" OnSave="SaveSearchFieldsAsync" OnClose="CloseSearchFieldsEntryModalAsync" />
+    <SearchFieldsEntryModal 
+        ShowSearchFieldsModal="@_showForeignTableSearchFieldsModal" 
+        SelectedTable="@_searchFieldsTable" 
+        OnSave="SaveSearchFieldsAsync" 
+        OnClose="CloseSearchFieldsEntryModalAsync" />
 }
 
 @code {
@@ -256,7 +269,7 @@
 
     private SessionManager _sessionManager = default!;
     private int _selectedTableID;
-    private int _selectedCheckOnTableID;
+    private int _selectedLookupTableID;
     private string? _selectedTableValue;
     private string? _selectedCheckOnTableValue;
     private string? _selectedFieldValue;
@@ -318,7 +331,7 @@
                 var selectedFieldValue = GetFieldValues(_selectedTableID)?.FirstOrDefault();
                 _selectedFieldValue = selectedFieldValue ?? string.Empty;
 
-                _selectedCheckOnTableID = _selectedTableID;
+                _selectedLookupTableID = 0;
                 _selectedPrimaryKeyFieldValue = _selectedFieldValue;
 
                 _uniqueField = _selectedSourceField;
@@ -372,21 +385,18 @@
         await Task.CompletedTask;
     }
 
-    private async Task OnSelectedCheckOnTableValueChanged(ChangeEventArgs e)
+    private async Task OnSelectedLookupTableValueChanged(ChangeEventArgs e)
     {
         // Parse selected value from int to TableEnum
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
-        _selectedCheckOnTableID = selectedIntValue;
-
-        var selectedTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
-
-        var selectedCheckOnTableValueEnum = TableList?.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
+        _selectedLookupTableID = selectedIntValue;
+        _selectedCheckOnTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedPrimaryKeyFieldValue = string.Empty;
 
         // Handle the selected value here
-        Console.WriteLine("selectedValue: {0}", _selectedCheckOnTableID);
+        Console.WriteLine("selectedValue: {0}", _selectedLookupTableID);
 
         await Task.CompletedTask;
     }
@@ -402,19 +412,19 @@
 
     private async Task OnPrimaryKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
+        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
         _selectedPrimaryKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
 
     private async Task OnForeignKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedCheckOnTableID)?.TableName ?? string.Empty;
+        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
         _selectedForeignKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
 
-    private async Task SetTargetTableColumnListAsync()
+    private async Task SetTargetTableFieldAsync()
     {
         if (_targetTableColumnList == null)
         {
@@ -423,13 +433,14 @@
 
         var targetTableColumn = _targetTableColumnList.FirstOrDefault(s => s.SourceFieldName == _selectedSourceField)
                                 ?? new TargetTableColumn();
-        _selectedTableValue = Enum.GetName(typeof(TableEnum), _selectedTableID) ?? string.Empty;
+        _selectedTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
         var sourceFieldName = _selectedSourceField ?? string.Empty;
         var targetTableName = _selectedTableValue ?? string.Empty;
         var targetFieldName = _selectedFieldValue ?? string.Empty;
-
+        var checkOnTableName = _selectedCheckOnTableValue ?? string.Empty;
+        
         Type dataType = typeof(object);
-        if (!string.IsNullOrEmpty(_selectedSourceField) && SelectedData.Length > 0 && SelectedData[0].Table.Columns.Contains(_selectedSourceField))
+        if (!string.IsNullOrEmpty(_selectedSourceField) && SelectedData?.Length > 0 && SelectedData[0].Table.Columns.Contains(_selectedSourceField))
         {
             dataType = SelectedData[0][_selectedSourceField]?.GetType() ?? typeof(object);
         }
@@ -437,6 +448,9 @@
         targetTableColumn.SourceFieldName = sourceFieldName;
         targetTableColumn.TargetTableName = targetTableName;
         targetTableColumn.TargetFieldName = targetFieldName;
+        targetTableColumn.CheckOnTableName = checkOnTableName;
+        targetTableColumn.TargetFieldName = targetFieldName;
+
         targetTableColumn.DataType = dataType.Name;
 
         if (!_targetTableColumnList.Contains(targetTableColumn))
@@ -726,7 +740,7 @@
         return targetTable;
     }
 
-    private async Task SetForeignTableSearchFieldsAsync()
+    private async Task AddLookupTableAsync()
     {
         _showForeignTableSearchFieldsModal = true;
         if (_searchFieldsTable == null)

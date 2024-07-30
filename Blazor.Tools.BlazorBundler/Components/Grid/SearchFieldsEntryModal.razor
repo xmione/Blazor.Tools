@@ -20,7 +20,7 @@
     [Parameter] public DataTable? SelectedTable { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<List<SearchField>> OnSave { get; set; }
-    [Parameter] public DataRow[] SelectedData { get; set; } = Array.Empty<DataRow>();
+    [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
 
     private string _tableName = string.Empty;
 
@@ -34,6 +34,40 @@
     {
         var targetTables = new List<SearchField>();
         // if (_targetTableColumnList != null)
+        // {
+        //     var targetTableGroups = _targetTableColumnList?
+        //                             .Where(t => !string.IsNullOrEmpty(t.TargetTableName))
+        //                             .GroupBy(t => t.TargetTableName)
+        //                             .ToList();
+
+        //     if (targetTableGroups != null)
+        //     {
+        //         foreach (var group in targetTableGroups)
+        //         {
+        //             var targetTableName = group.Key;
+        //             var targetTableColumns = group.ToList();
+
+        //             var targetTable = new TargetTable
+        //                 {
+        //                     TargetTableName = targetTableName,
+        //                     TargetTableColumns = targetTableColumns,
+        //                 };
+
+        //             var dt = new DataTable(targetTableName);
+
+        //             // Build columns for the target DataTable
+        //             dt = BuildColumnsForTargetTable(dt, targetTableColumns, SelectedData);
+
+        //             // Populate rows for the target DataTable
+        //             dt = BuildRowsForTargetTable(dt, targetTableColumns, SelectedData);
+
+        //             // Lastly, before adding the targetTable serialize the dt again and store in targetTable.DT
+        //             targetTable.DT = await _sessionManager.SerializeAsync(dt);
+
+        //             targetTables.Add(targetTable);
+        //         }
+        //     }
+        // }        // if (_targetTableColumnList != null)
         // {
         //     var targetTableGroups = _targetTableColumnList?
         //                             .Where(t => !string.IsNullOrEmpty(t.TargetTableName))
