@@ -26,9 +26,6 @@ public class Program
 
         var _baseAPIUrl = builder.Configuration.GetSection("APIBaseURL").Value ?? string.Empty;
         var _baseAPIPort = int.Parse(builder.Configuration.GetSection("APIBasePort").Value ?? string.Empty);
-        var _baseWebUrl = builder.Configuration.GetSection("WebBaseURL").Value ?? string.Empty;
-        var _baseWebPort = int.Parse(builder.Configuration.GetSection("WebBasePort").Value ?? string.Empty);
-
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
         builder.AddServiceDefaults();
@@ -43,6 +40,7 @@ public class Program
         builder.Services.AddScoped<IdentityUserAccessor>();
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+        //builder.Services.AddScoped<SessionTable>();
 
         builder.Services.AddAuthentication(options =>
             {
@@ -54,7 +52,6 @@ public class Program
         //RegisterHttpClientService<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionTableService>(builder, _baseAPIUrl);
         //RegisterHttpClientService<ISessionTableService, SessionTableService>(builder, _baseAPIUrl);
 
-        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
