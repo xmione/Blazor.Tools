@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Blazor.Tools.Components;
 using Blazor.Tools.Components.Account;
 using Blazor.Tools.Data;
-using Blazor.Tools.BlazorBundler.Interfaces;
+//using Blazor.Tools.BlazorBundler.Interfaces;
+//using Blazor.Tools.BlazorBundler.Entities;
 
 namespace Blazor.Tools;
 
@@ -13,6 +14,23 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
+        // Manually check for the environment variable
+        var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+        // Load configuration
+        builder.Configuration
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
+
+        var _baseAPIUrl = builder.Configuration.GetSection("APIBaseURL").Value ?? string.Empty;
+        var _baseAPIPort = int.Parse(builder.Configuration.GetSection("APIBasePort").Value ?? string.Empty);
+        var _baseWebUrl = builder.Configuration.GetSection("WebBaseURL").Value ?? string.Empty;
+        var _baseWebPort = int.Parse(builder.Configuration.GetSection("WebBasePort").Value ?? string.Empty);
+
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
         builder.AddServiceDefaults();
         // Configure Blazorise with existing registrations
         //builder.Services.AddBlazorBootstrap();
@@ -36,7 +54,7 @@ public class Program
         //RegisterHttpClientService<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionTableService>(builder, _baseAPIUrl);
         //RegisterHttpClientService<ISessionTableService, SessionTableService>(builder, _baseAPIUrl);
 
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
