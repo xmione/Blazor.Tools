@@ -194,86 +194,40 @@ namespace Blazor.Tools.BlazorBundler.Entities
         /// <param name="sessionItems">IList<SessionItem> - refers to the list of session items with or without
         /// default values. It is used to retrieve session variables from the session table.</param>
         /// <returns></returns>
-        public async Task<IList<SessionItem>> RetrieveSessionListAsync(IList<SessionItem> sessionItems)
+        private async Task RetrieveDataFromSessionTableAsync(IList<SessionItem> sessionItems)
         {
             try
             {
                 foreach (var sessionItem in sessionItems)
                 {
-                    var sessionItemValue = sessionItem.Value;
-                    if (sessionItemValue != null)
+                    // Get the runtime type of the session item's value
+                    Type type = sessionItem.Value?.GetType() ?? typeof(object); // Default to object if Value is null
+
+                    // Retrieve the method info for RetrieveFromSessionTableAsync
+                    var methodInfo = typeof(SessionManager)
+                        .GetMethod(nameof(RetrieveFromSessionTableAsync), new[] { typeof(string) })
+                        ?.MakeGenericMethod(type);
+
+                    if (methodInfo != null)
                     {
-                        // Get the runtime type of the session item's value
-                        Type type = sessionItemValue.GetType();
+                        // Invoke the method and get the result
+                        var task = (Task)methodInfo.Invoke(this, new object[] { sessionItem.Key });
+                        var result = await ((dynamic)task).ConfigureAwait(false);
 
-                        // Retrieve the generic method 'RetrieveFromSessionTableAsync' definition
-                        var methodInfo = typeof(SessionManager)
-                            .GetMethod(nameof(RetrieveFromSessionTableAsync));
-
-                        // Create a method info object for the constructed generic method with the runtime type
-                        var genericMethod = methodInfo?.MakeGenericMethod(type);
-
-                        // Safely access sessionItem.Key if sessionItem is not null
-                        var sessionKey = sessionItem?.Key;
-
-                        if (sessionKey != null)
-                        {
-                            // If sessionKey is not null, attempt to invoke the method and get the result
-                            var task = (Task?)genericMethod?.Invoke(this, new object[] { sessionKey });
-
-                            if (task != null)
-                            {
-                                // Await the task to get the result
-                                await task;
-
-                                // Extract the result value (assuming Task<T> as return type)
-                                var resultProperty = task.GetType().GetProperty("Result");
-
-                                if (resultProperty != null)
-                                {
-                                    if (sessionItem != null)
-                                    {
-                                        // Assign the result value to sessionItem.Value
-                                        var foundSessionItemValue = resultProperty.GetValue(task);
-
-                                        if (foundSessionItemValue == null)
-                                        {
-                                            sessionItem.Value = sessionItemValue;
-
-                                            // Save session item value immediately to SessionTable
-                                            await SaveToSessionTableAsync(sessionKey, sessionItemValue, sessionItem.Serialize);
-                                        }
-                                        else 
-                                        {
-                                            sessionItem.Value = foundSessionItemValue;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                // Handle the case where task is null
-                                Console.WriteLine("Warning: Task was null after invoking the generic method.");
-                            }
-                        }
-                        else
-                        {
-                            // Handle the case where sessionKey is null
-                            Console.WriteLine("Warning: sessionKey is null, unable to invoke method.");
-                        }
-
+                        // Set the retrieved value to sessionItem
+                        sessionItem.Value = result;
                     }
-
-
+                    else
+                    {
+                        Console.WriteLine("Warning: Method info is null or could not be created.");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error: {0}", ex.Message);
             }
-
-            return sessionItems;
         }
-         
+
     }
 }

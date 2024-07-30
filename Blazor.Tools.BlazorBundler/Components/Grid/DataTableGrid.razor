@@ -73,21 +73,7 @@
     private List<TargetTable>? _targetTables;
     private string _tableSourceName = string.Empty;
 
-    private IList<SessionItem> _sessionItems = new List<SessionItem>
-    {
-        new SessionItem()
-        {
-            Key = "_selectedData", Value=null, Serialize = true
-        },
-        new SessionItem()
-        {
-            Key = "_targetTables", Value=null, Serialize = true
-        },
-        new SessionItem()
-        {
-            Key = "_tableSourceName", Value=null, Serialize = true
-        }
-    };
+    private IList<SessionItem>? _sessionItems;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -99,17 +85,33 @@
     private async Task InitializeVariables()
     {
         _tableSourceName = SelectedTable?.TableName + "DS";
+        _sessionItems = new List<SessionItem>
+        {
+            new SessionItem()
+            {
+                Key = "_selectedData", Value=null, Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = "_targetTables", Value=null, Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = "_tableSourceName", Value=null, Serialize = true
+            }
+        };
+
+        _sessionManager = SessionManager.GetInstance(_sessionTableService);
         await Task.CompletedTask;
     }
+
     private async Task RetrieveDataFromSessionTableAsync()
     {
         try
         {
-            _sessionManager = SessionManager.GetInstance(_sessionTableService);
-
-            if (!_isRetrieved)
+            if (!_isRetrieved && _sessionItems != null)
             {
-                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                _sessionItems = _sessionManager?.RetrieveSessionListAsync(_sessionItems).Result;
                 _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedData"))?.Value;
                 _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_targetTables"))?.Value;
 

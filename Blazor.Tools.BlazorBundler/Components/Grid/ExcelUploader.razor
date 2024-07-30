@@ -43,38 +43,57 @@
     //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
     //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
-    private DataSet? _excelDataSet;
+    private static DataSet? _excelDataSet;
     private ExcelProcessor? _excelProcessor;
     private bool _isRetrieved = false;
     private string? _connectionString;
     private SessionManager? _sessionManager;
 
-    private IList<SessionItem> _sessionItems = new List<SessionItem>
-    {
-        new SessionItem()
-        {
-            Key = "_excelDataSet", Value=null, Serialize = true
-        }
-    };
+    private IList<SessionItem>? _sessionItems;
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        await InitializeVariables();
+        await RetrieveDataFromSessionTableAsync();
+    }
 
+    private async Task InitializeVariables()
+    {
         _connectionString = Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
         _excelProcessor = new ExcelProcessor(_connectionString);
+        _sessionItems = new List<SessionItem>
+        {
+            new SessionItem()
+            {
+                Key = "_excelDataSet", Value = _excelDataSet, Serialize = true
+            }
+        };
 
         _sessionManager = SessionManager.GetInstance(_sessionTableService);
 
-        if (!_isRetrieved)
-        {
-            _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
-            _excelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
+        await Task.CompletedTask;
+    }
 
-            _isRetrieved = true;
-            StateHasChanged();
+    private async Task RetrieveDataFromSessionTableAsync()
+    {
+        try
+        {
+            if (!_isRetrieved && _sessionItems != null && _sessionManager != null)
+            {
+                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                _excelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
+
+                _isRetrieved = true;
+                StateHasChanged();
+            }
         }
-        
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.Message);
+        }
+
+        await Task.CompletedTask;
     }
 
     private async Task HandleFileUpload(IBrowserFile file)
