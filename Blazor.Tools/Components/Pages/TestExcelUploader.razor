@@ -1,26 +1,44 @@
 ﻿@page "/test-excel-uploader"
 @rendermode InteractiveServer
-@* @using Blazor.Tools.Components.Grid
+@* @using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Interfaces
+@using Blazor.Tools.Components.Grid
 
-<ExcelUploader 
-    Title="Upload Excel Files" 
-    ModelsAssemblyPath="@_modelsAssemblyPath" 
-    ServicesAssemblyPath="@_servicesAssemblyPath" 
-    LoadAssemblyFromDLLFile="true"
-    IsInterface="true"
-    />
+<ExcelUploader Title="Upload Excel Files"
+               ModelsAssemblyPath="@_modelsAssemblyPath"
+               ServicesAssemblyPath="@_servicesAssemblyPath"
+               LoadAssemblyFromDLLFile="true"
+               IsInterface="true" />
 
 @code {
+    [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    [Inject] public SessionTable _sessionTable { get; set; } = default!;
     private string _modelsAssemblyPath = string.Empty;
     private string _servicesAssemblyPath = string.Empty;
+    private IList<SessionItem> _sessionItems = new List<SessionItem>
+    {
+        new SessionItem()
+        {
+            Key = "_modelsAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll", Serialize = true
+        },
+        new SessionItem()
+        {
+            Key = "_servicesAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll", Serialize = true
+        }
+    };
+
+    private bool _isRetrieved = false;
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
-        _modelsAssemblyPath = @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll";
-        _servicesAssemblyPath = @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll";
-        StateHasChanged();
+        var sessionManager = SessionManager.GetInstanceWithService(_sessionTableService);
 
+        if (!_isRetrieved)
+        {
+            _sessionItems = sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+        }
+         
     }
 } *@

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Blazor.Tools.Components;
 using Blazor.Tools.Components.Account;
 using Blazor.Tools.Data;
+using Blazor.Tools.BlazorBundler.Interfaces;
 
 namespace Blazor.Tools;
 
@@ -31,6 +32,9 @@ public class Program
                 options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
             })
             .AddIdentityCookies();
+
+        //RegisterHttpClientService<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionTableService>(builder, _baseAPIUrl);
+        //RegisterHttpClientService<ISessionTableService, SessionTableService>(builder, _baseAPIUrl);
 
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -72,5 +76,29 @@ public class Program
         app.MapAdditionalIdentityEndpoints();
 
         app.Run();
+    }
+
+    private static void RegisterHttpClientService<TInterface, TImplementation>(WebApplicationBuilder builder, string baseAPIUrl)
+            where TInterface : class
+            where TImplementation : class, TInterface
+    {
+        builder.Services.AddHttpClient<TInterface, TImplementation>(client =>
+        {
+            client.BaseAddress = !string.IsNullOrEmpty(baseAPIUrl) ? new Uri(baseAPIUrl) : null;
+            var environment = builder.Environment;
+            client.Timeout = environment.IsDevelopment() ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(30);
+        });
+    }
+
+    private static void RegisterHttpClientReportService<TInterface, TImplementation>(WebApplicationBuilder builder, string baseAPIUrl)
+        where TInterface : class
+        where TImplementation : class, TInterface
+    {
+        builder.Services.AddHttpClient<TInterface, TImplementation>(client =>
+        {
+            client.BaseAddress = !string.IsNullOrEmpty(baseAPIUrl) ? new Uri(baseAPIUrl) : null;
+            var environment = builder.Environment;
+            client.Timeout = environment.IsDevelopment() ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(30);
+        });
     }
 }
