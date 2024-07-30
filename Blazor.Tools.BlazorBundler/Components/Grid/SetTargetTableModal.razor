@@ -230,7 +230,8 @@
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
     [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
-    // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private SessionManager _sessionManager = default!;
     private int _selectedTableID;

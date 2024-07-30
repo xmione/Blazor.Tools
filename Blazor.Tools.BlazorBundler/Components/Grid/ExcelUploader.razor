@@ -39,25 +39,42 @@
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
     [Parameter] public bool IsInterface { get; set; } = false;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
-    // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
-    // [Inject] public SessionTable _sessionTable { get; set; } = default!;
+    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
     private DataSet? _excelDataSet;
     private ExcelProcessor? _excelProcessor;
     private bool _isRetrieved = false;
     private string? _connectionString;
+    private SessionManager? _sessionManager;
+
+    private IList<SessionItem> _sessionItems = new List<SessionItem>
+    {
+        new SessionItem()
+        {
+            Key = "_excelDataSet", Value=null, Serialize = true
+        }
+    };
+
     protected override async Task OnParametersSetAsync()
     {
+        await base.OnParametersSetAsync();
 
         _connectionString = Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
         _excelProcessor = new ExcelProcessor(_connectionString);
 
-        // if (!_isRetrieved)
-        // {
-        //     await RetrieveDataFromSessionTableAsync();
-        // }
+        _sessionManager = SessionManager.GetInstance(_sessionTableService);
 
-        await base.OnParametersSetAsync();
+        if (!_isRetrieved)
+        {
+            _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+            _excelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
+
+            _isRetrieved = true;
+            StateHasChanged();
+        }
+        
     }
 
     private async Task HandleFileUpload(IBrowserFile file)
@@ -79,7 +96,7 @@
                 if (_excelProcessor != null)
                 {
                     _excelDataSet = await _excelProcessor.ReadExcelDataAsync(tempFilePath);
-                    //await SaveDataToSessionTableAsync();
+                    _sessionManager?.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true).Wait();
                 }
             }
             catch (Exception ex)
@@ -93,30 +110,5 @@
         }
     }
 
-    // private async Task RetrieveDataFromSessionTableAsync()
-    // {
-    //     try
-    //     {
-    //         var sessionManager = new SessionManager(_sessionTableService);
-    //         _excelDataSet = await sessionManager.RetrieveFromSessionTableAsync<DataSet>("_excelDataSet");
-    //         StateHasChanged();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("Error: {0}", ex.Message);
-    //     }
-    // }
-
-    // private async Task SaveDataToSessionTableAsync()
-    // {
-    //     try
-    //     {
-    //         var sessionManager = new SessionManager(_sessionTableService);
-    //         await sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("Error: {0}", ex.Message);
-    //     }
-    // }
+     
 }

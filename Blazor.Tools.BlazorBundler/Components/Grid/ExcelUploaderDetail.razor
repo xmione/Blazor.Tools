@@ -59,13 +59,33 @@ else
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
     [Parameter] public bool IsInterface { get; set; } = false;
 
-    // [Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
-    // [Inject] public SessionTable _sessionTable { get; set; } = default!;
+    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
+    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
     private DataTable? _selectedTable;
     private string? _selectedTableName;
     private bool _isReceived = false;
     private List<AssemblyTable>? _tableList = null;
+    private SessionManager? _sessionManager;
+    private bool _isRetrieved = false;
+
+    private IList<SessionItem> _sessionItems = new List<SessionItem>
+    {
+        new SessionItem()
+        {
+            Key = "_excelDataSet", Value=null, Serialize = true
+        },
+        new SessionItem()
+        {
+            Key = "_selectedTable", Value=null, Serialize = true
+        },
+        new SessionItem()
+        {
+            Key = "_selectedTableName", Value=null, Serialize = true
+        }
+    };
+
     protected override async Task OnParametersSetAsync()
     {
         try
@@ -148,10 +168,18 @@ else
 
             await base.OnParametersSetAsync();
 
-            // if (!_isReceived)
-            // {
-            //     await RetrieveDataFromSessionTableAsync();
-            // }
+            _sessionManager = SessionManager.GetInstance(_sessionTableService);
+
+            if (!_isRetrieved)
+            {
+                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                ExcelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
+                _selectedTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedTable"))?.Value;
+                _selectedTableName = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedTableName"))?.Value?.ToString();
+
+                _isRetrieved = true;
+                StateHasChanged();
+            }
         }
         catch (Exception ex)
         {
@@ -164,49 +192,14 @@ else
     {
         _selectedTable = table;
         _selectedTableName = table.TableName;
-        //await SaveDataToSessionTableAsync();
-        await Task.CompletedTask;
+        
+        if (_sessionManager != null)
+        { 
+            await _sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTable, serialize: true);
+        }
     }
-
-    // private async Task RetrieveDataFromSessionTableAsync()
-    // {
-    //     try
-    //     {
-    //         var sessionManager = new SessionManager(_sessionTableService);
-    //         _excelDataSet = await sessionManager.RetrieveFromSessionTableAsync<DataSet>("_excelDataSet");
-    //         _selectedTable = await sessionManager.RetrieveFromSessionTableAsync<DataTable>("_selectedTable");
-    //         _selectedTableName = await sessionManager.RetrieveFromSessionTableAsync<string?>("_selectedTableName");
-
-    //         if (_selectedTable != null)
-    //         {
-    //             _selectedTable.TableName = _selectedTableName;
-    //         }
-
-    //         _isReceived = true;
-
-    //         StateHasChanged();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("Error: {0}", ex.Message);
-    //     }
-    // }
-
-    // private async Task SaveDataToSessionTableAsync()
-    // {
-    //     try
-    //     {
-    //         var sessionManager = new SessionManager(_sessionTableService);
-    //         await sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);
-    //         await sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
-    //         await sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTableName, serialize: false);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("Error: {0}", ex.Message);
-    //     }
-    // }
-
+     
     private async Task UploadData()
     {
         if (ExcelDataSet != null)

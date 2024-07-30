@@ -7,6 +7,7 @@
 
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Extensions
+@using Blazor.Tools.BlazorBundler.Interfaces
 @using BlazorBootstrap
 @using System.Data
 
@@ -59,48 +60,71 @@
     [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
     [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
-
-    // [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-    // [Inject] public SessionTable _sessionTable { get; set; } = default!;
+    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
     private bool showSetTargetTableModal = false;
     private DataRow[]? _selectedData = default!;
     private string _selectedFieldValue = string.Empty;
-    //private SessionManager _sessionManager = default!;
-    //private bool _isRetrieved = false;
+    private SessionManager? _sessionManager;
+    private bool _isRetrieved = false;
     private TableGrid _tableGrid = default!;
 
     private List<TargetTable>? _targetTables;
     private string _tableSourceName = string.Empty;
 
+    private IList<SessionItem> _sessionItems = new List<SessionItem>
+    {
+        new SessionItem()
+        {
+            Key = "_selectedData", Value=null, Serialize = true
+        },
+        new SessionItem()
+        {
+            Key = "_targetTables", Value=null, Serialize = true
+        },
+        new SessionItem()
+        {
+            Key = "_tableSourceName", Value=null, Serialize = true
+        }
+    };
+
     protected override async Task OnParametersSetAsync()
     {
-        //_sessionManager = new SessionManager(_sessionTableService);
-
-        // if (!_isRetrieved)
-        // {
-        //     await RetrieveDataFromSessionTableAsync();
-        // }
-
-        _tableSourceName = SelectedTable?.TableName + "DS";
+        await InitializeVariables();
+        await RetrieveDataFromSessionTableAsync();
         await base.OnParametersSetAsync();
     }
 
+    private async Task InitializeVariables()
+    {
+        _tableSourceName = SelectedTable?.TableName + "DS";
+        await Task.CompletedTask;
+    }
     private async Task RetrieveDataFromSessionTableAsync()
     {
         try
         {
-            // _targetTables = await _sessionManager.RetrieveFromSessionTableAsync<List<TargetTable>>("_targetTables") ?? _targetTables;
-            // _isRetrieved = true;
+            _sessionManager = SessionManager.GetInstance(_sessionTableService);
 
-            StateHasChanged();
-            await Task.CompletedTask;
+            if (!_isRetrieved)
+            {
+                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedData"))?.Value;
+                _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_targetTables"))?.Value;
+
+                _isRetrieved = true;
+                StateHasChanged();
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error: {0}", ex.Message);
         }
+
+        await Task.CompletedTask;
     }
+
     private void CloseSetTargetTableModal()
     {
         showSetTargetTableModal = false;
@@ -112,7 +136,10 @@
         CloseSetTargetTableModal();
 
         _targetTables = targetTables;
-        //await _sessionManager.SaveToSessionTableAsync("_targetTables", _targetTables, serialize: true);
+        if (_sessionManager != null)
+        {
+            await _sessionManager.SaveToSessionTableAsync("_targetTables", _targetTables, serialize: true);
+        }
 
         StateHasChanged(); 
 
@@ -121,9 +148,14 @@
 
     private async Task HandleSelectedDataComb(DataRow[] selectedData)
     {
-         _selectedData = selectedData;
-        //await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
-        await _tableGrid.HandleSelectedDataComb(selectedData);
+        _selectedData = selectedData;
+
+        if (_sessionManager != null)
+        {
+            await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
+            await _tableGrid.HandleSelectedDataComb(selectedData);
+        }
+        
         StateHasChanged(); 
 
         await Task.CompletedTask;
@@ -157,7 +189,7 @@
     {
         if (_targetTables != null)
         {
-            //await _sessionTableService.UploadTableListAsync(_targetTables);
+            await _sessionTableService.UploadTableListAsync(_targetTables);
 
             //TODO: sol: Optionally, show a success message or handle post-upload actions
         }

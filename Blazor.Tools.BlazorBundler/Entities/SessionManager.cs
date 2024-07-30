@@ -16,16 +16,12 @@ namespace Blazor.Tools.BlazorBundler.Entities
     /// </summary>
     public class SessionManager
     {
-        // Private static variable to hold the singleton instance
-        private static readonly Lazy<SessionManager> _instance = new Lazy<SessionManager>(() => new SessionManager());
+        private static Lazy<SessionManager> _instance = new Lazy<SessionManager>(() => new SessionManager());
 
-        // Private field to hold the service instance if any
-        private readonly ICommonService<SessionTable, ISessionTable, IReportItem>? _sessionTableService;
-
+        private ICommonService<SessionTable, ISessionTable, IReportItem>? _sessionTableService;
         private SessionTable _sessionTable;
         private string _selectedFieldValue = string.Empty;
 
-        // Public static property for the current instance
         public static SessionManager Instance => _instance.Value;
 
 
@@ -55,23 +51,29 @@ namespace Blazor.Tools.BlazorBundler.Entities
         /// <returns>SessionManager - The SessionManager class with service instance.</returns>
         public static SessionManager GetInstance(ICommonService<SessionTable, ISessionTable, IReportItem>? sessionTableService = null)
         {
-            if (sessionTableService != null)
+            // Access the singleton instance
+            var instance = _instance.Value;
+
+            // If the singleton is already created
+            if (_instance.IsValueCreated)
             {
-                // Create a new instance with the service if not already created
-                lock (_instance)
+                // If we need to set a service and it hasn't been set yet
+                if (sessionTableService != null && instance._sessionTableService == null)
                 {
-                    if (_instance.Value._sessionTableService == null)
-                    {
-                        // Initialize with the provided service
-                        var tempInstance = new SessionManager(sessionTableService);
-                        _instance.Value._sessionTable = tempInstance._sessionTable;
-                    }
+                    instance._sessionTableService = sessionTableService;
+                }
+            }
+            else
+            {
+                // If it's the first creation and we have a service to set
+                if (sessionTableService != null)
+                {
+                    _instance = new Lazy<SessionManager>(() => new SessionManager(sessionTableService));
                 }
             }
 
             return _instance.Value;
         }
-
         /// <summary>
         /// Saves the specified value to the session table. Optionally serializes the value if specified.
         /// </summary>
