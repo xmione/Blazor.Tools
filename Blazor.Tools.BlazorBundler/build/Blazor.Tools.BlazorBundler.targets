@@ -115,8 +115,8 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\DTSearchBox.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SearchFieldsEntryModal.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\SearchFieldsEntryModal.razor"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddLookupTableModal.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddLookupTableModal.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SetTargetTableModal.razor')"
