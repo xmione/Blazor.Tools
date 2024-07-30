@@ -16,28 +16,47 @@ namespace Blazor.Tools.BlazorBundler.Entities
     /// </summary>
     public class SessionManager
     {
-        private readonly ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService;
+        // Private static variables to hold the singleton instances
+        private static readonly Lazy<SessionManager> _defaultInstance = new Lazy<SessionManager>(() => new SessionManager());
+        private static readonly Dictionary<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionManager> _instanceWithService = new Dictionary<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionManager>();
+
+        private readonly ICommonService<SessionTable, ISessionTable, IReportItem>? _sessionTableService;
         private SessionTable _sessionTable;
         private string _selectedFieldValue = string.Empty;
+        
+        // Public static property for default instance
+        public static SessionManager DefaultInstance => _defaultInstance.Value;
 
         /// <summary>
         /// Constructor to use the Serialize and Deserialize methods
         /// </summary>
-        public SessionManager()
+        private SessionManager()
         {
-            _sessionTableService = default!;
-            _sessionTable = default!;
-            _selectedFieldValue = string.Empty;
+            _sessionTable = new SessionTable();
+            _sessionTableService = null;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SessionManager"/> class with the specified session table service.
         /// </summary>
         /// <param name="sessionTableService">The session table service to interact with session data.</param>
-        public SessionManager(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService)
+        private SessionManager(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService)
         {
             _sessionTable = new SessionTable();
             _sessionTableService = sessionTableService;
+        }
+
+        public static SessionManager GetInstanceWithService(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService)
+        {
+            lock (_instanceWithService)
+            {
+                if (!_instanceWithService.TryGetValue(sessionTableService, out var instance))
+                {
+                    instance = new SessionManager(sessionTableService);
+                    _instanceWithService[sessionTableService] = instance;
+                }
+                return instance;
+            }
         }
 
         /// <summary>
@@ -153,5 +172,93 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 yield return row;
             }
         }
+
+        /// <summary>
+        /// Retrieves a session list from the Session table.
+        /// </summary>
+        /// <param name="sessionItems">IList<SessionItem> - refers to the list of session items with or without
+        /// default values. It is used to retrieve session variables from the session table.</param>
+        /// <returns></returns>
+        public async Task<IList<SessionItem>> RetrieveSessionListAsync(IList<SessionItem> sessionItems)
+        {
+            try
+            {
+                foreach (var sessionItem in sessionItems)
+                {
+                    var sessionItemValue = sessionItem.Value;
+                    if (sessionItemValue != null)
+                    {
+                        // Get the runtime type of the session item's value
+                        Type type = sessionItemValue.GetType();
+
+                        // Retrieve the generic method 'RetrieveFromSessionTableAsync' definition
+                        var methodInfo = typeof(SessionManager)
+                            .GetMethod(nameof(RetrieveFromSessionTableAsync));
+
+                        // Create a method info object for the constructed generic method with the runtime type
+                        var genericMethod = methodInfo?.MakeGenericMethod(type);
+
+                        // Safely access sessionItem.Key if sessionItem is not null
+                        var sessionKey = sessionItem?.Key;
+
+                        if (sessionKey != null)
+                        {
+                            // If sessionKey is not null, attempt to invoke the method and get the result
+                            var task = (Task?)genericMethod?.Invoke(this, new object[] { sessionKey });
+
+                            if (task != null)
+                            {
+                                // Await the task to get the result
+                                await task;
+
+                                // Extract the result value (assuming Task<T> as return type)
+                                var resultProperty = task.GetType().GetProperty("Result");
+
+                                if (resultProperty != null)
+                                {
+                                    if (sessionItem != null)
+                                    {
+                                        // Assign the result value to sessionItem.Value
+                                        var foundSessionItemValue = resultProperty.GetValue(task);
+
+                                        if (foundSessionItemValue == null)
+                                        {
+                                            sessionItem.Value = sessionItemValue;
+
+                                            // Save session item value immediately to SessionTable
+                                            await SaveToSessionTableAsync(sessionKey, sessionItemValue, sessionItem.Serialize);
+                                        }
+                                        else 
+                                        {
+                                            sessionItem.Value = foundSessionItemValue;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Handle the case where task is null
+                                Console.WriteLine("Warning: Task was null after invoking the generic method.");
+                            }
+                        }
+                        else
+                        {
+                            // Handle the case where sessionKey is null
+                            Console.WriteLine("Warning: sessionKey is null, unable to invoke method.");
+                        }
+
+                    }
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: {0}", ex.Message);
+            }
+
+            return sessionItems;
+        }
+         
     }
 }

@@ -11,7 +11,47 @@
         <Icon Name="IconName.XCircleFill" title="Close" @onclick="CloseAsync" />
     </div>
     <div class="data-table-grid-modal-content">
-        <TableGrid Title="@_tableName" DataTable="@SelectedTable" />
+        <div class="row">
+            <div class="col">
+                <h1>Set Target Table</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label for="lookupTable">Lookup Table:</label>
+                <select class="form-control" id="lookupTable" @onchange="OnLookupTableValueChanged">
+                    @if (TableList != null)
+                    {
+                        foreach (var table in TableList)
+                        {
+                            int id = (int)table.ID;
+                            string tableName = table.TableName;
+                            <option value="@id" selected="@(_targetTableID.Equals(id))">
+                                @tableName
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col">
+                <label for="targetFieldValue">Target Field:</label>
+                <select class="form-control" id="targetFieldValue" @onchange="OnTargetFieldValueChanged">
+                    @{
+                        var fieldValues = GetFieldValues(_targetTableID);
+                        if (fieldValues != null)
+                        {
+                            foreach (var field in fieldValues)
+                            {
+                                <option value="@field" selected="@(_targetFieldValue?.Equals(field))">@field</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <div class="row">
+                <TableGrid Title="@_tableName" DataTable="@SelectedTable" />
+            </div>
+        </div>
     </div>
 </div>
 
@@ -21,13 +61,53 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<List<SearchField>> OnSave { get; set; }
     [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
+    [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
     private string _tableName = string.Empty;
+    private int _targetTableID = default!;
+    private string _targetTableValue = default!;
+    private string? _targetFieldValue = default!;
 
     protected override async Task OnParametersSetAsync()
     {
         _tableName = SelectedTable?.TableName ?? _tableName;     
         await base.OnParametersSetAsync();
+    }
+
+    private async Task OnLookupTableValueChanged(ChangeEventArgs e)
+    {
+        // Parse selected value from int to TableEnum
+        int targetIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
+        _targetTableID = targetIntValue;
+
+        _targetTableValue = TableList?.FirstOrDefault(t => t.ID == _targetTableID)?.TableName ?? string.Empty;
+
+        // Reset selected field value when table value changes
+        _targetFieldValue = string.Empty;
+
+        // Handle the selected value here
+        Console.WriteLine("targetTableID: {0}", _targetTableID);
+
+        //await _sessionManager.SaveToSessionTableAsync("_targetTableValue", _targetTableValue);
+
+        await Task.CompletedTask;
+    }
+
+    private async Task OnTargetFieldValueChanged(ChangeEventArgs e)
+    {
+        _targetFieldValue = e?.Value?.ToString() ?? string.Empty;
+
+        //await _sessionManager.SaveToSessionTableAsync("_targetFieldValue", _targetFieldValue);
+        await Task.CompletedTask;
+    }
+
+    private IEnumerable<string>? GetFieldValues(int id)
+    {
+        var selectedTable = TableList?.FirstOrDefault(t => t.ID == id);
+        var properties = selectedTable?.GetPropertyNames();
+
+        return properties;
+
     }
 
     private async Task SaveAsync()

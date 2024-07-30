@@ -11,10 +11,6 @@
     <None Remove="Docs\~WRL0005.tmp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="blazor.bootstrap" Version="1.11.1" />
-    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.0.8" />
-    <PackageReference Include="bogus" Version="35.6.0" />
-    <PackageReference Include="closedxml" Version="0.102.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />

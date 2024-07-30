@@ -576,7 +576,6 @@ else
 
     public async Task HandleSelectedDataComb(DataRow[] selectedData)
     {
-        _node.StartCell = _node.EndCell = string.Empty;
         _node.SelectedData = selectedData;
         //var sessionTable = await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
         //await _sessionManager.SaveToSessionTableAsync("_startCell", _startCell);

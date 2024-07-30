@@ -161,38 +161,7 @@
             </div>
             <div class="col">
                 <Icon Name="IconName.Table" @onclick="AddLookupTableAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add Lookup Table" />
-                @* <label for="lookupTable">Lookup Table:</label>
-                <select class="form-control" id="lookupTable" @onchange="OnSelectedLookupTableValueChanged">
-                    @if (TableList != null) 
-                    {
-                        <option value="0" selected="@(_selectedLookupTableID.Equals(0))">
-                                Select a Table to check on
-                        </option>
-                        foreach (var table in TableList)
-                        {
-                            int id = table.ID;
-                            <option value="@id" selected="@(_selectedLookupTableID.Equals(id))">
-                                @table.TableName
-                            </option>
-                        }
-                    }
-                </select> *@
             </div>
-           @*  <div class="col">
-                <label for="primaryKeyField">Primary Key Field:</label>
-                <select class="form-control" id="primaryKeyField" @onchange="OnPrimaryKeyFieldChanged">
-                    @{
-                        var fieldCheckValues = GetFieldValues(_selectedLookupTableID);
-                        if (fieldCheckValues != null)
-                        {
-                            foreach (var field in fieldCheckValues)
-                            {
-                                <option value="@field" selected="@(_selectedPrimaryKeyFieldValue?.Equals(field))">@field</option>
-                            }
-                        }
-                    }
-                </select>
-            </div> *@
             <div class="col">
                 <button 
                     @onclick="AddLookupTableAsync" 
@@ -200,12 +169,6 @@
                     title="Search Foreign Table Search Fields" 
                     value="Search Foreign Table Fields"
                     />
-                @* <select class="form-control" id="foreignKeyField" @onchange="OnForeignKeyFieldChanged">
-                    @foreach (var field in GetFieldValues(_selectedCheckOnTableValueEnum))
-                    {
-                        <option value="@field" selected="@(_selectedPrimaryKeyFieldValue?.Equals(field))">@field</option>
-                    }
-                </select> *@
             </div>
             <div class="col">
                 <Icon Name="IconName.PlusCircleFill" @onclick="SetTargetTableFieldAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />
@@ -249,11 +212,13 @@
 </div>
 @if (_showForeignTableSearchFieldsModal)
 {
-    <SearchFieldsEntryModal 
+    <AddLookupTableModal 
         ShowSearchFieldsModal="@_showForeignTableSearchFieldsModal" 
         SelectedTable="@_searchFieldsTable" 
         OnSave="SaveSearchFieldsAsync" 
-        OnClose="CloseSearchFieldsEntryModalAsync" />
+        OnClose="CloseSearchFieldsEntryModalAsync" 
+        TableList="@TableList"
+        />
 }
 
 @code {
@@ -488,45 +453,7 @@
         return properties;
 
     }
-
-    // private IEnumerable<string> GetFieldValues(TableEnum table)
-    // {
-    //     switch (table)
-    //     {
-    //         case TableEnum.Client:
-    //             return GetPropertiesNames(typeof(IClient));
-    //         case TableEnum.Coa:
-    //             return GetPropertiesNames(typeof(ICoa));
-    //         case TableEnum.Department:
-    //             return GetPropertiesNames(typeof(IDepartment));
-    //         case TableEnum.Employee:
-    //             return GetPropertiesNames(typeof(IEmployee));
-    //         case TableEnum.JournalEntry:
-    //             return GetPropertiesNames(typeof(IJournal));
-    //         case TableEnum.Payee:
-    //             return GetPropertiesNames(typeof(IPayee));
-    //         case TableEnum.PayeeCategory:
-    //             return GetPropertiesNames(typeof(IPayeeCategory));
-    //         case TableEnum.PettyCash:
-    //             return GetPropertiesNames(typeof(IPettyCash));
-    //         case TableEnum.ProjectCategory:
-    //             return GetPropertiesNames(typeof(IProjectCategory));
-    //         case TableEnum.ProjectCode:
-    //             return GetPropertiesNames(typeof(IProjectCode));
-    //         default:
-    //             return Enumerable.Empty<string>();
-    //     }
-    // }
-
-    // private IEnumerable<string> GetPropertiesNames(Type type)
-    // {
-    //     // Get the properties of the specified type
-    //     PropertyInfo[] properties = type.GetProperties();
-
-    //     // Extract and return the names of the properties
-    //     return properties.Select(p => p.Name);
-    // }
-
+     
     private IEnumerable<DataRow> ApplyFilterSelectedData()
     {
         if (string.IsNullOrWhiteSpace(_searchQuerySelectedData))
