@@ -16,16 +16,18 @@ namespace Blazor.Tools.BlazorBundler.Entities
     /// </summary>
     public class SessionManager
     {
-        // Private static variables to hold the singleton instances
-        private static readonly Lazy<SessionManager> _defaultInstance = new Lazy<SessionManager>(() => new SessionManager());
-        private static readonly Dictionary<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionManager> _instanceWithService = new Dictionary<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionManager>();
+        // Private static variable to hold the singleton instance
+        private static readonly Lazy<SessionManager> _instance = new Lazy<SessionManager>(() => new SessionManager());
 
+        // Private field to hold the service instance if any
         private readonly ICommonService<SessionTable, ISessionTable, IReportItem>? _sessionTableService;
+
         private SessionTable _sessionTable;
         private string _selectedFieldValue = string.Empty;
-        
-        // Public static property for default instance
-        public static SessionManager DefaultInstance => _defaultInstance.Value;
+
+        // Public static property for the current instance
+        public static SessionManager Instance => _instance.Value;
+
 
         /// <summary>
         /// Constructor to use the Serialize and Deserialize methods
@@ -46,17 +48,28 @@ namespace Blazor.Tools.BlazorBundler.Entities
             _sessionTableService = sessionTableService;
         }
 
-        public static SessionManager GetInstanceWithService(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService)
+        /// <summary>
+        /// Public static method to get the instance with a service
+        /// </summary> 
+        /// <param name="sessionTableService">The session table service to interact with session data.</param>
+        /// <returns>SessionManager - The SessionManager class with service instance.</returns>
+        public static SessionManager GetInstance(ICommonService<SessionTable, ISessionTable, IReportItem>? sessionTableService = null)
         {
-            lock (_instanceWithService)
+            if (sessionTableService != null)
             {
-                if (!_instanceWithService.TryGetValue(sessionTableService, out var instance))
+                // Create a new instance with the service if not already created
+                lock (_instance)
                 {
-                    instance = new SessionManager(sessionTableService);
-                    _instanceWithService[sessionTableService] = instance;
+                    if (_instance.Value._sessionTableService == null)
+                    {
+                        // Initialize with the provided service
+                        var tempInstance = new SessionManager(sessionTableService);
+                        _instance.Value._sessionTable = tempInstance._sessionTable;
+                    }
                 }
-                return instance;
             }
+
+            return _instance.Value;
         }
 
         /// <summary>
