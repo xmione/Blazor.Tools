@@ -1,6 +1,6 @@
 ﻿@page "/test-excel-uploader"
 @rendermode InteractiveServer
-@* @using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.Components.Grid
 
@@ -20,11 +20,11 @@
     {
         new SessionItem()
         {
-            Key = "_modelsAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll", Serialize = true
+            Key = "_modelsAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll", Type = typeof(string), Serialize = false
         },
         new SessionItem()
         {
-            Key = "_servicesAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll", Serialize = true
+            Key = "_servicesAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll", Type = typeof(string), Serialize = false
         }
     };
 
@@ -47,4 +47,4 @@
         }
          
     }
-} *@
+}

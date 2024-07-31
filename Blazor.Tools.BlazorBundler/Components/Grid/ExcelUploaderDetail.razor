@@ -137,15 +137,15 @@ else
             {
                 new SessionItem()
                 {
-                    Key = "_excelDataSet", Value = ExcelDataSet, Serialize = true
+                    Key = "_excelDataSet", Value = ExcelDataSet, Type = typeof(DataSet), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_selectedTable", Value=_selectedTable, Serialize = true
+                    Key = "_selectedTable", Value=_selectedTable, Type = typeof(DataTable), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_selectedTableName", Value=_selectedTableName, Serialize = true
+                    Key = "_selectedTableName", Value=_selectedTableName, Type = typeof(string), Serialize = false
                 }
             };
 

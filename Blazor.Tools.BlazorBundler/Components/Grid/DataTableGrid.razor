@@ -89,15 +89,15 @@
         {
             new SessionItem()
             {
-                Key = "_selectedData", Value=null, Serialize = true
+                Key = "_selectedData", Value = null, Type = typeof(DataRow[]), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_targetTables", Value=null, Serialize = true
+                Key = "_targetTables", Value = null, Type = typeof(List<TargetTable>), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_tableSourceName", Value=null, Serialize = true
+                Key = "_tableSourceName", Value = null, Type = typeof(string), Serialize = true
             }
         };
 

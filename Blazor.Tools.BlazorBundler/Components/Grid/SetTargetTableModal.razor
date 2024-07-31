@@ -272,19 +272,19 @@
         {
             new SessionItem()
             {
-                Key = "_selectedData", Value = SelectedData, Serialize = true
+                Key = "_selectedData", Value = SelectedData, Type = typeof(DataRow[]), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_uniqueField", Value = _uniqueField, Serialize = true
+                Key = "_uniqueField", Value = _uniqueField, Type = typeof(string), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_targetTableColumnList", Value = _targetTableColumnList, Serialize = true
+                Key = "_targetTableColumnList", Value = _targetTableColumnList, Type = typeof(List<TargetTableColumn>), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_columnProperties", Value = _columnProperties, Serialize = true
+                Key = "_columnProperties", Value = _columnProperties, Type = typeof(List<string>), Serialize = true
             }
         };
 
