@@ -18,8 +18,8 @@
         </div>
         <div class="row">
             <div class="col">
-                <label for="lookupTable">Lookup Table:</label>
-                <select class="form-control" id="lookupTable" @onchange="OnLookupTableValueChanged">
+                <label for="_targetTableID">Lookup Table:</label>
+                <select class="form-control" id="_targetTableID" @onchange="OnLookupTableValueChanged">
                     @if (TableList != null)
                     {
                         foreach (var table in TableList)
@@ -34,13 +34,13 @@
                 </select>
             </div>
             <div class="col">
-                <label for="targetFieldValue">Target Field:</label>
-                <select class="form-control" id="targetFieldValue" @onchange="OnTargetFieldValueChanged">
+                <label for="_targetFieldValue">Target Field:</label>
+                <select class="form-control" id="_targetFieldValue" @onchange="OnTargetFieldValueChanged">
                     @{
-                        var fieldValues = GetFieldValues(_targetTableID);
-                        if (fieldValues != null)
+                        var targetfieldValues = GetFieldValues(_targetTableID);
+                        if (targetfieldValues != null)
                         {
-                            foreach (var field in fieldValues)
+                            foreach (var field in targetfieldValues)
                             {
                                 <option value="@field" selected="@(_targetFieldValue?.Equals(field))">@field</option>
                             }
@@ -48,9 +48,27 @@
                     }
                 </select>
             </div>
-            <div class="row">
-                <TableGrid Title="@_tableName" DataTable="@SelectedTable" />
+            <div class="col">
+                <label for="_targetFieldMatchConditionValue">Match Conditions:</label>
+                <select class="form-control" id="_targetFieldMatchConditionValue" @onchange="OnMatchConditionsValueChanged">
+                    @{
+                        var targetfieldMatchConditionValues = Enum.GetValues(typeof(LookupFieldConditionEnum));
+                        if (targetfieldMatchConditionValues != null)
+                        {
+                            foreach (var field in targetfieldMatchConditionValues)
+                            {
+                                <option value="@field" selected="@(_targetFieldMatchConditionValue?.Equals(field))">@field</option>
+                            }
+                        }
+                    }
+                </select>
             </div>
+            <div class="col">
+                 <Icon Name="IconName.FloppyDisk" @onclick="SaveAsync" title="Save" />
+            </div>
+        </div>
+        <div class="row">
+            <TableGrid Title="@_tableName" DataTable="@SelectedTable" />
         </div>
     </div>
 </div>
@@ -67,6 +85,7 @@
     private int _targetTableID = default!;
     private string _targetTableValue = default!;
     private string? _targetFieldValue = default!;
+    private string? _targetFieldMatchConditionValue = default!;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -96,6 +115,14 @@
     private async Task OnTargetFieldValueChanged(ChangeEventArgs e)
     {
         _targetFieldValue = e?.Value?.ToString() ?? string.Empty;
+
+        //await _sessionManager.SaveToSessionTableAsync("_targetFieldValue", _targetFieldValue);
+        await Task.CompletedTask;
+    }
+    
+    private async Task OnMatchConditionsValueChanged(ChangeEventArgs e)
+    {
+        _targetFieldMatchConditionValue = e?.Value?.ToString() ?? string.Empty;
 
         //await _sessionManager.SaveToSessionTableAsync("_targetFieldValue", _targetFieldValue);
         await Task.CompletedTask;
