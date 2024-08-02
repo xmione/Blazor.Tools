@@ -101,7 +101,7 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-
+    
     <!-- Add files in the Components folder-->
     <Content Include="Components\AI\AIChatBot.razor">
       <Pack>True</Pack>
@@ -274,9 +274,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\SentimentAnalysisBuilder.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SessionManager.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\SentimentData.cs">

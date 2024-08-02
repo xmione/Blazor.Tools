@@ -64,7 +64,7 @@
                 </select>
             </div>
             <div class="col">
-                 <Icon Name="IconName.Floppy" Class="cursor-pointer" @onclick="SaveAsync" title="Save" />
+                <Icon Name="IconName.Floppy" Class="cursor-pointer" @onclick="SaveLookupTableItemAsync" title="Save" />
             </div>
         </div>
         <div class="row">
@@ -75,7 +75,7 @@
 
 @code {
     [Parameter] public bool ShowSearchFieldsModal { get; set; }
-    [Parameter] public DataTable? SelectedTable { get; set; }
+    [Parameter] public DataTable SelectedTable { get; set; } = default!;
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<List<SearchField>> OnSave { get; set; }
     [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
@@ -89,6 +89,11 @@
 
     protected override async Task OnParametersSetAsync()
     {
+
+        if (SelectedTable == null)
+        {
+            throw new ArgumentException("SelectedTable is required.");
+        }
         _tableName = SelectedTable?.TableName ?? _tableName;     
         await base.OnParametersSetAsync();
     }
@@ -119,7 +124,7 @@
         //await _sessionManager.SaveToSessionTableAsync("_targetFieldValue", _targetFieldValue);
         await Task.CompletedTask;
     }
-    
+
     private async Task OnMatchConditionsValueChanged(ChangeEventArgs e)
     {
         _targetFieldMatchConditionValue = e?.Value?.ToString() ?? string.Empty;
@@ -135,6 +140,18 @@
 
         return properties;
 
+    }
+
+    private async Task SaveLookupTableItemAsync()
+    {
+        var newRow = SelectedTable.NewRow();
+        newRow["TableName"] = _targetTableValue;
+        newRow["FieldName"] = _targetTableValue;
+        newRow["MatchCondition"] = _targetFieldMatchConditionValue;
+
+        SelectedTable.Rows.Add(newRow);
+
+        await Task.CompletedTask; 
     }
 
     private async Task SaveAsync()
@@ -212,7 +229,7 @@
 
         await OnSave.InvokeAsync(targetTables);
     }
-
+    
     private async Task CloseAsync()
     {
         await OnClose.InvokeAsync();
