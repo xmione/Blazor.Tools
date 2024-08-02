@@ -17,16 +17,20 @@
         <ExcelUploaderHeader OnFileUpload="HandleFileUpload" />
     </div>
     <div class="card-body">
-        <ExcelUploaderDetail 
-            ExcelDataSet="@_excelDataSet" 
-            ExcelProcessor="@_excelProcessor"
-            ModelsAssemblyName="@ModelsAssemblyName"
-            ModelsAssemblyPath="@ModelsAssemblyPath"
-            ServicesAssemblyName="@ServicesAssemblyName"
-            ServicesAssemblyPath="@ServicesAssemblyPath"
-            LoadAssemblyFromDLLFile="@LoadAssemblyFromDLLFile"
-            IsInterface = "@IsInterface"
+        @if (_isUploaded)
+        {
+            <ExcelUploaderDetail
+                ExcelDataSet="@_excelDataSet"
+                ExcelProcessor="@_excelProcessor"
+                ModelsAssemblyName="@ModelsAssemblyName"
+                ModelsAssemblyPath="@ModelsAssemblyPath"
+                ServicesAssemblyName="@ServicesAssemblyName"
+                ServicesAssemblyPath="@ServicesAssemblyPath"
+                LoadAssemblyFromDLLFile="@LoadAssemblyFromDLLFile"
+                IsInterface="@IsInterface" 
             />
+        }
+        
     </div>
 </div>
 
@@ -40,9 +44,8 @@
     [Parameter] public bool IsInterface { get; set; } = false;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
-    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
+    private bool _isUploaded = false;
     private static DataSet? _excelDataSet;
     private ExcelProcessor? _excelProcessor;
     private bool _isRetrieved = false;
@@ -81,9 +84,9 @@
         {
             if (!_isRetrieved && _sessionItems != null && _sessionManager != null)
             {
-                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
                 _excelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
-
+                _isUploaded = _excelDataSet != null;
                 _isRetrieved = true;
                 StateHasChanged();
             }
@@ -100,22 +103,26 @@
     {
         if (file != null)
         {
-            var tempFilePath = Path.Combine(Path.GetTempPath(), file.Name);
-
-            await using (var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // Allow up to 10 MB
-            {
-                await using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
-                {
-                    await stream.CopyToAsync(fileStream);
-                }
-            } // Dispose the stream here
-
+            string tempFilePath = string.Empty;
+            _isUploaded = false;
             try
             {
-                if (_excelProcessor != null)
+                tempFilePath = Path.Combine(Path.GetTempPath(), file.Name);
+
+                await using (var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // Allow up to 10 MB
+                {
+                    await using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
+                    {
+                        await stream.CopyToAsync(fileStream);
+                    }
+                } // Dispose the stream here
+
+
+                if (_excelProcessor != null && _sessionManager != null)
                 {
                     _excelDataSet = await _excelProcessor.ReadExcelDataAsync(tempFilePath);
-                    _sessionManager?.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true).Wait();
+                    await _sessionManager.ClearSessionAsync();
+                    await _sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);
                 }
             }
             catch (Exception ex)
@@ -125,6 +132,7 @@
             finally
             {
                 File.Delete(tempFilePath);
+                _isUploaded = true;
             }
         }
     }

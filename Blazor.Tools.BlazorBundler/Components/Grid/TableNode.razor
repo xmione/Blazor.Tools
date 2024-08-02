@@ -14,8 +14,8 @@
     [Parameter] public bool AllowCellSelection { get; set; } = false;
     [CascadingParameter] private TableGrid TableGridContext { get; set; } = default!;
 
-    public List<TableColumn> Columns = new List<TableColumn>();
-    public TableNode TableNodeContext = default!;
+    public List<TableColumn>? Columns;
+    public TableNode? TableNodeContext = default!;
     public DataTable DataTable = default!;
     public int TotalPages = 0;
     public int TotalItems = 0;
@@ -36,12 +36,14 @@
     public string EndCell = string.Empty;
     public bool IsFirstCellClicked = true;
     public DataRow[] SelectedData = Array.Empty<DataRow>();
-
+    public bool _shouldRender = true;
+    private bool _hasDataChanged = false;
     protected override void OnParametersSet()
     {
         if (TableGridContext != null)
         {
             DataTable = TableGridContext.GetDataSource(DataSource) ?? DataTable;
+            TableNodeContext = TableGridContext.TableNodeContext;
         }
 
         TotalItems = DataTable?.Rows?.Count ?? 0;
@@ -49,9 +51,19 @@
         PageSize = TotalItems;
         UpdateDisplayFromPageSize();
 
-        TableNodeContext = this;
-        TableGridContext?.SetNode(TableNodeContext);
+        if (TableNodeContext != this)
+        {
+            TableNodeContext = this;
+            TableGridContext?.SetNode(TableNodeContext);
+            _hasDataChanged = true; 
+        }
+
         Console.WriteLine("TableNode OnParametersSet");
+    }
+
+    protected override bool ShouldRender()
+    {
+        return _hasDataChanged || _shouldRender;
     }
 
     public void UpdateDisplayFromPageSize()
@@ -61,6 +73,8 @@
         PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
         TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
         SelectedTableName = DataTable?.TableName;
+        _shouldRender = true;  // Ensure re-render if necessary
+        _hasDataChanged = true; // Mark that data has changed
     }
 
     public void FilterData(IEnumerable<DataRow> filteredRows)
@@ -93,8 +107,14 @@
 
     public void AddColumn(TableColumn column)
     {
+        if(Columns == null)
+        {
+            Columns = new List<TableColumn>();
+        }
+
         Columns.Add(column);
         TableNodeContext = this;
+        TableGridContext?.SetNode(TableNodeContext);
     }
 
     public RenderFragment RenderTableColumn(TableColumn column, int rowNumber)
