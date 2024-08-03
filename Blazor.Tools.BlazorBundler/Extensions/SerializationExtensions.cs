@@ -99,6 +99,10 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                 {
                     settings.Converters.Add(new DataTableJsonConverter());
                 }
+                else if (typeof(T) == typeof(BBBrowserFile))
+                {
+                    settings.Converters.Add(new BBBrowserFileJsonConverter());
+                }
 
                 deserializedData = JsonConvert.DeserializeObject<T>(serializedData, settings);
             }

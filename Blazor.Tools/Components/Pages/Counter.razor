@@ -1,9 +1,12 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
 
+@* @using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Interfaces
+
 <PageTitle>Counter</PageTitle>
 
-@* <h3>Message: @currentMessage</h3>
+<h3>Message: @currentMessage</h3>
 <h3>Current Count: @currentCount</h3>
 <button @onclick="UpdateMessage">Update Message</button>
 <button @onclick="IncrementCount">Increment Count</button>
@@ -39,17 +42,21 @@
         {
             renderState.MarkAsChanged(); // Control rendering
         }
+
+        currentMessage = "Count incremented";
         StateHasChanged();
     }
 
     private void OnDropdown1Change(ChangeEventArgs e)
     {
+        currentMessage = "Selected from Dropdown1";
         renderState.MarkAsChanged(); // Control rendering
         StateHasChanged();
     }
 
     private void OnDropdown2Change(ChangeEventArgs e)
     {
+        currentMessage = "Selected from Dropdown2";
         renderState.Reset(); // Control rendering
         StateHasChanged();
     }

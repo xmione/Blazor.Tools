@@ -249,6 +249,9 @@
     <Compile Update="Entities\BBBrowserFile.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
+    <Compile Update="Entities\BBBrowserFileJsonConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
     <Compile Update="Entities\BrowserFileConverter.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
