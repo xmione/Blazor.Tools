@@ -656,7 +656,7 @@ else
     private async Task HandleFilterDataTableAsync(IEnumerable<DataRow> filteredRows)
     {
         TableNodeContext?.FilterData(filteredRows);
-
+        await PopulateNodeVariablesAsync();
         StateHasChanged(); // Ensure UI updates after filtering
         await Task.CompletedTask;
     }
