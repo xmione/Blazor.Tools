@@ -60,10 +60,10 @@ else
                 <Icon Name="IconName.Recycle" @onclick="ClearSelectionAsync" class="text-success icon-button mb-2 cursor-pointer" title="Clear" />
             </div>
             <div class="col">
-                <input @bind="@_nodeStartCell" class="form-control" placeholder="Start Cell" />
+                <input @bind="@_nodeStartCell" class="form-control" placeholder="Start Cell" @onclick="HandleStartCellClick" />
             </div>
             <div class="col">
-                <input @bind="@_nodeEndCell" class="form-control" placeholder="End Cell" />
+                <input @bind="@_nodeEndCell" class="form-control" placeholder="End Cell" @onclick="HandleEndCellClick" />
             </div>
         </div>
     }
@@ -206,6 +206,8 @@ else
         _sessionManager = SessionManager.GetInstance(_sessionTableService);
         TableNodeContext = new TableNode();
 
+        _nodeCurrentPage = 1;
+
         await Task.CompletedTask;
     }
 
@@ -236,7 +238,7 @@ else
             _nodeFilteredItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeFilteredItems"))?.Value?.ToString(), out int _nodeFilteredItemsResult) ? _nodeFilteredItemsResult : 0;
             _nodeTotalItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeTotalItems"))?.Value?.ToString(), out int _nodeTotalItemsResult) ? _nodeTotalItemsResult : 0;
             _nodeTotalPages = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeTotalPages"))?.Value?.ToString(), out int _nodeTotalPagesResult) ? _nodeTotalPagesResult : 0;
-            _nodeCurrentPage = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeCurrentPage"))?.Value?.ToString(), out int _nodeCurrentPageResult) ? _nodeCurrentPageResult : 0;
+            _nodeCurrentPage = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeCurrentPage"))?.Value?.ToString(), out int _nodeCurrentPageResult) ? _nodeCurrentPageResult : 1;
             _nodeStartCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeStartCell"))?.Value?.ToString() ?? string.Empty;
             _nodeEndCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeEndCell"))?.Value?.ToString() ?? string.Empty;
             _nodeShowAddRowModal = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeShowAddRowModal"))?.Value ?? false;
@@ -383,51 +385,54 @@ else
         {
             var totalRows = _nodePagedRows.Count();
             var pagedRows = _nodePagedRows.ToList();
-
-            for ( int i = 0; i < totalRows; i++)
+            if (totalRows > 0)
             {
-                builder.OpenElement(sequence++, "tr");
-                var currentRow = pagedRows[i];
-                builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
-
-                //Row number column
-                var rowNumber = ((_nodeCurrentPage - 1) * _nodePageSize ) + i + 1;
-                builder.OpenElement(sequence++, "td");
-                builder.AddContent(sequence++, $"{rowNumber}");        
-                builder.CloseElement(); // td
-
-                if (_nodeColumns != null)
+                for (int i = 0; i < totalRows; i++)
                 {
-                    for (var c = 0; c < _nodeColumns.Count; c++)
-                    {
-                        var column = _nodeColumns[c];
+                    builder.OpenElement(sequence++, "tr");
+                    var currentRow = pagedRows[i];
+                    builder = await RenderEditAndDeleteButtons(sequence++, builder, currentRow);
 
-                        if (column.Visible)
+                    //Row number column
+                    var rowNumber = ((_nodeCurrentPage - 1) * _nodePageSize) + i + 1;
+                    builder.OpenElement(sequence++, "td");
+                    builder.AddContent(sequence++, $"{rowNumber}");
+                    builder.CloseElement(); // td
+
+                    if (_nodeColumns != null)
+                    {
+                        for (var c = 0; c < _nodeColumns.Count; c++)
                         {
-                            int rowIndex = i;
-                            int columnIndex = c;
-                            builder.OpenElement(sequence++, "td");
-                            builder.AddAttribute(sequence++, "title", $"R{rowIndex}C{columnIndex}");
-                            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleCellClickAsync(rowIndex, columnIndex)));
-                            builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
-                            builder.CloseElement(); // td
-                        }
-                        else
-                        {
-                            if (HiddenColumnNames == null)
+                            var column = _nodeColumns[c];
+
+                            if (column.Visible)
                             {
-                                HiddenColumnNames = new List<string>();
+                                int rowIndex = i;
+                                int columnIndex = c;
+                                builder.OpenElement(sequence++, "td");
+                                builder.AddAttribute(sequence++, "title", $"R{rowIndex}C{columnIndex}");
+                                builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleCellClickAsync(rowIndex, columnIndex)));
+                                builder = await RenderTableColumn(sequence++, rowIndex, builder, column);
+                                builder.CloseElement(); // td
+                            }
+                            else
+                            {
+                                if (HiddenColumnNames == null)
+                                {
+                                    HiddenColumnNames = new List<string>();
+                                }
+
+                                HiddenColumnNames.Add(column.FieldName);
                             }
 
-                            HiddenColumnNames.Add(column.FieldName);
                         }
 
                     }
 
+                    builder.CloseElement(); // tr
                 }
-
-                builder.CloseElement(); // tr
             }
+            
         }
 
         builder.CloseElement(); // tbody
@@ -801,6 +806,24 @@ else
         await Task.CompletedTask;
     }
 
+    private async Task HandleStartCellClick(MouseEventArgs e)
+    {
+        _nodeStartCell = string.Empty;
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task HandleEndCellClick(MouseEventArgs e)
+    {
+        _nodeStartCell = string.Empty;
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
 
     private void CloseAddRowModal()
     {
@@ -912,7 +935,7 @@ else
 
                 await _sessionManager.SaveToSessionTableAsync("_nodeSelectedData", _nodeSelectedData, serialize: true);
             }
-            
+
             await Task.CompletedTask;
         }
 
@@ -951,7 +974,7 @@ else
 
         return dataInRange.ToArray();
     }
-
+     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

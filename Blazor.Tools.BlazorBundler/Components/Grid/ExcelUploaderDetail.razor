@@ -28,7 +28,7 @@
             @if (_selectedTable != null)
             {
                 <div class="tab-pane fade show active">
-                    <h4>@_selectedTable.TableName</h4>
+                    <h4>@_selectedTableName</h4>
                     <DataTableGrid SelectedTable="@_selectedTable"
                                    AllowCellSelection="true"
                                    TableList="@_tableList" />
@@ -60,8 +60,6 @@ else
     [Parameter] public bool IsInterface { get; set; } = false;
 
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
-    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
     private DataTable? _selectedTable;
     private string? _selectedTableName;
@@ -216,7 +214,7 @@ else
         if (_sessionManager != null)
         { 
             await _sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
-            await _sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTable, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTable);
         }
 
         StateHasChanged();

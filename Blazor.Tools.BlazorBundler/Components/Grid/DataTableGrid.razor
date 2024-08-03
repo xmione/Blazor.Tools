@@ -41,9 +41,9 @@
 <Icon Name="IconName.CloudUpload" Class="cursor-pointer" @onclick="UploadData" title="Upload to existing AccSol tables" />
 
 <!-- Set Target Table Modal -->
-@if (showSetTargetTableModal)
+@if (_showSetTargetTableModal)
 {
-    <SetTargetTableModal ShowSetTargetTableModal="showSetTargetTableModal"
+    <SetTargetTableModal ShowSetTargetTableModal="_showSetTargetTableModal"
                          OnClose="CloseSetTargetTableModal"
                          OnSave="SaveToTargetTableAsync"
                          SelectedData="@_selectedData"
@@ -61,9 +61,8 @@
     [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
 
-    private bool showSetTargetTableModal = false;
+    private bool _showSetTargetTableModal = false;
     private DataRow[]? _selectedData = default!;
     private string _selectedFieldValue = string.Empty;
     private SessionManager? _sessionManager;
@@ -89,15 +88,19 @@
         {
             new SessionItem()
             {
-                Key = "_selectedData", Value = null, Type = typeof(DataRow[]), Serialize = true
+                Key = "_selectedData", Value = _selectedData, Type = typeof(DataRow[]), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_targetTables", Value = null, Type = typeof(List<TargetTable>), Serialize = true
+                Key = "_targetTables", Value = _targetTables, Type = typeof(List<TargetTable>), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_tableSourceName", Value = null, Type = typeof(string), Serialize = true
+                Key = "_tableSourceName", Value = _tableSourceName, Type = typeof(string), Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = "_showSetTargetTableModal", Value = _showSetTargetTableModal, Type = typeof(bool), Serialize = true
             }
         };
 
@@ -114,6 +117,7 @@
                 _sessionItems = _sessionManager?.RetrieveSessionListAsync(_sessionItems).Result;
                 _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedData"))?.Value;
                 _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_targetTables"))?.Value;
+                _showSetTargetTableModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_showSetTargetTableModal"))?.Value ?? false);
 
                 _isRetrieved = true;
                 StateHasChanged();
@@ -129,7 +133,7 @@
 
     private void CloseSetTargetTableModal()
     {
-        showSetTargetTableModal = false;
+        _showSetTargetTableModal = false;
         StateHasChanged(); // Ensure UI updates to hide the modal
     }
 
@@ -177,11 +181,11 @@
 
     private async Task ShowSetTargetTableModalAsync()
     {
-        showSetTargetTableModal = true;
+        _showSetTargetTableModal = true;
         _selectedData = await _tableGrid.ShowSetTargetTableModalAsync();
         if (_selectedData == null)
         {
-            showSetTargetTableModal = false;   
+            _showSetTargetTableModal = false;   
         }
 
         StateHasChanged(); 

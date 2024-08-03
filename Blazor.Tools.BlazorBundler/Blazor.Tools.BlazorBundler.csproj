@@ -101,7 +101,7 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
+     
     <!-- Add files in the Components folder-->
     <Content Include="Components\AI\AIChatBot.razor">
       <Pack>True</Pack>
@@ -240,28 +240,34 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Components\Grid\DataRowViewModel.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Components\Grid\ExcelUploader.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
     <Compile Update="Entities\AIDataAccess.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\AssemblyTable.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Entities\LookupFieldConditionEnum.cs">
+    <Compile Update="Entities\BBBrowserFile.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\BrowserFileConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\DataRowViewModel.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\DataTableJsonConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\ExcelProcessor.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\LanguageData.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\LanguagePrediction.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\LookupFieldConditionEnum.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\Message.cs">

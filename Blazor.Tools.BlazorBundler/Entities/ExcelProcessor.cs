@@ -3,7 +3,7 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using ClosedXML.Excel;
 using DataTable = System.Data.DataTable;
-namespace Blazor.Tools.BlazorBundler.Components.Grid
+namespace Blazor.Tools.BlazorBundler.Entities
 {
     public class ExcelProcessor
     {

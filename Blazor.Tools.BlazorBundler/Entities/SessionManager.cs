@@ -122,22 +122,25 @@ namespace Blazor.Tools.BlazorBundler.Entities
         {
             try
             {
-                var sessionTable = await _sessionTableService.GetByNameAsync(name);
-                if (sessionTable != null)
+                if (_sessionTableService != null)
                 {
-                    var serializedData = System.Text.Encoding.UTF8.GetString(sessionTable.Value);
-
-                    if (!string.IsNullOrEmpty(serializedData))
+                    var sessionTable = await _sessionTableService.GetByNameAsync(name);
+                    if (sessionTable != null)
                     {
-                        if (typeof(T) == typeof(string))
+                        var serializedData = System.Text.Encoding.UTF8.GetString(sessionTable.Value);
+
+                        if (!string.IsNullOrEmpty(serializedData))
                         {
-                            return (T)(object)serializedData;
+                            if (typeof(T) == typeof(string))
+                            {
+                                return (T)(object)serializedData;
+                            }
+
+                            var deserializedData = await serializedData.DeserializeAsync<T>();
+                            return deserializedData;
                         }
 
-                        var deserializedData = await serializedData.DeserializeAsync<T>();
-                        return deserializedData;
                     }
-
                 }
 
                 return default;

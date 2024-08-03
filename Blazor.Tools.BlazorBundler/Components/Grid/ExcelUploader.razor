@@ -121,7 +121,6 @@
                 if (_excelProcessor != null && _sessionManager != null)
                 {
                     _excelDataSet = await _excelProcessor.ReadExcelDataAsync(tempFilePath);
-                    await _sessionManager.ClearSessionAsync();
                     await _sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);
                 }
             }
