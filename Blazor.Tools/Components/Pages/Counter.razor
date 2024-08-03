@@ -2,18 +2,75 @@
 @rendermode InteractiveServer
 
 <PageTitle>Counter</PageTitle>
+@{
+    currentMessage = "Updated Message";
+}
+<h3>Message: @currentMessage</h3>
+<h3>Current Count: @currentCount</h3>
+<button @onclick="UpdateMessage">Update Message</button>
+<button @onclick="IncrementCount">Increment Count</button>
 
-<h1>Counter</h1>
+<h3>Dropdown Without StateHasChanged</h3>
+<select @onchange="OnDropdownChange">
+    <option value="Option 1">Option 1</option>
+    <option value="Option 2">Option 2</option>
+    <option value="Option 3">Option 3</option>
+</select>
 
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<h3>Dropdown With StateHasChanged</h3>
+<select @onchange="OnDropdownChangeWithStateHasChanged">
+    <option value="Option A">Option A</option>
+    <option value="Option B">Option B</option>
+    <option value="Option C">Option C</option>
+</select>
 
 @code {
+    private string currentMessage = "Hello, World!";
     private int currentCount = 0;
+    private string previousMessage = string.Empty;
+    private int previousCount = 0;
+    private bool _shouldRender = false;
+
+    private string selectedOptionWithoutStateHasChanged = "Option 1";
+    private string selectedOptionWithStateHasChanged = "Option A";
+
+    private void UpdateMessage()
+    {
+        currentMessage = "New Message!";
+        // Do not set _shouldRender to true as we do not want to re-render
+    }
 
     private void IncrementCount()
     {
         currentCount++;
+        if (currentCount != previousCount)
+        {
+            _shouldRender = true;
+            previousCount = currentCount;
+        }
+    }
+
+    private void OnDropdownChange(ChangeEventArgs e)
+    {
+        selectedOptionWithoutStateHasChanged = e.Value.ToString()!;
+        _shouldRender = true; // Set _shouldRender to true to trigger re-render
+    }
+
+    private void OnDropdownChangeWithStateHasChanged(ChangeEventArgs e)
+    {
+        selectedOptionWithStateHasChanged = e.Value.ToString()!;
+        StateHasChanged(); // Force a re-render immediately
+    }
+
+    protected override bool ShouldRender()
+    {
+        // Only re-render if _shouldRender is true
+        if (_shouldRender)
+        {
+            _shouldRender = false;
+            return true;
+        }
+
+        return false;
     }
 }
