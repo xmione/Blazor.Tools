@@ -4,16 +4,25 @@ namespace Blazor.Tools.BlazorBundler.Entities
 {
     public class BBBrowserFile : IBrowserFile
     {
-        public string Name { get; set; } = default!;
+        private readonly IBrowserFile _browserFile;
+
+        public BBBrowserFile(IBrowserFile browserFile)
+        {
+            _browserFile = browserFile;
+            Name = browserFile.Name;
+            LastModified = browserFile.LastModified;
+            Size = browserFile.Size;
+            ContentType = browserFile.ContentType;
+        }
+
+        public string Name { get; set; }
         public DateTimeOffset LastModified { get; set; }
         public long Size { get; set; }
-        public string ContentType { get; set; } = default!;
+        public string ContentType { get; set; }
 
-        // This is a placeholder implementation. You'll need to provide the actual file data storage mechanism.
         public Stream OpenReadStream(long maxAllowedSize = 512000, CancellationToken cancellationToken = default)
         {
-            // Placeholder: Return an empty memory stream or implement actual file data handling
-            return new MemoryStream(); // Return an empty stream or your stored file data
+            return _browserFile.OpenReadStream(maxAllowedSize, cancellationToken);
         }
     }
 }

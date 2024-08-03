@@ -8,7 +8,7 @@
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Microsoft.AspNetCore.Components.Forms
-@inject IJSRuntime JSRuntime
+@using Microsoft.JSInterop
 
 <InputFile id="fileInput" OnChange="HandleFileUpload" accept=".xlsx" />
 
@@ -68,7 +68,7 @@
         try
         {
             var browserFile = e.File;
-            _excelFile = new BBBrowserFile
+            _excelFile = new BBBrowserFile(browserFile)
                 {
                     Name = browserFile.Name,
                     LastModified = browserFile.LastModified,

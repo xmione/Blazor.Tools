@@ -102,20 +102,21 @@
     {
         if (file != null)
         {
+            var customFile = new BBBrowserFile(file);
             string tempFilePath = string.Empty;
             _isUploaded = false;
+
             try
             {
-                tempFilePath = Path.Combine(Path.GetTempPath(), file.Name);
+                tempFilePath = Path.Combine(Path.GetTempPath(), customFile.Name);
 
-                await using (var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // Allow up to 10 MB
+                await using (var stream = customFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // Allow up to 10 MB
                 {
-                    await using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
+                    await using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
                         await stream.CopyToAsync(fileStream);
                     }
-                } // Dispose the stream here
-
+                }
 
                 if (_excelProcessor != null && _sessionManager != null)
                 {
@@ -129,11 +130,13 @@
             }
             finally
             {
-                File.Delete(tempFilePath);
+                if (File.Exists(tempFilePath))
+                {
+                    File.Delete(tempFilePath);
+                }
                 _isUploaded = true;
             }
         }
     }
 
-     
 }
