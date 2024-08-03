@@ -9,6 +9,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
         public BBBrowserFile(IBrowserFile browserFile)
         {
             _browserFile = browserFile;
+
             Name = browserFile.Name;
             LastModified = browserFile.LastModified;
             Size = browserFile.Size;

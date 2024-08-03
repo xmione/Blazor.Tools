@@ -40,16 +40,8 @@
     private bool _hasDataChanged = false;
     protected override void OnParametersSet()
     {
-        if (TableGridContext != null)
-        {
-            DataTable = TableGridContext.GetDataSource(DataSource) ?? DataTable;
-            TableNodeContext = TableGridContext.TableNodeContext;
-            UpdateFromTableNodeContext();
-        }
-
-        TotalItems = DataTable?.Rows?.Count ?? 0;
-        FilteredItems = TotalItems;
-        PageSize = TotalItems;
+        GetDefaultValues();
+        GetExistingNodeValues();
         UpdateDisplayFromPageSize();
 
         if (TableNodeContext != this)
@@ -60,6 +52,23 @@
         }
 
         Console.WriteLine("TableNode OnParametersSet");
+    }
+
+    private void GetDefaultValues()
+    {
+        TotalItems = DataTable?.Rows?.Count ?? 0;
+        FilteredItems = TotalItems;
+        PageSize = TotalItems;
+    }
+
+    private void GetExistingNodeValues()
+    {
+        if (TableGridContext != null)
+        {
+            DataTable = TableGridContext?.GetDataSource(DataSource) ?? default!;
+            TableNodeContext = TableGridContext?.TableNodeContext;
+            UpdateFromTableNodeContext();
+        }
     }
 
     protected override bool ShouldRender()

@@ -49,6 +49,7 @@ else
             <!-- Go To Page -->
             <span>Go to Page: </span>
             <input type="number" min="1" max="@_nodeTotalPages" @bind="_nodeCurrentPage" class="cursor-pointer" />
+            <label>of @_nodeTotalPages @(_nodeTotalPages > 1? "Pages": "Page")</label>
             <Icon Name="IconName.CheckCircle" @onclick="GoToSpecifiedPageAsync" class="pagination-go-icon cursor-pointer" title="Go" />
         </div>
     </div>
@@ -253,6 +254,7 @@ else
             _nodeSelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeSelectedData"))?.Value;
 
             _isRetrieved = true;
+            TableNodeContext._shouldRender = false;
 
             if (TableNodeContext != null)
             {
@@ -385,6 +387,7 @@ else
         {
             var totalRows = _nodePagedRows.Count();
             var pagedRows = _nodePagedRows.ToList();
+            _nodeCurrentPage = _nodeCurrentPage == 0 ? 1 : _nodeCurrentPage;
             if (totalRows > 0)
             {
                 for (int i = 0; i < totalRows; i++)
@@ -432,7 +435,7 @@ else
                     builder.CloseElement(); // tr
                 }
             }
-            
+
         }
 
         builder.CloseElement(); // tbody
@@ -687,12 +690,13 @@ else
         {
             TableNodeContext.PageSize = _nodePageSize;
             TableNodeContext.CurrentPage = _nodeCurrentPage;
+            TableNodeContext.UpdateDisplayFromPageSize();
 
+            await PopulateNodeVariablesAsync();
             await _sessionManager.SaveToSessionTableAsync("_nodePageSize", _nodePageSize, serialize: true);
             await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
         }
 
-        StateHasChanged();
         await Task.CompletedTask;
     }
     private async Task GoToFirstPageAsync()
@@ -702,11 +706,11 @@ else
         if (TableNodeContext != null && _sessionManager != null)
         {
             TableNodeContext.CurrentPage = _nodeCurrentPage;
+            TableNodeContext.UpdateDisplayFromPageSize();
 
+            await PopulateNodeVariablesAsync();
             await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
         }
-
-        StateHasChanged();
 
         await Task.CompletedTask;
     }
@@ -719,11 +723,12 @@ else
             if (TableNodeContext != null && _sessionManager != null)
             {
                 TableNodeContext.CurrentPage = _nodeCurrentPage;
+                TableNodeContext.UpdateDisplayFromPageSize();
 
+                await PopulateNodeVariablesAsync();
                 await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             }
 
-            StateHasChanged();
         }
 
         await Task.CompletedTask;
@@ -738,11 +743,11 @@ else
             if (TableNodeContext != null && _sessionManager != null)
             {
                 TableNodeContext.CurrentPage = _nodeCurrentPage;
+                TableNodeContext.UpdateDisplayFromPageSize();
 
+                await PopulateNodeVariablesAsync();
                 await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             }
-
-            StateHasChanged();
         }
 
         await Task.CompletedTask;
@@ -755,11 +760,11 @@ else
         if (TableNodeContext != null && _sessionManager != null)
         {
             TableNodeContext.CurrentPage = _nodeCurrentPage;
+            TableNodeContext.UpdateDisplayFromPageSize();
 
+            await PopulateNodeVariablesAsync();
             await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
         }
-
-        StateHasChanged();
 
         await Task.CompletedTask;
     }
@@ -771,11 +776,11 @@ else
             if (TableNodeContext != null && _sessionManager != null)
             {
                 TableNodeContext.CurrentPage = _nodeCurrentPage;
+                TableNodeContext.UpdateDisplayFromPageSize();
 
+                await PopulateNodeVariablesAsync();
                 await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             }
-
-            StateHasChanged();
         }
         else
         {
@@ -800,8 +805,6 @@ else
             await _sessionManager.SaveToSessionTableAsync("_nodeStartCell", _nodeStartCell, serialize: false);
             await _sessionManager.SaveToSessionTableAsync("_nodeEndCell", _nodeEndCell, serialize: false);
         }
-
-        StateHasChanged();
 
         await Task.CompletedTask;
     }

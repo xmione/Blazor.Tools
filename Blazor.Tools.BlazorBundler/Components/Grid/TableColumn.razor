@@ -42,6 +42,7 @@
             DisplayFieldName = FieldName;    
         }
 
+        GetExistingNodeValues();
         // Search from TableNodeContext.Columns and add if it does not exist.
         var tableColumnIsNotFound = TableNodeContext?.Columns?.FirstOrDefault(ctx => ctx.Equals(this)) == null;
         if (tableColumnIsNotFound)
@@ -53,6 +54,15 @@
 
         Console.WriteLine("TableColumn OnParametersSetAsync");
 
+    }
+    
+    private void GetExistingNodeValues()
+    {
+        if (TableGridContext != null)
+        {
+            TableNodeContext = TableGridContext?.TableNodeContext ?? default!;
+            TableNodeContext.UpdateFromTableNodeContext();
+        }
     }
 
     protected override bool ShouldRender()

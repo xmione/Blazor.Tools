@@ -101,6 +101,21 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Remove="Components\Grid\AddLookupTableModal.razor" />
+    <None Remove="Components\Grid\AddRowModal.razor" />
+    <None Remove="Components\Grid\DataTableGrid.razor" />
+    <None Remove="Components\Grid\DTSearchBox.razor" />
+    <None Remove="Components\Grid\ExcelUploader.razor" />
+    <None Remove="Components\Grid\ExcelUploaderDetail.razor" />
+    <None Remove="Components\Grid\ExcelUploaderHeader.razor" />
+    <None Remove="Components\Grid\ExcelUploaderTitle.razor" />
+    <None Remove="Components\Grid\SessionDemo.razor" />
+    <None Remove="Components\Grid\SetTargetTableModal.razor" />
+    <None Remove="Components\Grid\TableColumn.razor" />
+    <None Remove="Components\Grid\TableGrid.razor" />
+    <None Remove="Components\Grid\TableNode.razor" />
+    <None Remove="Components\Grid\TableSource.razor" />
+    <None Remove="Components\Grid\TestComponent.razor" />
      
     <!-- Add files in the Components folder-->
     <Content Include="Components\AI\AIChatBot.razor">
