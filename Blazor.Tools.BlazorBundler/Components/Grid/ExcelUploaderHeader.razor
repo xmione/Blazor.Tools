@@ -14,9 +14,8 @@
 
 @code {
     [Parameter] public EventCallback<IBrowserFile> OnFileUpload { get; set; }
-    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
-    private SessionManager? _sessionManager;
+    private SessionManager _sessionManager = SessionManager.Instance;
     private IList<SessionItem>? _sessionItems;
     private BBBrowserFile? _excelFile;
     private bool _isRetrieved;
@@ -38,7 +37,6 @@
             }        
         };
 
-        _sessionManager = SessionManager.GetInstance(_sessionTableService);
         await Task.CompletedTask;
     }
 
@@ -48,7 +46,7 @@
         {
             if (!_isRetrieved && _sessionItems != null)
             {
-                _sessionItems = _sessionManager?.RetrieveSessionListAsync(_sessionItems).Result;
+                _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
                 _excelFile = (BBBrowserFile?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelFile"))?.Value;
 
                 _isRetrieved = true;
@@ -76,11 +74,8 @@
                     ContentType = browserFile.ContentType
                 };
 
-            if (_sessionManager != null)
-            {
-                await _sessionManager.ClearSessionAsync();
-                await _sessionManager.SaveToSessionTableAsync("_excelFile", _excelFile, serialize: true);
-            }
+            await _sessionManager.ClearSessionAsync();
+            await _sessionManager.SaveToSessionTableAsync("_excelFile", _excelFile, serialize: true);
 
             await OnFileUpload.InvokeAsync(_excelFile);
         }

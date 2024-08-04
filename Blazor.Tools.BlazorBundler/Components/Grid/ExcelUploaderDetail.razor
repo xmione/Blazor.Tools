@@ -28,9 +28,11 @@
             {
                 <div class="tab-pane fade show active">
                     <h4>@_selectedTableName</h4>
-                    <DataTableGrid SelectedTable="@_selectedTable"
-                                   AllowCellSelection="true"
-                                   TableList="@_tableList" />
+                    <DataTableGrid
+                        Title="@_selectedTableName"
+                        SelectedTable="@_selectedTable"
+                        AllowCellSelection="true"
+                        TableList="@_tableList" />
                 </div>
             }
             else
@@ -58,13 +60,11 @@ else
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
     [Parameter] public bool IsInterface { get; set; } = false;
 
-    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-
     private DataTable? _selectedTable;
     private string? _selectedTableName;
     private bool _isReceived = false;
     private List<AssemblyTable>? _tableList = null;
-    private SessionManager? _sessionManager;
+    private SessionManager _sessionManager = SessionManager.Instance;
     private bool _isRetrieved = false;
     private IList<SessionItem>? _sessionItems;
 
@@ -176,9 +176,6 @@ else
             }
         }
 
-
-        _sessionManager = SessionManager.GetInstance(_sessionTableService);
-
         await Task.CompletedTask;
     }
 
@@ -186,9 +183,9 @@ else
     {
         try
         {
-            if (!_isRetrieved && _sessionItems != null && _sessionManager != null)
+            if (!_isRetrieved && _sessionItems != null)
             {
-                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
                 ExcelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
                 _selectedTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedTable"))?.Value;
                 _selectedTableName = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedTableName"))?.Value?.ToString();
@@ -210,11 +207,8 @@ else
         _selectedTable = table;
         _selectedTableName = table.TableName;
 
-        if (_sessionManager != null)
-        { 
-            await _sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
-            await _sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTable);
-        }
+        await _sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTable);
 
         StateHasChanged();
     }

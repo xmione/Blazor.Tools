@@ -88,15 +88,13 @@ else
     [Parameter] public bool AllowCellSelection { get; set; } = false;
     [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
-    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-
+    private SessionManager _sessionManager = SessionManager.Instance;
     private bool _renderTable = false; // Flag to control when to render RenderTable()
 
     private Dictionary<string, DataTable> _dataSources = new Dictionary<string, DataTable>();
     private TableGrid TableGridContext = null!;
     private List<TableSource> _tableSources = new List<TableSource>();
     public TableNode? TableNodeContext = default!;
-    private SessionManager? _sessionManager;
     private bool _isRetrieved = false;
     private IList<SessionItem>? _sessionItems;
 
@@ -131,80 +129,115 @@ else
 
     private async Task InitializeVariables()
     {
+        if (DataTable != null)
+        {
+            _nodeDataTable = DataTable;
+            var dataSourceName = DataTable.TableName + "DS";
+            if (TableNodeContext == null)
+            {
+                TableNodeContext = new TableNode()
+                {
+                    DataSource = dataSourceName
+                };
+
+                if (_nodeColumns == null)
+                {
+                    _nodeColumns = new List<TableColumn>();
+                }
+
+                foreach (DataColumn col in DataTable.Columns)
+                {
+                    var tableColumn = new TableColumn()
+                        {
+                            DataSourceName = dataSourceName,
+                            FieldName = col.ColumnName,
+                            Type = "TextBox"
+                        };
+
+                    _nodeColumns.Add(tableColumn);
+                    TableNodeContext.AddColumn(tableColumn);
+                }
+
+                TableNodeContext.Columns = _nodeColumns;
+                TableNodeContext.UpdateDisplayFromPageSize();
+                TableNodeContext.UpdateFromTableNodeContext();
+            }
+
+            
+        }
 
         _sessionItems = new List<SessionItem>
             {
                 new SessionItem()
                 {
-                    Key = "_nodeDataTable", Value = _nodeDataTable, Type = typeof(DataTable), Serialize = true
+                    Key = $"{Title}_nodeDataTable", Value = _nodeDataTable, Type = typeof(DataTable), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeFilteredItems", Value = _nodeFilteredItems, Type = typeof(int), Serialize = true
+                    Key = $"{Title}_nodeFilteredItems", Value = _nodeFilteredItems, Type = typeof(int), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeTotalItems", Value = _nodeTotalItems, Type = typeof(int), Serialize = true
+                    Key = $"{Title}_nodeTotalItems", Value = _nodeTotalItems, Type = typeof(int), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeTotalPages", Value = _nodeTotalPages, Type = typeof(int), Serialize = true
+                    Key = $"{Title}_nodeTotalPages", Value = _nodeTotalPages, Type = typeof(int), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeCurrentPage", Value = _nodeCurrentPage, Type = typeof(int), Serialize = true
+                    Key = $"{Title}_nodeCurrentPage", Value = _nodeCurrentPage, Type = typeof(int), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodePageSize", Value = _nodePageSize, Type = typeof(int), Serialize = true
+                    Key = $"{Title}_nodePageSize", Value = _nodePageSize, Type = typeof(int), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeStartCell", Value = _nodeStartCell, Type = typeof(string), Serialize = false
+                    Key = $"{Title}_nodeStartCell", Value = _nodeStartCell, Type = typeof(string), Serialize = false
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeEndCell", Value = _nodeEndCell, Type = typeof(string), Serialize = false
+                    Key = $"{Title}_nodeEndCell", Value = _nodeEndCell, Type = typeof(string), Serialize = false
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeShowAddRowModal", Value = _nodeShowAddRowModal, Type = typeof(bool), Serialize = true
+                    Key = $"{Title}_nodeShowAddRowModal", Value = _nodeShowAddRowModal, Type = typeof(bool), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeNewRowData", Value = _nodeNewRowData, Type = typeof(DataRow), Serialize = true
+                    Key = $"{Title}_nodeNewRowData", Value = _nodeNewRowData, Type = typeof(DataRow), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeColumns", Value = _nodeColumns, Type = typeof(List<TableColumn>), Serialize = true
+                    Key = $"{Title}_nodeColumns", Value = _nodeColumns, Type = typeof(List<TableColumn>), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodePagedRows", Value = _nodePagedRows, Type = typeof(IEnumerable<DataRow>), Serialize = true
+                    Key = $"{Title}_nodePagedRows", Value = _nodePagedRows, Type = typeof(IEnumerable<DataRow>), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeIsEditing", Value = _nodeIsEditing, Type = typeof(bool), Serialize = true
+                    Key = $"{Title}_nodeIsEditing", Value = _nodeIsEditing, Type = typeof(bool), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeEditedRow", Value = _nodeEditedRow, Type = typeof(DataRow), Serialize = true
+                    Key = $"{Title}_nodeEditedRow", Value = _nodeEditedRow, Type = typeof(DataRow), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeEditValues", Value = _nodeEditValues, Type = typeof(Dictionary<string, object>), Serialize = true
+                    Key = $"{Title}_nodeEditValues", Value = _nodeEditValues, Type = typeof(Dictionary<string, object>), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeIsFirstCellClicked", Value = _nodeIsFirstCellClicked, Type = typeof(bool), Serialize = true
+                    Key = $"{Title}_nodeIsFirstCellClicked", Value = _nodeIsFirstCellClicked, Type = typeof(bool), Serialize = true
                 },
                 new SessionItem()
                 {
-                    Key = "_nodeSelectedData", Value = _nodeSelectedData, Type = typeof(DataRow[]), Serialize = true
+                    Key = $"{Title}_nodeSelectedData", Value = _nodeSelectedData, Type = typeof(DataRow[]), Serialize = true
                 }
             };
 
-        _sessionManager = SessionManager.GetInstance(_sessionTableService);
         TableNodeContext = new TableNode();
 
         _nodeCurrentPage = 1;
@@ -216,11 +249,10 @@ else
     {
         try
         {
-            if (!_isRetrieved && _sessionItems != null && _sessionManager != null)
+            if (!_isRetrieved && _sessionItems != null)
             {
-                _sessionItems = _sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+                _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
                 await PopulateNodeVariablesAsync();
-
             }
         }
         catch (Exception ex)
@@ -235,29 +267,30 @@ else
     {
         if (!_isRetrieved)
         {
-            _nodeDataTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeDataTable"))?.Value;
-            _nodeFilteredItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeFilteredItems"))?.Value?.ToString(), out int _nodeFilteredItemsResult) ? _nodeFilteredItemsResult : 0;
-            _nodeTotalItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeTotalItems"))?.Value?.ToString(), out int _nodeTotalItemsResult) ? _nodeTotalItemsResult : 0;
-            _nodeTotalPages = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeTotalPages"))?.Value?.ToString(), out int _nodeTotalPagesResult) ? _nodeTotalPagesResult : 0;
-            _nodeCurrentPage = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeCurrentPage"))?.Value?.ToString(), out int _nodeCurrentPageResult) ? _nodeCurrentPageResult : 1;
-            _nodeStartCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeStartCell"))?.Value?.ToString() ?? string.Empty;
-            _nodeEndCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeEndCell"))?.Value?.ToString() ?? string.Empty;
-            _nodeShowAddRowModal = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeShowAddRowModal"))?.Value ?? false;
-            _nodeNewRowData = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeNewRowData"))?.Value;
-            _nodeColumns = (List<TableColumn>)(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeColumns"))?.Value ?? new List<TableColumn>());
-            _nodePagedRows = (IEnumerable<DataRow>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodePagedRows"))?.Value;
-            _nodePageSize = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodePageSize"))?.Value?.ToString(), out int _nodePageSizeResult) ? _nodePageSizeResult : 0;
-            _nodeIsEditing = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeIsEditing"))?.Value ?? false;
-            _nodeEditedRow = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeEditedRow"))?.Value;
-            _nodeEditValues = (Dictionary<string, object>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeEditValues"))?.Value;
-            _nodeIsFirstCellClicked = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeIsFirstCellClicked"))?.Value ?? false;
-            _nodeSelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_nodeSelectedData"))?.Value;
+            _nodeDataTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeDataTable"))?.Value;
+            _nodeFilteredItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeFilteredItems"))?.Value?.ToString(), out int _nodeFilteredItemsResult) ? _nodeFilteredItemsResult : 0;
+            _nodeTotalItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeTotalItems"))?.Value?.ToString(), out int _nodeTotalItemsResult) ? _nodeTotalItemsResult : 0;
+            _nodeTotalPages = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeTotalPages"))?.Value?.ToString(), out int _nodeTotalPagesResult) ? _nodeTotalPagesResult : 0;
+            _nodeCurrentPage = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeCurrentPage"))?.Value?.ToString(), out int _nodeCurrentPageResult) ? _nodeCurrentPageResult : 1;
+            _nodeStartCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeStartCell"))?.Value?.ToString() ?? string.Empty;
+            _nodeEndCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEndCell"))?.Value?.ToString() ?? string.Empty;
+            _nodeShowAddRowModal = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeShowAddRowModal"))?.Value ?? false;
+            _nodeNewRowData = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeNewRowData"))?.Value;
+            _nodeColumns = (List<TableColumn>)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeColumns"))?.Value ?? _nodeColumns);
+            _nodePagedRows = (IEnumerable<DataRow>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodePagedRows"))?.Value;
+            _nodePageSize = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodePageSize"))?.Value?.ToString(), out int _nodePageSizeResult) ? _nodePageSizeResult : 0;
+            _nodeIsEditing = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeIsEditing"))?.Value ?? false;
+            _nodeEditedRow = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEditedRow"))?.Value;
+            _nodeEditValues = (Dictionary<string, object>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEditValues"))?.Value;
+            _nodeIsFirstCellClicked = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeIsFirstCellClicked"))?.Value ?? false;
+            _nodeSelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeSelectedData"))?.Value;
 
             _isRetrieved = true;
-            TableNodeContext._shouldRender = false;
-
+            
             if (TableNodeContext != null)
             {
+                TableNodeContext._shouldRender = false;
+
                 TableNodeContext.DataTable = _nodeDataTable ?? new DataTable();
                 TableNodeContext.FilteredItems = _nodeFilteredItems;
                 TableNodeContext.TotalItems = _nodeTotalItems;
@@ -435,7 +468,6 @@ else
                     builder.CloseElement(); // tr
                 }
             }
-
         }
 
         builder.CloseElement(); // tbody
@@ -518,11 +550,11 @@ else
         if (_nodeDataTable != null && row != null)
         {
             _nodeDataTable.Rows.Remove(row);
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.DataTable = _nodeDataTable;
 
-                await _sessionManager.SaveToSessionTableAsync("_nodeDataTable", _nodeDataTable, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
             }
 
             StateHasChanged(); // Refresh UI after deleting row
@@ -543,15 +575,15 @@ else
             _nodeEditedRow = default!;
             _nodeIsEditing = false;
 
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.DataTable = _nodeDataTable;
                 TableNodeContext.EditedRow = _nodeEditedRow;
                 TableNodeContext.IsEditing = _nodeIsEditing;
 
-                await _sessionManager.SaveToSessionTableAsync("_nodeDataTable", _nodeDataTable, serialize: true);
-                await _sessionManager.SaveToSessionTableAsync("_nodeEditedRow", _nodeEditedRow, serialize: true);
-                await _sessionManager.SaveToSessionTableAsync("_nodeIsEditing", _nodeIsEditing, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEditedRow", _nodeEditedRow, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsEditing", _nodeIsEditing, serialize: true);
             }
 
             StateHasChanged();
@@ -667,11 +699,11 @@ else
         {
             _nodeNewRowData = _nodeDataTable.NewRow();
 
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.NewRowData = _nodeNewRowData;
 
-                await _sessionManager.SaveToSessionTableAsync("_nodeNewRowData", _nodeNewRowData, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeNewRowData", _nodeNewRowData, serialize: true);
             }
 
             _nodeShowAddRowModal = true;
@@ -686,7 +718,7 @@ else
         _nodePageSize = Convert.ToInt32(e.Value);
         _nodeCurrentPage = 1; // Reset to first page when changing page size
 
-        if (TableNodeContext != null && _sessionManager != null)
+        if (TableNodeContext != null)
         {
             TableNodeContext.PageSize = _nodePageSize;
             TableNodeContext.CurrentPage = _nodeCurrentPage;
@@ -703,7 +735,7 @@ else
     {
         _nodeCurrentPage = 1;
 
-        if (TableNodeContext != null && _sessionManager != null)
+        if (TableNodeContext != null)
         {
             TableNodeContext.CurrentPage = _nodeCurrentPage;
             TableNodeContext.UpdateDisplayFromPageSize();
@@ -720,7 +752,7 @@ else
         if (_nodeCurrentPage > 1)
         {
             _nodeCurrentPage--;
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.CurrentPage = _nodeCurrentPage;
                 TableNodeContext.UpdateDisplayFromPageSize();
@@ -740,7 +772,7 @@ else
         {
             _nodeCurrentPage++;
 
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.CurrentPage = _nodeCurrentPage;
                 TableNodeContext.UpdateDisplayFromPageSize();
@@ -757,7 +789,7 @@ else
     {
         _nodeCurrentPage = _nodeTotalPages;
 
-        if (TableNodeContext != null && _sessionManager != null)
+        if (TableNodeContext != null)
         {
             TableNodeContext.CurrentPage = _nodeCurrentPage;
             TableNodeContext.UpdateDisplayFromPageSize();
@@ -773,7 +805,7 @@ else
     {
         if (_nodeCurrentPage >= 1 && _nodeCurrentPage <= _nodeTotalPages)
         {
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.CurrentPage = _nodeCurrentPage;
                 TableNodeContext.UpdateDisplayFromPageSize();
@@ -797,7 +829,7 @@ else
         _nodeStartCell = string.Empty;
         _nodeEndCell = string.Empty;
 
-        if (TableNodeContext != null && _sessionManager != null)
+        if (TableNodeContext != null)
         {
             TableNodeContext.StartCell = _nodeStartCell;
             TableNodeContext.EndCell = _nodeEndCell;
@@ -846,7 +878,7 @@ else
 
             _nodeDataTable.Rows.Add(newRow);
 
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.DataTable = _nodeDataTable;
 
@@ -885,12 +917,9 @@ else
             TableNodeContext.EndCell = _nodeEndCell;
             TableNodeContext.IsFirstCellClicked = _nodeIsFirstCellClicked;
 
-            if (_sessionManager != null)
-            { 
-                await _sessionManager.SaveToSessionTableAsync("_nodeStartCell", _nodeStartCell, serialize: false);
-                await _sessionManager.SaveToSessionTableAsync("_nodeEndCell", _nodeEndCell, serialize: false);
-                await _sessionManager.SaveToSessionTableAsync("_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
-            }
+            await _sessionManager.SaveToSessionTableAsync("_nodeStartCell", _nodeStartCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync("_nodeEndCell", _nodeEndCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync("_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
         }
 
         StateHasChanged(); // Refresh UI to reflect the changes in cell selection
@@ -902,7 +931,7 @@ else
     {
         _nodeSelectedData = selectedData;
 
-        if (TableNodeContext != null && _sessionManager != null) 
+        if (TableNodeContext != null) 
         {
             TableNodeContext.SelectedData = _nodeSelectedData;
             TableNodeContext.StartCell = _nodeStartCell;
@@ -932,7 +961,7 @@ else
 
             _nodeSelectedData = GetDataInRange(startRow, startCol, endRow, endCol);
 
-            if (TableNodeContext != null && _sessionManager != null)
+            if (TableNodeContext != null)
             {
                 TableNodeContext.SelectedData = _nodeSelectedData;
 

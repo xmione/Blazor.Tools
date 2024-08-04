@@ -42,14 +42,13 @@
     [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
     [Parameter] public bool IsInterface { get; set; } = false;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
-    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private bool _isUploaded = false;
     private static DataSet? _excelDataSet;
     private ExcelProcessor? _excelProcessor;
     private bool _isRetrieved = false;
     private string? _connectionString;
-    private SessionManager? _sessionManager;
+    private SessionManager _sessionManager = SessionManager.Instance;
 
     private IList<SessionItem>? _sessionItems;
 
@@ -72,8 +71,6 @@
             }
         };
 
-        _sessionManager = SessionManager.GetInstance(_sessionTableService);
-
         await Task.CompletedTask;
     }
 
@@ -81,7 +78,7 @@
     {
         try
         {
-            if (!_isRetrieved && _sessionItems != null && _sessionManager != null)
+            if (!_isRetrieved && _sessionItems != null)
             {
                 _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
                 _excelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
@@ -118,7 +115,7 @@
                     }
                 }
 
-                if (_excelProcessor != null && _sessionManager != null)
+                if (_excelProcessor != null)
                 {
                     _excelDataSet = await _excelProcessor.ReadExcelDataAsync(tempFilePath);
                     await _sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);

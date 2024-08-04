@@ -122,7 +122,7 @@
                         @foreach (DataColumn sourceFieldCol in SelectedData[0].Table.Columns)
                         {
                             var sourceFieldColName = sourceFieldCol.ColumnName;
-                            <option value="@sourceFieldColName">@sourceFieldColName</option>
+                            <option value="@sourceFieldColName" selected="@(_selectedSourceField?.Equals(sourceFieldColName))">@sourceFieldColName</option>
                         }
                         </select>
                     }
@@ -213,8 +213,8 @@
 @if (_showForeignTableSearchFieldsModal)
 {
     <AddLookupTableModal 
+        Tag="@_tag"
         ShowSearchFieldsModal="@_showForeignTableSearchFieldsModal" 
-        SelectedTable="@_searchFieldsTable" 
         OnSave="SaveSearchFieldsAsync" 
         OnClose="CloseSearchFieldsEntryModalAsync" 
         TableList="@TableList"
@@ -222,6 +222,7 @@
 }
 
 @code {
+    [Parameter] public string Title { get; set; } = "Sample Table";
     [Parameter] public bool ShowSetTargetTableModal { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<List<TargetTable>> OnSave { get; set; }
@@ -230,14 +231,12 @@
     [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
     [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
-    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
-    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-
-    private SessionManager _sessionManager = default!;
+    private SessionManager _sessionManager = SessionManager.Instance;
+    private string? _tag;
     private int _selectedTableID;
     private int _selectedLookupTableID;
     private string? _selectedTableValue;
-    private string? _selectedCheckOnTableValue;
+    private string? _selectedLookupTableValue;
     private string? _selectedFieldValue;
     private string? _selectedPrimaryKeyFieldValue;
     private string? _selectedForeignKeyFieldValue;
@@ -265,29 +264,58 @@
 
         await base.OnParametersSetAsync();
     }
+
     private async Task InitializeVariables()
-    {
-        _sessionManager = SessionManager.GetInstance(_sessionTableService);
+    { 
         _sessionItems = new List<SessionItem>
         {
             new SessionItem()
             {
-                Key = "_selectedData", Value = SelectedData, Type = typeof(DataRow[]), Serialize = true
+                Key = $"{Title}_selectedData", Value = SelectedData, Type = typeof(DataRow[]), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_uniqueField", Value = _uniqueField, Type = typeof(string), Serialize = true
+                Key = $"{Title}_uniqueField", Value = _uniqueField, Type = typeof(string), Serialize = false
             },
             new SessionItem()
             {
-                Key = "_targetTableColumnList", Value = _targetTableColumnList, Type = typeof(List<TargetTableColumn>), Serialize = true
+                Key = $"{Title}_selectedSourceField", Value = _selectedSourceField, Type = typeof(string), Serialize = false
             },
             new SessionItem()
             {
-                Key = "_columnProperties", Value = _columnProperties, Type = typeof(List<string>), Serialize = true
+                Key = $"{Title}_selectedTableID", Value = _selectedTableID, Type = typeof(int), Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_selectedTableValue", Value = _selectedTableValue, Type = typeof(string), Serialize = false
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_selectedFieldValue", Value = _selectedFieldValue, Type = typeof(string), Serialize = false
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_selectedLookupTableID", Value = _selectedLookupTableID, Type = typeof(int), Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_selectedLookupTableValue", Value = _selectedLookupTableValue, Type = typeof(string), Serialize = false
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_targetTableColumnList", Value = _targetTableColumnList, Type = typeof(List<TargetTableColumn>), Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_columnProperties", Value = _columnProperties, Type = typeof(List<string>), Serialize = true
+            },
+            new SessionItem()
+            {
+                Key = $"{Title}_showForeignTableSearchFieldsModal", Value = _showForeignTableSearchFieldsModal, Type = typeof(bool), Serialize = true
             }
         };
 
+        _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
         await Task.CompletedTask;
     }
 
@@ -295,14 +323,22 @@
     {
         try
         {
-            if (!_isRetrieved && _sessionItems != null && _sessionManager != null)
+            if (!_isRetrieved && _sessionItems != null)
             {
                 _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-                SelectedData = (DataRow[]?)_sessionItems.FirstOrDefault(s => s.Key.Equals("_selectedData"))?.Value;
-                _uniqueField = _sessionItems.FirstOrDefault(s => s.Key.Equals("_uniqueField"))?.Value?.ToString() ?? string.Empty;
-                _targetTableColumnList = (List<TargetTableColumn>?)_sessionItems.FirstOrDefault(s => s.Key.Equals("_targetTableColumnList"))?.Value;
-                _columnProperties = (List<string>?)_sessionItems.FirstOrDefault(s => s.Key.Equals("_columnProperties"))?.Value;
+                SelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
+                _uniqueField = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_uniqueField"))?.Value?.ToString() ?? string.Empty;
+                _selectedSourceField = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedSourceField"))?.Value?.ToString() ?? string.Empty;
+                _selectedTableID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedTableID"))?.Value?.ToString(), out int selectedTableIDResult) ? selectedTableIDResult : 0;
+                _selectedTableValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedTableValue"))?.Value?.ToString() ?? string.Empty;
+                _selectedFieldValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedFieldValue"))?.Value?.ToString() ?? string.Empty;
+                _selectedLookupTableID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedLookupTableID"))?.Value?.ToString(), out int selectedLookupTableIDResult) ? selectedLookupTableIDResult : 0;
+                _selectedLookupTableValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedLookupTableValue"))?.Value?.ToString() ?? string.Empty;
+                _targetTableColumnList = (List<TargetTableColumn>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTableColumnList"))?.Value;
+                _columnProperties = (List<string>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_columnProperties"))?.Value;
+                _showForeignTableSearchFieldsModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_showForeignTableSearchFieldsModal"))?.Value ?? false);
 
+                _tag = $"{_selectedTableValue}-{_selectedFieldValue}"; 
                 _isRetrieved = true;
                 StateHasChanged();
             }
@@ -363,6 +399,7 @@
     private async Task OnSourceFieldValueChanged(ChangeEventArgs e)
     {
         _selectedSourceField = e?.Value?.ToString() ?? string.Empty;
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedSourceField", _selectedSourceField);
         await Task.CompletedTask;
     }
 
@@ -372,15 +409,18 @@
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
         _selectedTableID = selectedIntValue;
 
-        var selectedTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
+        _selectedTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedFieldValue = string.Empty;
+        _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
 
         // Handle the selected value here
         Console.WriteLine("selectedValue: {0}", _selectedTableID);
 
-        //await _sessionManager.SaveToSessionTableAsync("_selectedTableValue", _selectedTableValue);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableID", _selectedTableID, serialize:true);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableValue", _selectedTableValue);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedFieldValue", _selectedFieldValue);
 
         await Task.CompletedTask;
     }
@@ -390,14 +430,17 @@
         // Parse selected value from int to TableEnum
         int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
         _selectedLookupTableID = selectedIntValue;
-        _selectedCheckOnTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
+        _selectedLookupTableValue = TableList?.FirstOrDefault( t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
 
         // Reset selected field value when table value changes
         _selectedPrimaryKeyFieldValue = string.Empty;
+        _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
 
         // Handle the selected value here
         Console.WriteLine("selectedValue: {0}", _selectedLookupTableID);
 
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedLookupTableID", _selectedLookupTableID, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedLookupTableValue", _selectedLookupTableValue, serialize: true);
         await Task.CompletedTask;
     }
 
@@ -405,21 +448,22 @@
     {
         _selectedTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
         _selectedFieldValue = e?.Value?.ToString() ?? string.Empty;
+        _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
 
-        //await _sessionManager.SaveToSessionTableAsync("_selectedFieldValue", _selectedFieldValue);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedFieldValue", _selectedFieldValue);
         await Task.CompletedTask;
     }
 
     private async Task OnPrimaryKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
+        _selectedLookupTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
         _selectedPrimaryKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
 
     private async Task OnForeignKeyFieldChanged(ChangeEventArgs e)
     {
-        _selectedCheckOnTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
+        _selectedLookupTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
         _selectedForeignKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
         await Task.CompletedTask;
     }
@@ -437,8 +481,8 @@
         var sourceFieldName = _selectedSourceField ?? string.Empty;
         var targetTableName = _selectedTableValue ?? string.Empty;
         var targetFieldName = _selectedFieldValue ?? string.Empty;
-        var checkOnTableName = _selectedCheckOnTableValue ?? string.Empty;
-        
+        var checkOnTableName = _selectedLookupTableValue ?? string.Empty;
+
         Type dataType = typeof(object);
         if (!string.IsNullOrEmpty(_selectedSourceField) && SelectedData?.Length > 0 && SelectedData[0].Table.Columns.Contains(_selectedSourceField))
         {
@@ -474,8 +518,8 @@
             _columnProperties = new List<string>();
         }
 
-        // await _sessionManager.SaveToSessionTableAsync("_targetTableColumnList", _targetTableColumnList, serialize: true);
-        // await _sessionManager.SaveToSessionTableAsync("_columnProperties", _columnProperties, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTableColumnList", _targetTableColumnList, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_columnProperties", _columnProperties, serialize: true);
         await SetTargetTableColumnList.InvokeAsync(_targetTableColumnList);
         StateHasChanged();
     }
@@ -488,7 +532,7 @@
         return properties;
 
     }
-     
+
     private IEnumerable<DataRow> ApplyFilterSelectedData()
     {
         if (string.IsNullOrWhiteSpace(_searchQuerySelectedData))
@@ -606,7 +650,7 @@
     {
         _uniqueField = e?.Value?.ToString() ?? string.Empty;
 
-        //await _sessionManager.SaveToSessionTableAsync("_uniqueField", _uniqueField, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_uniqueField", _uniqueField);
         await DataCombAsync();
 
     }
@@ -705,12 +749,8 @@
     private async Task AddLookupTableAsync()
     {
         _showForeignTableSearchFieldsModal = true;
-        if (_searchFieldsTable == null)
-        {
-            var searchField = new SearchField();
-            _searchFieldsTable = searchField.ToDataTable<SearchField>();
-        }
-
+        
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_showForeignTableSearchFieldsModal", _showForeignTableSearchFieldsModal, serialize: true);
         StateHasChanged();
         await Task.CompletedTask;
     }

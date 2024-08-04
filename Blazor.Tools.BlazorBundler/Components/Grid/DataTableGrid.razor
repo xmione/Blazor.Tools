@@ -43,14 +43,16 @@
 <!-- Set Target Table Modal -->
 @if (_showSetTargetTableModal)
 {
-    <SetTargetTableModal ShowSetTargetTableModal="_showSetTargetTableModal"
-                         OnClose="CloseSetTargetTableModal"
-                         OnSave="SaveToTargetTableAsync"
-                         SelectedData="@_selectedData"
-                         OnSelectedDataComb="HandleSelectedDataComb"
-                         SetTargetTableColumnList ="HandleSetTargetTableColumnList"
-                         TableList="@TableList"
-                         />
+    <SetTargetTableModal 
+        Title="@Title"
+        ShowSetTargetTableModal="_showSetTargetTableModal"
+        OnClose="CloseSetTargetTableModal"
+        OnSave="SaveToTargetTableAsync"
+        SelectedData="@_selectedData"
+        OnSelectedDataComb="HandleSelectedDataComb"
+        SetTargetTableColumnList ="HandleSetTargetTableColumnList"
+        TableList="@TableList"
+        />
 }
 
 @code {
@@ -65,7 +67,7 @@
     private bool _showSetTargetTableModal = false;
     private DataRow[]? _selectedData = default!;
     private string _selectedFieldValue = string.Empty;
-    private SessionManager? _sessionManager;
+    private SessionManager _sessionManager = SessionManager.Instance;
     private bool _isRetrieved = false;
     private TableGrid _tableGrid = default!;
 
@@ -88,23 +90,22 @@
         {
             new SessionItem()
             {
-                Key = "_selectedData", Value = _selectedData, Type = typeof(DataRow[]), Serialize = true
+                Key = $"{Title}_selectedData", Value = _selectedData, Type = typeof(DataRow[]), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_targetTables", Value = _targetTables, Type = typeof(List<TargetTable>), Serialize = true
+                Key = $"{Title}_targetTables", Value = _targetTables, Type = typeof(List<TargetTable>), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_tableSourceName", Value = _tableSourceName, Type = typeof(string), Serialize = true
+                Key = $"{Title}_tableSourceName", Value = _tableSourceName, Type = typeof(string), Serialize = true
             },
             new SessionItem()
             {
-                Key = "_showSetTargetTableModal", Value = _showSetTargetTableModal, Type = typeof(bool), Serialize = true
+                Key = $"{Title}_showSetTargetTableModal", Value = _showSetTargetTableModal, Type = typeof(bool), Serialize = true
             }
         };
 
-        _sessionManager = SessionManager.GetInstance(_sessionTableService);
         await Task.CompletedTask;
     }
 
@@ -114,10 +115,10 @@
         {
             if (!_isRetrieved && _sessionItems != null)
             {
-                _sessionItems = _sessionManager?.RetrieveSessionListAsync(_sessionItems).Result;
-                _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedData"))?.Value;
-                _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_targetTables"))?.Value;
-                _showSetTargetTableModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals("_showSetTargetTableModal"))?.Value ?? false);
+                _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
+                _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
+                _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTables"))?.Value;
+                _showSetTargetTableModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_showSetTargetTableModal"))?.Value ?? false);
 
                 _isRetrieved = true;
                 StateHasChanged();
@@ -142,10 +143,7 @@
         CloseSetTargetTableModal();
 
         _targetTables = targetTables;
-        if (_sessionManager != null)
-        {
-            await _sessionManager.SaveToSessionTableAsync("_targetTables", _targetTables, serialize: true);
-        }
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTables", _targetTables, serialize: true);
 
         StateHasChanged(); 
 
@@ -156,11 +154,8 @@
     {
         _selectedData = selectedData;
 
-        if (_sessionManager != null)
-        {
-            await _sessionManager.SaveToSessionTableAsync("_selectedData", _selectedData, serialize: true);
-            await _tableGrid.HandleSelectedDataComb(selectedData);
-        }
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+        await _tableGrid.HandleSelectedDataComb(selectedData);
         
         StateHasChanged(); 
 
@@ -188,6 +183,8 @@
             _showSetTargetTableModal = false;   
         }
 
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+        await _sessionManager.SaveToSessionTableAsync($"{Title}_showSetTargetTableModal", _showSetTargetTableModal, serialize: true);
         StateHasChanged(); 
     }
 
