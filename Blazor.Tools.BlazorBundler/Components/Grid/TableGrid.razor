@@ -299,7 +299,7 @@ else
             _nodeSelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeSelectedData"))?.Value ?? _nodeSelectedData;
 
             _isRetrieved = true;
-            
+
             if (TableNodeContext != null)
             {
                 TableNodeContext._shouldRender = false;
@@ -1021,7 +1021,7 @@ else
 
         return dataInRange.ToArray();
     }
-     
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -1031,6 +1031,43 @@ else
             StateHasChanged();
         }
 
+        var nodeValues = new Dictionary<string, object?>
+        {
+            { $"{Title}_nodeDataTable", _nodeDataTable },
+            { $"{Title}_nodeFilteredItems", _nodeFilteredItems },
+            { $"{Title}_nodeTotalItems", _nodeTotalItems },
+            { $"{Title}_nodeTotalPages", _nodeTotalPages },
+            { $"{Title}_nodeCurrentPage", _nodeCurrentPage },
+            { $"{Title}_nodeStartCell", _nodeStartCell },
+            { $"{Title}_nodeEndCell", _nodeEndCell },
+            { $"{Title}_nodeShowAddRowModal", _nodeShowAddRowModal },
+            { $"{Title}_nodeNewRowData", _nodeNewRowData },
+            { $"{Title}_nodeColumns", _nodeColumns },
+            { $"{Title}_nodePagedRows", _nodePagedRows },
+            { $"{Title}_nodePageSize", _nodePageSize },
+            { $"{Title}_nodeIsEditing", _nodeIsEditing },
+            { $"{Title}_nodeEditedRow", _nodeEditedRow },
+            { $"{Title}_nodeEditValues", _nodeEditValues },
+            { $"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked },
+            { $"{Title}_nodeSelectedData", _nodeSelectedData }
+        };
+
+        // Update the SessionItems with new values
+        foreach (var item in _sessionItems)
+        {
+            if (nodeValues.TryGetValue(item.Key, out var newValue))
+            {
+                item.Value = newValue;
+            }
+            else
+            {
+                throw new Exception($"Unrecognized session item key: {item.Key}");
+            }
+        }
+
+        List<SessionItem> sessionItems = _sessionItems.ToList();
+
+        await _sessionManager.SaveToSessionTableAsync<List<SessionItem>>(sessionItems);
         await Task.CompletedTask;
     }
 }

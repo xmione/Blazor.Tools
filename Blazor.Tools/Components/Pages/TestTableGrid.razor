@@ -1,17 +1,19 @@
 ﻿@page "/test-table-grid"
 @rendermode InteractiveServer
 @* 
+@using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.Components.Grid
 @using Bogus
 @using System.Data
 
 @inject NavigationManager Navigation
- *@
+
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
 @* <TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  /> *@
-@* <TableGrid Title="Employees" AllowCellSelection="true">
+<TableGrid Title="Employees" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
     <TableNode DataSource="EmployeeDS">
@@ -32,15 +34,19 @@
 
 @code {
 
+    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+
     private DataTable _employees = default!;
     private DataTable _countries = default!;
     private List<string>? _hiddenCountryColumns;
     private Dictionary<string, string>? _employeeHeaderNames;
     private Dictionary<string, string>? _countryHeaderNames;
+    
+
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
-
+        SessionManager.GetInstance(_sessionTableService);
         // Initialize _employees DataTable
 
         _employeeHeaderNames = new Dictionary<string, string>()
