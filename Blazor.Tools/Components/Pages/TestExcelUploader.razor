@@ -11,9 +11,7 @@
                IsInterface="true" />
 
 @code {
-    //[Inject] public ICommonService<SessionTable, ISessionTable, IReportItem> _sessionTableService { get; set; } = default!;
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-    //[Inject] public SessionTable _sessionTable { get; set; } = default!;
     private string _modelsAssemblyPath = string.Empty;
     private string _servicesAssemblyPath = string.Empty;
     private IList<SessionItem> _sessionItems = new List<SessionItem>
@@ -30,21 +28,20 @@
 
     private bool _isRetrieved = false;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        base.OnParametersSet();
+        await base.OnParametersSetAsync();
 
         var sessionManager = SessionManager.GetInstance(_sessionTableService);
 
         if (!_isRetrieved)
         {
-            _sessionItems = sessionManager.RetrieveSessionListAsync(_sessionItems).Result;
+            _sessionItems = await sessionManager.RetrieveSessionListAsync(_sessionItems);
             _modelsAssemblyPath = _sessionItems?.FirstOrDefault(s=> s.Key.Equals("_modelsAssemblyPath"))?.Value?.ToString() ?? string.Empty;
             _servicesAssemblyPath = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_servicesAssemblyPath"))?.Value?.ToString() ?? string.Empty;
 
             _isRetrieved = true;
             StateHasChanged();
         }
-         
     }
 } *@

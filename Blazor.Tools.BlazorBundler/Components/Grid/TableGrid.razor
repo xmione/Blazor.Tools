@@ -20,7 +20,11 @@ else
 {
     @RenderTable
 
-    <Icon Name="IconName.PlusCircleFill" @onclick="ShowAddRowModalAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />
+    if(_showAddButton)
+    {
+        <Icon Name="IconName.PlusCircleFill" @onclick="ShowAddRowModalAsync" class="text-success icon-button mb-2 cursor-pointer" title="Add" />        
+    }
+
 
     <div>        
         <div class="pagination-container">
@@ -85,8 +89,9 @@ else
     [Parameter] public string Title { get; set; } = "Sample Table";
     [Parameter] public RenderFragment ChildContent { get; set; } = null!;
     [Parameter] public DataTable DataTable { get; set; } = null!;
+    [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
+    [Parameter] public Dictionary<string, string>? HeaderNames { get; set; } = default!;
     [Parameter] public bool AllowCellSelection { get; set; } = false;
-    [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
 
     private SessionManager _sessionManager = SessionManager.Instance;
     private bool _renderTable = false; // Flag to control when to render RenderTable()
@@ -97,7 +102,7 @@ else
     public TableNode? TableNodeContext = default!;
     private bool _isRetrieved = false;
     private IList<SessionItem>? _sessionItems;
-
+    private bool _showAddButton = true;
     // _node variables
     private DataTable? _nodeDataTable;
     private int _nodeFilteredItems;
@@ -129,43 +134,6 @@ else
 
     private async Task InitializeVariables()
     {
-        if (DataTable != null)
-        {
-            _nodeDataTable = DataTable;
-            var dataSourceName = DataTable.TableName + "DS";
-            if (TableNodeContext == null)
-            {
-                TableNodeContext = new TableNode()
-                {
-                    DataSource = dataSourceName
-                };
-
-                if (_nodeColumns == null)
-                {
-                    _nodeColumns = new List<TableColumn>();
-                }
-
-                foreach (DataColumn col in DataTable.Columns)
-                {
-                    var tableColumn = new TableColumn()
-                        {
-                            DataSourceName = dataSourceName,
-                            FieldName = col.ColumnName,
-                            Type = "TextBox"
-                        };
-
-                    _nodeColumns.Add(tableColumn);
-                    TableNodeContext.AddColumn(tableColumn);
-                }
-
-                TableNodeContext.Columns = _nodeColumns;
-                TableNodeContext.UpdateDisplayFromPageSize();
-                TableNodeContext.UpdateFromTableNodeContext();
-            }
-
-            
-        }
-
         _sessionItems = new List<SessionItem>
             {
                 new SessionItem()
@@ -242,6 +210,51 @@ else
 
         _nodeCurrentPage = 1;
 
+        if (DataTable != null)
+        {
+            _nodeDataTable = DataTable;
+            var dataSourceName = DataTable.TableName + "DS";
+
+            RegisterDataSource(dataSourceName, DataTable);
+            TableNodeContext.DataSource = dataSourceName;
+
+            if (_nodeColumns == null)
+            {
+                _nodeColumns = new List<TableColumn>();
+            }
+
+            bool useHeaderNames = HeaderNames != null;
+            foreach (DataColumn col in DataTable.Columns)
+            {
+                string? headerName = string.Empty;
+                HeaderNames?.TryGetValue(col.ColumnName, out headerName);
+                headerName = useHeaderNames ? headerName : col?.ColumnName;
+                bool visible = HiddenColumnNames?.FirstOrDefault(h => h.Equals(col?.ColumnName)) == null;
+                var tableColumn = new TableColumn()
+                    {
+                        DataSourceName = dataSourceName,
+                        FieldName = col.ColumnName,
+                        HeaderName = headerName,
+                        Type = "TextBox",
+                        Visible = visible
+                    };
+
+                tableColumn.SetDataSource(DataTable);
+                _nodeColumns.Add(tableColumn);
+                TableNodeContext.AddColumn(tableColumn);
+            }
+
+            TableNodeContext.Columns = _nodeColumns;
+            TableNodeContext.DataTable = DataTable;
+            TableNodeContext.UpdateDisplayFromPageSize();
+            TableNodeContext.UpdateFromTableNodeContext();
+
+            _isRetrieved = true;
+            _renderTable = true;
+            _showAddButton = false;
+
+        }
+
         await Task.CompletedTask;
     }
 
@@ -249,7 +262,7 @@ else
     {
         try
         {
-            if (!_isRetrieved && _sessionItems != null)
+            if (_sessionItems != null)
             {
                 _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
                 await PopulateNodeVariablesAsync();
@@ -267,23 +280,23 @@ else
     {
         if (!_isRetrieved)
         {
-            _nodeDataTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeDataTable"))?.Value;
-            _nodeFilteredItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeFilteredItems"))?.Value?.ToString(), out int _nodeFilteredItemsResult) ? _nodeFilteredItemsResult : 0;
-            _nodeTotalItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeTotalItems"))?.Value?.ToString(), out int _nodeTotalItemsResult) ? _nodeTotalItemsResult : 0;
-            _nodeTotalPages = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeTotalPages"))?.Value?.ToString(), out int _nodeTotalPagesResult) ? _nodeTotalPagesResult : 0;
-            _nodeCurrentPage = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeCurrentPage"))?.Value?.ToString(), out int _nodeCurrentPageResult) ? _nodeCurrentPageResult : 1;
-            _nodeStartCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeStartCell"))?.Value?.ToString() ?? string.Empty;
-            _nodeEndCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEndCell"))?.Value?.ToString() ?? string.Empty;
-            _nodeShowAddRowModal = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeShowAddRowModal"))?.Value ?? false;
-            _nodeNewRowData = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeNewRowData"))?.Value;
-            _nodeColumns = (List<TableColumn>)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeColumns"))?.Value ?? _nodeColumns);
-            _nodePagedRows = (IEnumerable<DataRow>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodePagedRows"))?.Value;
-            _nodePageSize = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodePageSize"))?.Value?.ToString(), out int _nodePageSizeResult) ? _nodePageSizeResult : 0;
-            _nodeIsEditing = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeIsEditing"))?.Value ?? false;
-            _nodeEditedRow = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEditedRow"))?.Value;
-            _nodeEditValues = (Dictionary<string, object>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEditValues"))?.Value;
-            _nodeIsFirstCellClicked = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeIsFirstCellClicked"))?.Value ?? false;
-            _nodeSelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeSelectedData"))?.Value;
+            _nodeDataTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeDataTable"))?.Value ?? _nodeDataTable;
+            _nodeFilteredItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeFilteredItems"))?.Value?.ToString(), out int _nodeFilteredItemsResult) ? _nodeFilteredItemsResult : _nodeFilteredItems;
+            _nodeTotalItems = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeTotalItems"))?.Value?.ToString(), out int _nodeTotalItemsResult) ? _nodeTotalItemsResult : _nodeTotalItems;
+            _nodeTotalPages = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeTotalPages"))?.Value?.ToString(), out int _nodeTotalPagesResult) ? _nodeTotalPagesResult : _nodeTotalPages;
+            _nodeCurrentPage = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeCurrentPage"))?.Value?.ToString(), out int _nodeCurrentPageResult) ? _nodeCurrentPageResult : _nodeCurrentPage;
+            _nodeStartCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeStartCell"))?.Value?.ToString() ?? _nodeStartCell;
+            _nodeEndCell = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEndCell"))?.Value?.ToString() ?? _nodeEndCell;
+            _nodeShowAddRowModal = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeShowAddRowModal"))?.Value ?? _nodeShowAddRowModal;
+            _nodeNewRowData = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeNewRowData"))?.Value ?? _nodeNewRowData;
+            _nodeColumns = (List<TableColumn>?)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeColumns"))?.Value ?? _nodeColumns);
+            _nodePagedRows = (IEnumerable<DataRow>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodePagedRows"))?.Value ?? _nodePagedRows;
+            _nodePageSize = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodePageSize"))?.Value?.ToString(), out int _nodePageSizeResult) ? _nodePageSizeResult : _nodePageSize;
+            _nodeIsEditing = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeIsEditing"))?.Value ?? _nodeIsEditing;
+            _nodeEditedRow = (DataRow?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEditedRow"))?.Value ?? _nodeEditedRow;
+            _nodeEditValues = (Dictionary<string, object>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeEditValues"))?.Value ?? _nodeEditValues;
+            _nodeIsFirstCellClicked = (bool?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeIsFirstCellClicked"))?.Value ?? _nodeIsFirstCellClicked;
+            _nodeSelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_nodeSelectedData"))?.Value ?? _nodeSelectedData;
 
             _isRetrieved = true;
             
@@ -332,6 +345,7 @@ else
                 _nodeEditValues = TableNodeContext.EditValues;
                 _nodeIsFirstCellClicked = TableNodeContext.IsFirstCellClicked = _nodeIsFirstCellClicked;
                 _nodeSelectedData = TableNodeContext.SelectedData ?? default!;
+
             }
         }
 
@@ -601,8 +615,8 @@ else
 
     public async Task<RenderTreeBuilder> RenderTableColumn(int sequence, int rowIndex, RenderTreeBuilder builder, TableColumn column)
     {
-        var dataSource = column.GetDataSource();
-        var dataSourceRows = dataSource.Rows;
+        var colDataSource = column.GetDataSource();
+        var colDataSourceRows = colDataSource.Rows;
         var rows = _nodePagedRows?.ToList();
 
         if (rows != null)
@@ -641,9 +655,9 @@ else
                         }
                     }));
 
-                    for (int i = 0; i < dataSourceRows.Count; i++)
+                    for (int i = 0; i < colDataSourceRows.Count; i++)
                     {
-                        DataRow iRow = dataSourceRows[i];
+                        DataRow iRow = colDataSourceRows[i];
                         var displayName = iRow[column.DisplayFieldName].ToString();
                         var displayValue = iRow[column.DisplayFieldValue].ToString();
 
@@ -665,9 +679,9 @@ else
                 var columnStringValue = row[column.FieldName]?.ToString();
                 if (column.Type == "DropdownList")
                 {
-                    for (int i = 0; i < dataSourceRows.Count; i++)
+                    for (int i = 0; i < colDataSourceRows.Count; i++)
                     {
-                        DataRow iRow = dataSourceRows[i];
+                        DataRow iRow = colDataSourceRows[i];
                         var displayValue = iRow[column.DisplayFieldValue].ToString();
                         if (displayValue == columnStringValue)
                         {
@@ -676,6 +690,7 @@ else
                         }
                     }
                 }
+
                 builder.AddContent(sequence, columnStringValue);
             }
         }
@@ -725,8 +740,8 @@ else
             TableNodeContext.UpdateDisplayFromPageSize();
 
             await PopulateNodeVariablesAsync();
-            await _sessionManager.SaveToSessionTableAsync("_nodePageSize", _nodePageSize, serialize: true);
-            await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodePageSize", _nodePageSize, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
         }
 
         await Task.CompletedTask;
@@ -741,7 +756,7 @@ else
             TableNodeContext.UpdateDisplayFromPageSize();
 
             await PopulateNodeVariablesAsync();
-            await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
         }
 
         await Task.CompletedTask;
@@ -758,7 +773,7 @@ else
                 TableNodeContext.UpdateDisplayFromPageSize();
 
                 await PopulateNodeVariablesAsync();
-                await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             }
 
         }
@@ -778,7 +793,7 @@ else
                 TableNodeContext.UpdateDisplayFromPageSize();
 
                 await PopulateNodeVariablesAsync();
-                await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             }
         }
 
@@ -795,7 +810,7 @@ else
             TableNodeContext.UpdateDisplayFromPageSize();
 
             await PopulateNodeVariablesAsync();
-            await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
         }
 
         await Task.CompletedTask;
@@ -811,7 +826,7 @@ else
                 TableNodeContext.UpdateDisplayFromPageSize();
 
                 await PopulateNodeVariablesAsync();
-                await _sessionManager.SaveToSessionTableAsync("_nodeCurrentPage", _nodeCurrentPage, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             }
         }
         else
@@ -834,8 +849,8 @@ else
             TableNodeContext.StartCell = _nodeStartCell;
             TableNodeContext.EndCell = _nodeEndCell;
 
-            await _sessionManager.SaveToSessionTableAsync("_nodeStartCell", _nodeStartCell, serialize: false);
-            await _sessionManager.SaveToSessionTableAsync("_nodeEndCell", _nodeEndCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
         }
 
         await Task.CompletedTask;
@@ -882,7 +897,7 @@ else
             {
                 TableNodeContext.DataTable = _nodeDataTable;
 
-                await _sessionManager.SaveToSessionTableAsync("_nodeDataTable", _nodeDataTable, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
 
             }
 
@@ -917,9 +932,9 @@ else
             TableNodeContext.EndCell = _nodeEndCell;
             TableNodeContext.IsFirstCellClicked = _nodeIsFirstCellClicked;
 
-            await _sessionManager.SaveToSessionTableAsync("_nodeStartCell", _nodeStartCell, serialize: false);
-            await _sessionManager.SaveToSessionTableAsync("_nodeEndCell", _nodeEndCell, serialize: false);
-            await _sessionManager.SaveToSessionTableAsync("_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
         }
 
         StateHasChanged(); // Refresh UI to reflect the changes in cell selection
@@ -937,9 +952,9 @@ else
             TableNodeContext.StartCell = _nodeStartCell;
             TableNodeContext.EndCell = _nodeEndCell;
 
-            await _sessionManager.SaveToSessionTableAsync("_nodeSelectedData", _nodeSelectedData, serialize: true);
-            await _sessionManager.SaveToSessionTableAsync("_nodeStartCell", _nodeStartCell, serialize: false);
-            await _sessionManager.SaveToSessionTableAsync("_nodeEndCell", _nodeEndCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
 
         }
 
@@ -965,7 +980,7 @@ else
             {
                 TableNodeContext.SelectedData = _nodeSelectedData;
 
-                await _sessionManager.SaveToSessionTableAsync("_nodeSelectedData", _nodeSelectedData, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
             }
 
             await Task.CompletedTask;

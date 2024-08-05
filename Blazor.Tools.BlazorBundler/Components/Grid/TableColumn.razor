@@ -14,14 +14,14 @@
     [Parameter] public bool Visible { get; set; } = true;
 
 
-    public DataTable _dataSource = default!;
+    private DataTable _dataSource = default!;
     public TableColumn TableColumnContext = default!;
     public bool _shouldRender = true;
     private bool _hasDataChanged = false;
 
     protected override void OnParametersSet()
     {
-        _dataSource = TableGridContext?.GetDataSource(DataSourceName) ?? _dataSource;
+        _dataSource = GetDataSource();
 
         if (_dataSource != null)
         {
@@ -70,8 +70,14 @@
         return _hasDataChanged || _shouldRender;
     }
 
+    public void SetDataSource(DataTable dataSource)
+    {
+        _dataSource = dataSource;
+    }
+
     public DataTable GetDataSource()
     {
+        _dataSource = TableGridContext?.GetDataSource(DataSourceName) ?? _dataSource;
         return _dataSource;
     }
 

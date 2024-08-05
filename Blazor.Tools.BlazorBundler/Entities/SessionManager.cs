@@ -1,7 +1,9 @@
 ﻿using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Blazor.Tools.BlazorBundler.Entities
 {
@@ -74,6 +76,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
 
             return _instance.Value;
         }
+        
         /// <summary>
         /// Saves the specified value to the session table. Optionally serializes the value if specified.
         /// </summary>
@@ -102,6 +105,45 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 _sessionTable.ExpiresAtTime = DateTimeOffset.Now.AddMinutes(5);
 
                 _sessionTable = await _sessionTableService.SaveAsync(_sessionTable) ?? new SessionTable();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            return _sessionTable;
+        }
+        
+        /// <summary>
+        /// Saves the specified value to the session table. Optionally serializes the value if specified.
+        /// </summary>
+        /// <typeparam name="T">The type of the value to be saved.</typeparam>
+        /// <param name="sessionItems">The SessionItem list that contains all te session item variables.</param>
+        /// <returns>A Task representing the asynchronous operation, with a SessionTable object.</returns>
+        public async Task<SessionTable> SaveToSessionTableAsync<T>(List<SessionItem> sessionItems)
+        {
+            try
+            {
+                foreach (var sessionItem in sessionItems)
+                {
+                    if (sessionItem != null)
+                    {
+                        var serializedObject = sessionItem.Serialize ? await sessionItem.Value.SerializeAsync() : sessionItem?.Value?.ToString() ?? string.Empty;
+                        if (_sessionTableService != null)
+                        {
+                            // Check first if Name exists
+                            var foundSessionItem = (await _sessionTableService.GetByNameAsync(sessionItem?.Key)) ?? default!;
+                            var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
+                            _sessionTable = foundSessionItem ?? new SessionTable();
+                            _sessionTable.Name = sessionItem?.Key;
+                            _sessionTable.Value = byteArray;
+                            _sessionTable.ExpiresAtTime = DateTimeOffset.Now.AddMinutes(5);
+
+                            _sessionTable = await _sessionTableService.SaveAsync(_sessionTable) ?? new SessionTable();
+                        }
+                    }
+                }
+                
             }
             catch (Exception ex)
             {

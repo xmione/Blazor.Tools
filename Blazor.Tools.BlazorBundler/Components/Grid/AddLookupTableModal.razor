@@ -10,8 +10,12 @@
         <Icon Name="IconName.CheckCircleFill" @onclick="SaveAsync" title="Add" />
         <Icon Name="IconName.XCircleFill" title="Close" @onclick="CloseAsync" />
     </div>
+   
     <div class="data-table-grid-modal-content">
-        <div class="row">
+        @* Do not remove this commented code below because this is an option if you want to use Custom TableColumn usage.
+           See ref: Custom DataTable Usage
+        *@
+        @*<div class="row">
             <div class="col">
                 <h1>Set Target Table</h1>
             </div>
@@ -68,11 +72,23 @@
             <div class="col">
                 <Icon Name="IconName.Floppy" Class="cursor-pointer" @onclick="SaveLookupTableItemAsync" title="Save" />
             </div>
-        </div>
+        </div> *@
         <div class="row">
             @if (_searchFieldsTable != null)
             {
-                <TableGrid Title="@_title" DataTable="@_searchFieldsTable" />
+                @*ref: Custom DataTable Usage*@
+                @* Do not remove this commented code below because this is an option if you want to use just the DataTable*@
+                @* <TableGrid Title="@_title" DataTable="@_searchFieldsTable" /> *@
+
+                <TableGrid Title="@_title">
+                    <TableSource Name="@_dataSource" DataSource="@_searchFieldsTable" />
+                    <TableSource Name="MatchConditionDS" DataSource="@_matchConditionsTable" />
+                    <TableNode DataSource="@_dataSource">
+                        <TableColumn DataSourceName="@_dataSource" FieldName="TableName" Type="TextBox" HeaderName="Table Name" />
+                        <TableColumn DataSourceName="@_dataSource" FieldName="FieldName" Type="TextBox" HeaderName="Field Name" />
+                        <TableColumn DataSourceName="MatchConditionDS" FieldName="MatchCondition" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" HeaderName="Match Condition" />
+                    </TableNode>
+                </TableGrid>
             }
         </div>
     </div>
@@ -97,6 +113,8 @@
     private DataTable? _searchFieldsTable;
     private bool _isRetrieved;
     private string? _title;
+    private string? _dataSource;
+    private DataTable? _matchConditionsTable;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -109,11 +127,38 @@
 
     private async Task InitializeVariables()
     {
-        
+
         _tableName = _searchFieldsTable?.TableName ?? "LookupTable";
         _targetTableID = 1;
         _targetFieldMatchConditionID = 1;
         _title = $"{Tag}-{_tableName}";
+        _dataSource = $"{_title}DS";
+
+        _matchConditionsTable = new DataTable("MatchConditionTable");
+        _matchConditionsTable.Columns.Add("ID", typeof(int));
+        _matchConditionsTable.Columns.Add("Name");
+
+        var newRow = _matchConditionsTable.NewRow();
+        newRow["ID"] = 1;
+        newRow["Name"] = "First_Split";
+        _matchConditionsTable.Rows.Add(newRow);
+
+        newRow = _matchConditionsTable.NewRow();
+        newRow["ID"] = 2;
+        newRow["Name"] = "Second_Split";
+        _matchConditionsTable.Rows.Add(newRow);
+
+        newRow = _matchConditionsTable.NewRow();
+        newRow["ID"] = 3;
+        newRow["Name"] = "Third_Split";
+        _matchConditionsTable.Rows.Add(newRow);
+
+        newRow = _matchConditionsTable.NewRow();
+        newRow["ID"] = 4;
+        newRow["Name"] = "Value";
+        _matchConditionsTable.Rows.Add(newRow);
+
+
         _sessionItems = new List<SessionItem>
         {
             new SessionItem()
@@ -174,6 +219,7 @@
                 _targetTableID = _targetTableID == 0 ? 1 : _targetTableID;
                 _targetFieldMatchConditionID = _targetFieldMatchConditionID == 0 ? 1 : _targetFieldMatchConditionID;
                 _title = $"{Tag}-{_tableName}";
+                _dataSource = $"{_title}DS";
                 _isRetrieved = true;
                 GetMatchCondition();
                 StateHasChanged();
@@ -240,6 +286,7 @@
                 if (matchCondition == _targetFieldMatchConditionID)
                 {
                     _targetFieldMatchConditionValue = fieldName;
+                    break;
                 }
             }
         }

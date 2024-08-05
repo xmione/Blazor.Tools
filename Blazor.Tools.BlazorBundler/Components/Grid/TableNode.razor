@@ -80,6 +80,8 @@
     {
         FilteredRows = DataTable != null ? ApplyFilter() : FilteredRows;
         FilteredItems = FilteredRows?.Count() ?? FilteredItems;
+        TotalItems = TotalItems == 0? FilteredItems: TotalItems;
+        PageSize = PageSize == 0? FilteredItems : PageSize;
         PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
         TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
         SelectedTableName = DataTable?.TableName;
@@ -115,6 +117,7 @@
     {
         FilteredRows = filteredRows;
         FilteredItems = FilteredRows.Count();
+        TotalItems = TotalItems == 0 ? FilteredItems : TotalItems;
         PagedRows = FilteredRows?.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
         TotalPages = (int)Math.Ceiling((double)(FilteredRows?.Count() ?? 0) / PageSize);
         SelectedTableName = DataTable?.TableName;

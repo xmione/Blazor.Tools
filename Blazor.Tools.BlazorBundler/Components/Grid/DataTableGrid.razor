@@ -11,7 +11,8 @@
 @using BlazorBootstrap
 @using System.Data
 
-<TableGrid @ref="_tableGrid" Title="@Title" AllowCellSelection="@AllowCellSelection" HiddenColumnNames="@HiddenColumnNames">
+<TableGrid @ref="_tableGrid" Title="@Title" AllowCellSelection="@AllowCellSelection" 
+    HiddenColumnNames="@HiddenColumnNames" HeaderNames="@HeaderNames">
     <TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
     <TableNode DataSource="@_tableSourceName">
         @foreach(DataColumn column in SelectedTable.Columns)
@@ -61,6 +62,7 @@
     [Parameter] public bool AllowCellSelection { get; set; } = false;
     [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
     [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
+    [Parameter] public Dictionary<string, string> HeaderNames { get; set; } = default!;
 
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
@@ -136,6 +138,8 @@
     {
         _showSetTargetTableModal = false;
         StateHasChanged(); // Ensure UI updates to hide the modal
+
+        _sessionManager.SaveToSessionTableAsync($"{Title}_showSetTargetTableModal", _showSetTargetTableModal, serialize: true).Wait();
     }
 
     private async Task SaveToTargetTableAsync(List<TargetTable>? targetTables)
