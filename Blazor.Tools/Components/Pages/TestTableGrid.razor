@@ -3,7 +3,7 @@
 @* 
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Interfaces
-@using Blazor.Tools.Components.Grid
+@using Blazor.Tools.BlazorBundler.Components.Grid
 @using Bogus
 @using System.Data
 
@@ -12,7 +12,6 @@
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  />
 <TableGrid Title="Employees" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
@@ -118,5 +117,4 @@
         public string Name { get; set; } = default!;
     }
 
-}
- *@
+} *@
