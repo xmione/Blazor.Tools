@@ -1,4 +1,5 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using System.Data;
 
@@ -44,6 +45,11 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                         {
                             settings.Converters.Add(new TargetTableColumnConverter());
                         }
+                        else if (innerType == typeof(TableColumn))
+                        {
+                            settings.Converters.Add(new TableColumnJsonConverter());
+                        }
+
                     }
                     else if (value.GetType() == typeof(DataTable))
                     {

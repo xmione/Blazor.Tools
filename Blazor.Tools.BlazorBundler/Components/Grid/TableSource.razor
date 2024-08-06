@@ -1,6 +1,8 @@
 ﻿@* TableSource *@
 @using System.Data
 
+@namespace Blazor.Tools.BlazorBundler.Components.Grid
+
 @code {
     [CascadingParameter] private TableGrid Context { get; set; } = default!;
     [Parameter] public string Name { get; set; } = default!;

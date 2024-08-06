@@ -1,6 +1,8 @@
 ﻿@* TableColumn.razor *@
 @using System.Data
 
+@namespace Blazor.Tools.BlazorBundler.Components.Grid
+
 @code {
     [CascadingParameter] private TableGrid TableGridContext { get; set; } = default!;
     [CascadingParameter] private TableNode TableNodeContext { get; set; } = default!;

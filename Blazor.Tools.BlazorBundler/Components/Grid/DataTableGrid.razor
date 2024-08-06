@@ -11,6 +11,8 @@
 @using BlazorBootstrap
 @using System.Data
 
+@namespace Blazor.Tools.BlazorBundler.Components.Grid
+
 <TableGrid @ref="_tableGrid" Title="@Title" AllowCellSelection="@AllowCellSelection" 
     HiddenColumnNames="@HiddenColumnNames" HeaderNames="@HeaderNames">
     <TableSource Name="@_tableSourceName" DataSource="@SelectedTable" />
