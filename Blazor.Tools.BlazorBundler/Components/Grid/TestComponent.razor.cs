@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using System.Diagnostics;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
@@ -24,5 +25,18 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         }
 
         public string FullName => _fullName;
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            // Building the <h1>Hello @FullName</h1> element
+            builder.OpenElement(0, "h1");
+            builder.AddContent(1, $"Hello {FullName}");
+            builder.CloseElement();
+
+            // Building the <p>This is a test component only.</p> element
+            builder.OpenElement(2, "p");
+            builder.AddContent(3, "This is a test component only.");
+            builder.CloseElement();
+        }
     }
 }
