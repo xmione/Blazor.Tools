@@ -127,6 +127,10 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableColumn.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
 
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableColumn.razor.cs')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableColumn.razor.cs"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableGrid.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableGrid.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
@@ -141,6 +145,10 @@
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor.cs')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor.cs"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
 
     <!--<ItemGroup>
