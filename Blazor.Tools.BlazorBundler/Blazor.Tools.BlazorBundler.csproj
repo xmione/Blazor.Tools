@@ -194,6 +194,13 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
 
+    <Content Include="Components\Grid\TableColumn.razor.cs">
+      <Pack>True</Pack>
+      <PackagePath>\Components\Grid\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+
     <Content Include="Components\Grid\TableGrid.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
@@ -209,13 +216,6 @@
     </Content>
 
     <Content Include="Components\Grid\TableSource.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-
-    <Content Include="Components\Grid\TableSource.razor.cs">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
