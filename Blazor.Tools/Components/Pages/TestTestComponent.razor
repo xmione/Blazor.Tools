@@ -1,10 +1,11 @@
 ﻿@page "/test-test-component"
 @rendermode InteractiveServer
 @* @using System.Data
+@using SampleBlazorLibrary.Components
 @inject NavigationManager Navigation
-@using Blazor.Tools.BlazorBundler.Components.Grid
 
 <PageTitle>Home</PageTitle>
 
 <TestComponent FirstName="Solomio" MiddleName="Salvador" LastName="Revilla"  />
+<ExternalComponent />
  *@
