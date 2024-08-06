@@ -2,26 +2,6 @@
 
 @namespace Blazor.Tools.BlazorBundler.Components.Grid
 
-<h1>Hello @_fullName</h1>
+<h1>Hello @FullName</h1>
 <p>This is a test component only.</p>
- 
-@code {
-    
-    [Parameter] public string FirstName { get; set; } = default!;
-    [Parameter] public string MiddleName { get; set; } = default!;
-    [Parameter] public string LastName { get; set; } = default!;
-
-    private string _fullName { get; set; } = default!;
-
-    private void SetFullName(string firstName, string middleName, string lastName)
-    {
-        _fullName = string.Join(" ", firstName, middleName, lastName);
-    }
-
-    protected override void OnParametersSet()
-    {
-        SetFullName(FirstName, MiddleName, LastName);
-        Debug.WriteLine($"TestComponent initialized with full name: {_fullName}");
-        base.OnParametersSet();
-    }
-}
+  

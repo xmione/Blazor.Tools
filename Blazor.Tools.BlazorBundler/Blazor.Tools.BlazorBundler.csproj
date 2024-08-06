@@ -240,6 +240,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Grid\TableColumn.razor.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
     <Compile Update="Entities\AIDataAccess.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>

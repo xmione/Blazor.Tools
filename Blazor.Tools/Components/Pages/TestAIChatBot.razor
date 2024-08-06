@@ -1,0 +1,23 @@
+﻿@page "/test-ai-chatbot"
+@rendermode InteractiveServer
+@* @using Blazor.Tools.Components.AI
+@using System.Data
+@inject NavigationManager Navigation
+
+<PageTitle>TestAIChatBot</PageTitle>
+
+<AIChatBot ConnectionString="@_connectionString" />
+
+@code {
+
+     
+    private readonly string _connectionString = "Server=(local);Database=AIDatabase;User Id=sa;Password=P@ssw0rd123;TrustServerCertificate=True;";
+    protected override void OnParametersSet()
+    {
+        Console.WriteLine("TestAccSolGridTable OnParametersSetAsync");
+         
+
+        base.OnParametersSet();
+    }
+}
+ *@
