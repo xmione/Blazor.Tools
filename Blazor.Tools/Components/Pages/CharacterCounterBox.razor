@@ -1,0 +1,70 @@
+﻿@page "/character-counter-box"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Character Counter Box</h3>
+
+<div>
+    <label for="textArea">Text Area:</label>
+    <textarea id="textArea" class="resizable-text-area black-border"></textarea>
+</div>
+<div>
+    <label for="charLimit">Character Limit:</label>
+    <input type="number" id="charLimit" @bind="CharacterLimit" />
+</div>
+<div>
+    <p>Character Count: @CharacterCount</p>
+</div>
+<div>
+    <button @onclick="CountCharacters">Count</button>
+    <button @onclick="TrimText">Trim</button>
+</div>
+
+<style>
+    .black-border {
+        border: 10px solid black;
+    }
+
+    .resizable-text-area {
+        resize: both;
+        overflow: auto;
+        width: 300px;
+        height: 200px;
+    }
+</style>
+
+@code {
+    private int CharacterLimit { get; set; }
+    private int CharacterCount { get; set; }
+
+    private async void CountCharacters()
+    {
+        CharacterCount = await JS.InvokeAsync<int>("getCharacterCount", "textArea");
+        StateHasChanged();
+    }
+
+    private async void TrimText()
+    {
+        await JS.InvokeVoidAsync("trimText", "textArea", CharacterLimit);
+        CharacterCount = await JS.InvokeAsync<int>("getCharacterCount", "textArea");
+        StateHasChanged();
+    }
+}
+
+<script>
+    window.getCharacterCount = function (textareaId) {
+        var textarea = document.getElementById(textareaId);
+        return textarea ? textarea.value.length : 0;
+    };
+
+    window.trimText = function (textareaId, charLimit) {
+        var textarea = document.getElementById(textareaId);
+        if (textarea) {
+            var text = textarea.value;
+            if (text.length > charLimit) {
+                textarea.value = text.substring(0, charLimit);
+            }
+        }
+    };
+</script>
