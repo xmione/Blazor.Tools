@@ -11,5 +11,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.OpenComponent<InternalComponent>(0);
             builder.CloseComponent();
         }
+
+        protected override bool ShouldRender()
+        {
+            Debug.WriteLine("ExternalComponent: ShouldRender");
+            // Control the rendering logic here
+            return true;
+        }
     }
 }
