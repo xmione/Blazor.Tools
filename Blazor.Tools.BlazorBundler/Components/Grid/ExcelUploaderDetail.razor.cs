@@ -253,7 +253,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(sequence++, "class", "mt-3");
 
                 builder.OpenComponent<Icon>(sequence++);
-                builder.AddAttribute(sequence++, "Name", "IconName.Upload");
+                builder.AddAttribute(sequence++, "ColumnName", "IconName.Upload");
                 builder.AddAttribute(sequence++, "Class", "cursor-pointer");
                 builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, UploadData));
                 builder.AddAttribute(sequence++, "title", "Upload to new tables");
