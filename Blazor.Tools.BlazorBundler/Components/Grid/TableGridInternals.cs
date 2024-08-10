@@ -1,22 +1,26 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.Interfaces;
 using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using System.Data;
 using Blazor.Tools.BlazorBundler.Extensions;
+using DocumentFormat.OpenXml.EMMA;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGridInternals<TItem> : ComponentBase
+    public partial class TableGridInternals<TModel, TIModel, TModelVM> : ComponentBase
     {
 
-        [Parameter] public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
+        [Parameter] public IEnumerable<TModel> Items { get; set; } = Enumerable.Empty<TModel>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
         [Parameter] public RenderFragment? TableHeader { get; set; }
-        [Parameter] public RenderFragment<TItem> RowTemplate { get; set; } = default!;
+        [Parameter] public RenderFragment<TModel> RowTemplate { get; set; } = default!;
         [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
+        [Parameter] public TIModel IModel { get; set; } = default!;
+        [Parameter] public TModelVM ModelVM { get; set; } = default!;
 
         //[Parameter] public string Title { get; set; } = "Sample Table";
         //[Parameter] public RenderFragment ChildContent { get; set; } = null!;
@@ -26,18 +30,18 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //[Parameter] public bool AllowCellSelection { get; set; } = false;
 
         private SessionManager _sessionManager = SessionManager.Instance;
-        private IEnumerable<TItem> _filteredRows = default!;
-        private IEnumerable<TItem> _pagedRows = default!;
+        private IEnumerable<TModel> _filteredRows = default!;
+        private IEnumerable<TModel> _pagedRows = default!;
         private int _filteredItems = 0;
         private int _totalItems = 0;
         private int _currentPage = 0;
         private int _pageSize = 0;
         private int _totalPages = 0;
         private bool _isEditing;
-        private TItem? _editedRow;
+        private TModel? _editedRow;
         private bool _showAddButton;
         private bool _showAddRowModal;
-        private TItem? _newRowData;
+        private TModel? _newRowData;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -54,9 +58,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
 
             // DTSearchBox component
-            builder.OpenComponent<DTSearchBox<TItem>>(seq++);
+            builder.OpenComponent<DTSearchBox<TModel>>(seq++);
             builder.AddAttribute(seq++, "Data", Items);
-            builder.AddAttribute(seq++, "OnFilterData", EventCallback.Factory.Create<IEnumerable<TItem>>(this, HandleFilterDataTableAsync));
+            builder.AddAttribute(seq++, "OnFilterData", EventCallback.Factory.Create<IEnumerable<TModel>>(this, HandleFilterDataTableAsync));
             builder.CloseComponent();
 
             //Render the table with headers and rows
@@ -543,7 +547,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //            await Task.CompletedTask;
         //        }
 
-        private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, TItem? row)
+        private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, TModel? row)
         {
             builder.OpenElement(seq++, "td");
             builder.AddAttribute(seq++, "class", "icons-td");
@@ -551,7 +555,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             if (!_isEditing || !Equals(row, _editedRow))
             {
                 // Edit icon
-                // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(row)" title="Edit" class="text-primary icon-button" />
+                // <Icon Name="IconName.PencilFill" @onclick="() => EditRow(model)" title="Edit" class="text-primary icon-button" />
 
                 builder.OpenComponent<Icon>(seq++);
                 builder.AddAttribute(seq++, "Name", IconName.PencilFill); // Blazor.Bootstrap icon class
@@ -561,7 +565,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.CloseComponent();
 
                 // Delete icon
-                // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(row)" title="Delete" class="text-danger icon-button" />
+                // <Icon Name="IconName.TrashFill" @onclick="() => DeleteRowAsync(model)" title="Delete" class="text-danger icon-button" />
 
                 builder.OpenComponent<Icon>(seq++);
                 builder.AddAttribute(seq++, "Name", IconName.TrashFill); // Blazor.Bootstrap icon class
@@ -720,7 +724,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //{
             //    // Cell selection controls
             //    builder.OpenElement(seq++, "div");
-            //    builder.AddAttribute(seq++, "class", "row mb-2");
+            //    builder.AddAttribute(seq++, "class", "model mb-2");
 
             //    builder.OpenElement(seq++, "div");
             //    builder.AddAttribute(seq++, "class", "col-auto");
@@ -758,7 +762,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             //    builder.CloseElement(); // col
 
-            //    builder.CloseElement(); // row
+            //    builder.CloseElement(); // model
             //}
 
             // Add Row Modal
@@ -777,20 +781,23 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private void EditRow(TItem? row)
+        private async void EditRow(TModel? model)
         {
-            if (Items != null && row != null)
+            if (Items != null && model != null && ModelVM != null)
             {
-                _editedRow = row;
                 _isEditing = true;
+                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(model, _isEditing);
+                _editedRow = item;
+                
+                StateHasChanged();
             }
         }
 
-        private async Task DeleteRowAsync(TItem? row)
+        private async Task DeleteRowAsync(TModel? row)
         {
-            //if (_nodeDataTable != null && row != null)
+            //if (_nodeDataTable != null && model != null)
             //{
-            //    _nodeDataTable.Rows.Remove(row);
+            //    _nodeDataTable.Rows.Remove(model);
             //    if (TableNodeContext != null)
             //    {
             //        TableNodeContext.DataTable = _nodeDataTable;
@@ -798,7 +805,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
             //    }
 
-            //    StateHasChanged(); // Refresh UI after deleting row
+            //    StateHasChanged(); // Refresh UI after deleting model
             //}
 
             await Task.CompletedTask;
@@ -833,11 +840,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private void CancelEdit()
+        private async Task CancelEdit()
         {
-            _editedRow = default!;
-            _isEditing = false;
-            StateHasChanged(); // Refresh UI after canceling edit
+            if (_editedRow != null && ModelVM != null)
+            {
+                _isEditing = false;
+                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(_editedRow, _isEditing);
+                _editedRow = item;
+                
+                StateHasChanged(); // Refresh UI after canceling edit
+            }
         }
 
         //        public async Task<RenderTreeBuilder> RenderTableColumn(int seq, int rowIndex, RenderTreeBuilder builder, TableColumn column)
@@ -848,8 +860,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         //            if (rows != null)
         //            {
-        //                var row = rows[rowIndex];
-        //                var isEditing = _isEditing == true && _editedRow != null && row == _editedRow;
+        //                var model = rows[rowIndex];
+        //                var isEditing = _isEditing == true && _editedRow != null && model == _editedRow;
         //                var editValues = _nodeEditValues != null ? _nodeEditValues[column.FieldName]?.ToString() : null;
 
         //                if (isEditing)
@@ -903,7 +915,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //                }
         //                else
         //                {
-        //                    var columnStringValue = row[column.FieldName]?.ToString();
+        //                    var columnStringValue = model[column.FieldName]?.ToString();
         //                    if (column.Type == "DropdownList")
         //                    {
         //                        for (int i = 0; i < colDataSourceRows.Count; i++)
@@ -926,7 +938,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         //            return builder;
         //        }
-        private async Task GetPageRowsAsync(IEnumerable<TItem> items)
+        private async Task GetPageRowsAsync(IEnumerable<TModel> items)
         {
             _filteredRows = items;
             _filteredItems = _filteredRows.Count();
@@ -944,7 +956,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //StateHasChanged(); // Ensure UI updates after filtering
             await Task.CompletedTask;
         }
-        private async Task HandleFilterDataTableAsync(IEnumerable<TItem> filteredRows)
+        private async Task HandleFilterDataTableAsync(IEnumerable<TModel> filteredRows)
         {
             await GetPageRowsAsync(filteredRows);
             StateHasChanged(); 
@@ -1153,12 +1165,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             if (Items != null && _newRowData != null)
             {
-                TItem newItem = Activator.CreateInstance<TItem>();
+                TModel newItem = Activator.CreateInstance<TModel>();
 
                 Items.ToList().Add(newItem);
 
                 //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
-                StateHasChanged(); // Ensure UI updates after adding row
+                StateHasChanged(); // Ensure UI updates after adding model
             }
 
             CloseAddRowModal();
@@ -1223,11 +1235,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //        {
         //            if (!string.IsNullOrEmpty(_nodeStartCell) && !string.IsNullOrEmpty(_nodeEndCell))
         //            {
-        //                // Extracting start row and column from startCell
+        //                // Extracting start model and column from startCell
         //                int startRow = int.Parse(_nodeStartCell.Substring(1, _nodeStartCell.IndexOf('C') - 1));
         //                int startCol = int.Parse(_nodeStartCell.Substring(_nodeStartCell.IndexOf('C') + 1));
 
-        //                // Extracting end row and column from endCell
+        //                // Extracting end model and column from endCell
         //                int endRow = int.Parse(_nodeEndCell.Substring(1, _nodeEndCell.IndexOf('C') - 1));
         //                int endCol = int.Parse(_nodeEndCell.Substring(_nodeEndCell.IndexOf('C') + 1));
 
@@ -1458,7 +1470,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //                {
         //                    // Cell selection controls
         //                    builder.OpenElement(seq++, "div");
-        //                    builder.AddAttribute(seq++, "class", "row mb-2");
+        //                    builder.AddAttribute(seq++, "class", "model mb-2");
 
         //                    builder.OpenElement(seq++, "div");
         //                    builder.AddAttribute(seq++, "class", "col-auto");
@@ -1496,7 +1508,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         //                    builder.CloseElement(); // col
 
-        //                    builder.CloseElement(); // row
+        //                    builder.CloseElement(); // model
         //                }
 
         //                // Add Row Modal

@@ -6,29 +6,31 @@
 @using Blazor.Tools.BlazorBundler.Components.Grid
 @using Bogus
 @using System.Data
+@using System.ComponentModel.DataAnnotations
 
 @inject NavigationManager Navigation
 
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TableGridInternals TItem="Employee" Items="_employees" DataSources="@_dataSources" Context="employee">
+<TableGridInternals TModel="Employee" TModelVM="EmployeeVM" ModelVM="_employeeVM" TIModel="IActions" Items="_employees" 
+    DataSources="@_dataSources" Context="employee">
     <StartContent>
         <h2>Employee List</h2>
     </StartContent>
     <TableHeader>
-        <th>ID</th>
+@*         <th>ID</th> *@
         <th>First Name</th>
         <th>Middle Name</th>
         <th>Last Name</th>
         <th>Country ID</th>
     </TableHeader>
     <RowTemplate>
-        <td><NumberInput ColumnName="ID" Value="@employee.ID" /></td>
-        <td><TextInput ColumnName="FirstName" Value="@employee.FirstName" /></td>
-        <td><TextInput ColumnName="MiddleName" Value="@employee.MiddleName" /></td>
-        <td><TextInput ColumnName="LastName" Value="@employee.LastName" /></td>
-        <td><NumberInput ColumnName="CountryID" Value="@employee.CountryID" /></td>
+        @* <td><NumberInput ColumnName="ID" Value="@employee.ID" /></td> *@
+        <td><TextInput ColumnName="FirstName" Value="@employee.FirstName" IsEditMode="@employee.IsEditMode" /></td>
+        <td><TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" /></td>
+        <td><TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" /></td>
+        <td><DropdownList Items="_countries" ColumnName="CountryID" Value="@employee.CountryID" OptionIDFieldName="ID" OptionValueFieldName="Name" IsEditMode="@employee.IsEditMode" /></td>
     </RowTemplate>
 </TableGridInternals>
 
@@ -53,15 +55,16 @@
  *@
 @code {
 
- //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+    //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private Dictionary<string, object> _dataSources = default!;
     private List<Employee> _employees = new List<Employee>();
     private List<Country> _countries = new List<Country>();
+    private List<string>? _hiddenEmployeeColumns;
     private List<string>? _hiddenCountryColumns;
     private Dictionary<string, string>? _employeeHeaderNames;
     private Dictionary<string, string>? _countryHeaderNames;
-
+    private EmployeeVM _employeeVM = new EmployeeVM();
 
     protected override void OnParametersSet()
     {
@@ -108,7 +111,12 @@
             _countries.Add(country);
         }
 
+        _hiddenEmployeeColumns = new List<string>();
+        _hiddenEmployeeColumns.Add("AActions");
+        _hiddenEmployeeColumns.Add("ID");
+
         _hiddenCountryColumns = new List<string>();
+        _hiddenCountryColumns.Add("AActions");
         _hiddenCountryColumns.Add("ID");
 
         _dataSources = new Dictionary<string, object>()
@@ -116,10 +124,19 @@
             ["EmployeeDS"] = _employees,    
             ["CountryDS"] = _countries    
         };
+
+
     }
 
-    public class Employee
+    public interface IActions
     {
+        public bool IsEditMode { get; set; }    
+
+    }
+
+    public class Employee: IActions
+    {
+        public bool IsEditMode { get; set; }
         public int ID { get; set; }
         public string FirstName { get; set; } = default!;
         public string MiddleName { get; set; } = default!;
@@ -127,8 +144,9 @@
         public int CountryID { get; set; } 
     }
 
-    public class Country
+    public class Country : IActions
     {
+        public bool IsEditMode { get; set; }
         public int ID { get; set; }
         public string Name { get; set; } = default!;
     }
@@ -137,5 +155,136 @@
     {
         public string DataSourceName { get; set; } = default!;
         public List<T> DataSourceList { get; set; } = default!;
+    }
+
+    public class EmployeeVM : Employee, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IActions, EmployeeVM>
+    {
+        private List<Employee> _employees = new List<Employee>(); // Initialize the list
+        public bool IsEditing { get; set; } // Boolean property to indicate editing mode
+
+        public EmployeeVM() { }
+        public EmployeeVM(Employee model)
+        {
+            IsEditMode = model.IsEditMode;
+            ID = model.ID;
+            FirstName = model.FirstName;
+            MiddleName = model.MiddleName;
+            LastName = model.LastName;
+            CountryID = model.CountryID;
+        }
+        public EmployeeVM(EmployeeVM modelVM)
+        {
+            IsEditMode = modelVM.IsEditMode;
+            ID = modelVM.ID;
+            FirstName = modelVM.FirstName;
+            MiddleName = modelVM.MiddleName;
+            LastName = modelVM.LastName;
+            FirstName = modelVM.FirstName;
+            CountryID = modelVM.CountryID;
+        }
+        public EmployeeVM Clone()
+        {
+            return new EmployeeVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public void SetList(List<Employee> items)
+        {
+            _employees = items;
+        }
+
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            // Ensure _clientVMEntryList is set before calling Validate
+            if (_employees == null)
+            {
+                // Log or handle the situation where _clientVMEntryList is not set
+                yield break; // Exit the validation early
+            }
+
+            // Implement your custom validation logic here
+            //if (!IsEditing && AlreadyExists(Name, ID)) // Check existence only in editing mode
+            //{
+            //    yield return new ValidationResult("Name already exists.", new[] { nameof(Name) });
+            //}
+        }
+
+        private bool AlreadyExists(string name, int currentItemId)
+        {
+            bool alreadyExists = false;
+
+            if (name != null)
+            {
+                // Exclude the current item from the search
+                var foundItem = _employees.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);
+                alreadyExists = foundItem != null;
+            }
+
+            return alreadyExists;
+        }
+        public async Task<EmployeeVM> FromModel(Employee model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        IsEditMode = model.IsEditMode;
+                        ID = model.ID;
+                        FirstName = model.FirstName;
+                        MiddleName = model.MiddleName;
+                        LastName = model.LastName;
+                        CountryID = model.CountryID;
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FromModel(Employee model, Dictionary<string, object> serviceList): {0}\r\n{1}", ex.Message, ex.StackTrace);
+            }
+
+            return this;
+        }
+        public Employee ToModel()
+        {
+            return new Employee
+                {
+                    IsEditMode = this.IsEditMode,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    CountryID = this.CountryID
+                };
+        }
+        public IActions ToIModel()
+        {
+            return new Employee
+                {
+                    IsEditMode = this.IsEditMode,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public async Task<Employee> SetEditMode(Employee model, bool isEditMode)
+        {
+            model.IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return model;
+        }
+
     }
 }
