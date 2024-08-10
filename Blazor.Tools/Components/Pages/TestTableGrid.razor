@@ -1,6 +1,6 @@
 ﻿@page "/test-table-grid"
 @rendermode InteractiveServer
-@* 
+
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Components.Grid
@@ -12,7 +12,27 @@
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TableGrid Title="Employees" AllowCellSelection="true">
+<TableGridInternals TItem="Employee" Items="_employees" DataSources="@_dataSources" Context="employee">
+    <StartContent>
+        <h2>Employee List</h2>
+    </StartContent>
+    <TableHeader>
+        <th>ID</th>
+        <th>First Name</th>
+        <th>Middle Name</th>
+        <th>Last Name</th>
+        <th>Country ID</th>
+    </TableHeader>
+    <RowTemplate>
+        <td><NumberInput ColumnName="ID" Value="@employee.ID" /></td>
+        <td><TextInput ColumnName="FirstName" Value="@employee.FirstName" /></td>
+        <td><TextInput ColumnName="MiddleName" Value="@employee.MiddleName" /></td>
+        <td><TextInput ColumnName="LastName" Value="@employee.LastName" /></td>
+        <td><NumberInput ColumnName="CountryID" Value="@employee.CountryID" /></td>
+    </RowTemplate>
+</TableGridInternals>
+
+@* <TableGrid Title="Employees" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
     <TableSource Name="CountryDS" DataSource="@_countries" />
     <TableNode DataSource="EmployeeDS">
@@ -30,22 +50,23 @@
     HiddenColumnNames="@_hiddenCountryColumns" 
     HeaderNames="@_countryHeaderNames" 
     />
-
+ *@
 @code {
 
-    [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+ //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
-    private DataTable _employees = default!;
-    private DataTable _countries = default!;
+    private Dictionary<string, object> _dataSources = default!;
+    private List<Employee> _employees = new List<Employee>();
+    private List<Country> _countries = new List<Country>();
     private List<string>? _hiddenCountryColumns;
     private Dictionary<string, string>? _employeeHeaderNames;
     private Dictionary<string, string>? _countryHeaderNames;
-    
+
 
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
-        SessionManager.GetInstance(_sessionTableService);
+        //SessionManager.GetInstance(_sessionTableService);
         // Initialize _employees DataTable
 
         _employeeHeaderNames = new Dictionary<string, string>()
@@ -56,13 +77,6 @@
             ["LastName"] = "Last Name",
             ["CountryID"] = "Country",
         };
-
-        _employees = new DataTable("Employee");
-        _employees.Columns.Add("ID", typeof(int));
-        _employees.Columns.Add("FirstName", typeof(string));
-        _employees.Columns.Add("MiddleName", typeof(string));
-        _employees.Columns.Add("LastName", typeof(string));
-        _employees.Columns.Add("CountryID", typeof(int));
 
         var employeeFaker = new Faker<Employee>()
            .RuleFor(e => e.ID, f => f.IndexFaker + 1)
@@ -78,7 +92,7 @@
         for (int i = 0; i < 101; i++)
         {
             var employee = employeeFaker.Generate();
-            _employees.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
+            _employees.Add(employee);
         }
 
         // Initialize and generate country data
@@ -88,18 +102,20 @@
             ["Name"] = "Country Name",
         };
 
-        _countries = new DataTable("Country");
-        _countries.Columns.Add("ID", typeof(int));
-        _countries.Columns.Add("Name", typeof(string));
-
         for (int i = 0; i < 101; i++)
         {
             var country = countryFaker.Generate();
-            _countries.Rows.Add(i+ 1, country.Name);
+            _countries.Add(country);
         }
 
         _hiddenCountryColumns = new List<string>();
         _hiddenCountryColumns.Add("ID");
+
+        _dataSources = new Dictionary<string, object>()
+        {
+            ["EmployeeDS"] = _employees,    
+            ["CountryDS"] = _countries    
+        };
     }
 
     public class Employee
@@ -117,4 +133,9 @@
         public string Name { get; set; } = default!;
     }
 
-} *@
+    public class DataSource<T>
+    {
+        public string DataSourceName { get; set; } = default!;
+        public List<T> DataSourceList { get; set; } = default!;
+    }
+}

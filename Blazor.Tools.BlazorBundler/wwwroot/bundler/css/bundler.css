@@ -12,6 +12,12 @@
     border-collapse: collapse;
 }
 
+    .data-table-grid thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
     .data-table-grid th, .data-table-grid td {
         vertical-align: middle;
         text-align: center;
