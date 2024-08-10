@@ -41,7 +41,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override async Task OnParametersSetAsync()
         {
-            await GetPageRowsAsync();
+            await GetPageRowsAsync(Items);
         }
         protected override async void BuildRenderTree(RenderTreeBuilder builder)
         {
@@ -611,7 +611,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.CloseComponent();
             }
 
-            var pageSizes = new List<int> { 5, 10, 20, 50, 100 };
+            var pageSizes = new List<int> { 10, 20, 50, 100 };
             pageSizes = pageSizes.Where(size => size <= _totalItems).ToList();
 
             // Add _totalItems to the list if it's not already there
@@ -631,12 +631,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.OpenElement(seq++, "label");
             builder.AddAttribute(seq++, "for", "pageSize");
+            builder.AddAttribute(seq++, "class", "left-margin-5x");
             builder.AddContent(seq++, "Page Size:");
             builder.CloseElement();
 
             builder.OpenElement(seq++, "select");
             builder.AddAttribute(seq++, "id", "pageSize");
-            builder.AddAttribute(seq++, "class", "cursor-pointer");
+            builder.AddAttribute(seq++, "class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, PageSizeChangedAsync));
 
             foreach (var size in pageSizes)
@@ -656,7 +657,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // First Page
             builder.OpenComponent<Icon>(seq++);
             builder.AddAttribute(seq++, "Name", IconName.ChevronDoubleLeft);
-            builder.AddAttribute(seq++, "Class", "pagination-icon cursor-pointer");
+            builder.AddAttribute(seq++, "Class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "title", "First");
             builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, GoToFirstPageAsync));
             builder.CloseComponent();
@@ -664,7 +665,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // Previous Page
             builder.OpenComponent<Icon>(seq++);
             builder.AddAttribute(seq++, "Name", IconName.ChevronLeft);
-            builder.AddAttribute(seq++, "Class", "pagination-icon cursor-pointer");
+            builder.AddAttribute(seq++, "Class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "title", "Previous");
             builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, GoToPreviousPageAsync));
             builder.CloseComponent();
@@ -672,7 +673,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // Next Page
             builder.OpenComponent<Icon>(seq++);
             builder.AddAttribute(seq++, "Name", IconName.ChevronRight);
-            builder.AddAttribute(seq++, "Class", "pagination-icon cursor-pointer");
+            builder.AddAttribute(seq++, "Class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "title", "Next");
             builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, GoToNextPageAsync));
             builder.CloseComponent();
@@ -680,13 +681,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // Last Page
             builder.OpenComponent<Icon>(seq++);
             builder.AddAttribute(seq++, "Name", IconName.ChevronDoubleRight);
-            builder.AddAttribute(seq++, "Class", "pagination-icon cursor-pointer");
+            builder.AddAttribute(seq++, "Class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "title", "Last");
             builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, GoToLastPageAsync));
             builder.CloseComponent();
 
             // Go To Page
             builder.OpenElement(seq++, "span");
+            builder.AddAttribute(seq++, "class", "left-margin-5x");
             builder.AddContent(seq++, "Go to Page: ");
             builder.CloseElement();
 
@@ -695,18 +697,19 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(seq++, "min", "1");
             builder.AddAttribute(seq++, "max", _totalPages.ToString());
             builder.AddAttribute(seq++, "value", _currentPage);
-            builder.AddAttribute(seq++, "class", "cursor-pointer");
+            builder.AddAttribute(seq++, "class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create(this, CurrentPageChangedAsync));
             builder.CloseElement();
 
             builder.OpenElement(seq++, "label");
+            builder.AddAttribute(seq++, "class", "left-margin-5x");
             builder.AddContent(seq++, $"of {_totalPages} {(_totalPages > 1 ? "Pages" : "Page")}");
             builder.CloseElement();
 
             //Go to specified page
             builder.OpenComponent<Icon>(seq++);
             builder.AddAttribute(seq++, "Name", IconName.CheckCircle);
-            builder.AddAttribute(seq++, "Class", "pagination-go-icon cursor-pointer");
+            builder.AddAttribute(seq++, "Class", "left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "title", "Go");
             builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, GoToSpecifiedPageAsync));
             builder.CloseComponent();
@@ -923,9 +926,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         //            return builder;
         //        }
-        private async Task GetPageRowsAsync()
+        private async Task GetPageRowsAsync(IEnumerable<TItem> items)
         {
-            _filteredRows = Items;
+            _filteredRows = items;
             _filteredItems = _filteredRows.Count();
             _totalItems = _totalItems == 0 ? Items.Count() : _totalItems;
             if (_pageSize == 0)
@@ -943,9 +946,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         }
         private async Task HandleFilterDataTableAsync(IEnumerable<TItem> filteredRows)
         {
-            await GetPageRowsAsync();
-            //await PopulateNodeVariablesAsync();
-            //StateHasChanged(); // Ensure UI updates after filtering
+            await GetPageRowsAsync(filteredRows);
+            StateHasChanged(); 
             await Task.CompletedTask;
         }
 
@@ -974,7 +976,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             _pageSize = Convert.ToInt32(e.Value);
             _currentPage = 1; // Reset to first page when changing page size
 
-            await GetPageRowsAsync();
+            await GetPageRowsAsync(_filteredRows);
             //if (TableNodeContext != null)
             //{
             //    TableNodeContext.PageSize = _nodePageSize;
@@ -993,7 +995,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private async Task GoToFirstPageAsync()
         {
             _currentPage = 1;
-            await GetPageRowsAsync();
+            await GetPageRowsAsync(_filteredRows);
             //if (TableNodeContext != null)
             //{
             //    TableNodeContext.CurrentPage = _nodeCurrentPage;
@@ -1021,7 +1023,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
                 //    }
 
-                await GetPageRowsAsync();
+                await GetPageRowsAsync(_filteredRows);
                 StateHasChanged();
             }
             
@@ -1043,7 +1045,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
                 //}
                 
-                await GetPageRowsAsync();
+                await GetPageRowsAsync(_filteredRows);
 
                 StateHasChanged();
 
@@ -1064,7 +1066,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //    await PopulateNodeVariablesAsync();
             //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
             //}
-            await GetPageRowsAsync();
+            await GetPageRowsAsync(_filteredRows);
             StateHasChanged();
             await Task.CompletedTask;
         }
@@ -1076,7 +1078,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 throw new Exception($"Page value can be up to total pages only {_totalPages}");
             }
-            await GetPageRowsAsync();
+            await GetPageRowsAsync(_filteredRows);
             //    await _sessionManager.SaveToSessionTableAsync($"{Title}_currentPage", _currentPage, serialize: true);
             StateHasChanged();
             await Task.CompletedTask;

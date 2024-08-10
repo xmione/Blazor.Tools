@@ -1,70 +1,120 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
-using System.Data;
+﻿using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components;
+using System.Reflection;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class DTSearchBox : ComponentBase
+    public partial class DTSearchBox<T> : ComponentBase
     {
-        [CascadingParameter] private DataTable? CascadedDataTable { get; set; }
+        [CascadingParameter] private IEnumerable<T>? CascadedData { get; set; }
 
-        [Parameter] public DataTable? DataTable { get; set; }
+        [Parameter] public IEnumerable<T>? Data { get; set; }
         [Parameter] public string? ColumnName { get; set; }
-        [Parameter] public EventCallback<IEnumerable<DataRow>> OnFilterDataTable { get; set; }
+        [Parameter] public EventCallback<IEnumerable<T>> OnFilterData { get; set; }
 
         private string _searchQuery = "";
         private string _searchPlaceHolder = "Search...";
+        private IEnumerable<T>? _dataList;
 
-        protected override async Task OnParametersSetAsync()
+        protected override void OnParametersSet()
         {
             _searchPlaceHolder = $"Search {ColumnName}...";
-            // If DataTable is not provided via Parameter, use CascadingDataTable if available
-            if (DataTable == null && CascadedDataTable != null)
+
+            // Use Data if provided, else fall back to CascadedData
+            if (Data != null)
             {
-                DataTable = CascadedDataTable;
+                _dataList = Data.ToList();
+            }
+            else if (CascadedData != null)
+            {
+                _dataList = CascadedData.ToList();
             }
 
-            await base.OnParametersSetAsync();
+            base.OnParametersSet();
         }
 
-        private async Task SearchDataTable()
+        private async Task SearchData()
         {
-            // Invoke the callback to notify the parent component of the filter change
-            var filteredRows = FilterDataTable();
-            await OnFilterDataTable.InvokeAsync(filteredRows);
+            var filteredData = FilterData();
+            await OnFilterData.InvokeAsync(filteredData);
         }
 
-        private IEnumerable<DataRow> FilterDataTable()
+        private IEnumerable<T>? FilterData()
         {
-            IEnumerable<DataRow> dataRows = default!;
-
-            if (DataTable == null)
+            if (_dataList == null || !_dataList.Any())
             {
-                throw new InvalidOperationException($"DataTable parameter must be provided or cascaded for {nameof(DTSearchBox)} component.");
+                return null;
             }
 
             if (string.IsNullOrWhiteSpace(_searchQuery))
             {
-                dataRows = DataTable.AsEnumerable();
-            }
-            else
-            {
-                dataRows = DataTable.AsEnumerable()
-                            .Where(row =>
-                            {
-                                foreach (DataColumn col in DataTable.Columns)
-                                {
-                                    var cellValue = row[col];
-                                    if (cellValue != DBNull.Value && cellValue.ToString()?.IndexOf(_searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
-                                    {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            });
+                return _dataList;
             }
 
-            return dataRows;
+            Console.WriteLine($"Searching for: {_searchQuery}");
+
+            var filteredData = _dataList.Where(item => GetItem(item)).ToList();
+
+            return filteredData;
+        }
+
+        private bool GetItem(T item)
+        {
+            // Ensure item is not null
+            if (item == null)
+            {
+                Console.WriteLine("Item is null");
+                return false;
+            }
+
+            // Set a breakpoint on the following line
+            var properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            // Ensure properties are being retrieved
+            if (!properties.Any())
+            {
+                Console.WriteLine("No properties found");
+            }
+
+            // Use PropertyMatchesSearch method to process each item
+            return PropertyMatchesSearch(item, _searchQuery);
+        }
+        // Helper method to handle nullability and search logic
+        private bool PropertyMatchesSearch<TItem>(TItem item, string searchQuery)
+        {
+
+            bool isFound = false;
+            var properties = item?.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            if (properties != null)
+            {
+                foreach (var prop in properties)
+                {
+                    string? propValue;
+                    if (prop != null)
+                    {
+                        if (prop.PropertyType == typeof(string))
+                        {
+                            propValue = (string?)prop?.GetValue(item);
+                        }
+                        else
+                        {
+                            propValue = prop?.GetValue(item)?.ToString();
+                        }
+
+                        if (propValue != null && propValue.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            // Debug output
+                            Console.WriteLine($"Match found in property: {prop?.Name}, Value: {propValue}");
+                            isFound = true;
+                        }
+                    }
+                }
+            }
+
+            // Debug output if no match found
+            Console.WriteLine("No match found in this item.");
+            return isFound;
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -80,8 +130,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(sequence++, "value", _searchQuery);
             builder.AddAttribute(sequence++, "oninput", EventCallback.Factory.Create(this, (ChangeEventArgs e) =>
             {
-                _searchQuery = e.Value.ToString();
-                SearchDataTable();
+                _searchQuery = e.Value?.ToString();
+                SearchData();
             }));
             builder.AddAttribute(sequence++, "placeholder", _searchPlaceHolder);
             builder.AddAttribute(sequence++, "class", "form-control mb-2");
@@ -89,7 +139,5 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.CloseElement(); // Close container div
         }
-
     }
 }
-

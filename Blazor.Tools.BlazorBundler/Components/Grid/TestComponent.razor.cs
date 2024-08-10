@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public class TestComponent<TItem> : ComponentBase
+    public partial class TestComponent<TItem> : ComponentBase
     {
         [Parameter] public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
         [Parameter] public RenderFragment? StartContent { get; set; }

@@ -47,7 +47,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                         }
                         else if (innerType == typeof(TableColumn))
                         {
-                            settings.Converters.Add(new TableColumnJsonConverter());
+                            //settings.Converters.Add(new TableColumnJsonConverter());
                         }
 
                     }
