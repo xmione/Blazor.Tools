@@ -23,14 +23,23 @@
         <th>First Name</th>
         <th>Middle Name</th>
         <th>Last Name</th>
-        <th>Country ID</th>
+        <th>Country</th>
     </TableHeader>
     <RowTemplate>
         @* <td><NumberInput ColumnName="ID" Value="@employee.ID" /></td> *@
         <td><TextInput ColumnName="FirstName" Value="@employee.FirstName" IsEditMode="@employee.IsEditMode" /></td>
         <td><TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" /></td>
         <td><TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" /></td>
-        <td><DropdownList Items="_countries" ColumnName="CountryID" Value="@employee.CountryID" OptionIDFieldName="ID" OptionValueFieldName="Name" IsEditMode="@employee.IsEditMode" /></td>
+        <td>
+            <DropdownList 
+                Items="_countries" 
+                ColumnName="CountryID" 
+                Value="@employee.CountryID" 
+                OptionIDFieldName="ID" 
+                OptionValueFieldName="Name" 
+                IsEditMode="@employee.IsEditMode"
+                          ValueChanged="@((object newValue) => OnDropdownValueChanged(newValue, employee))" />
+        </td>
     </RowTemplate>
 </TableGridInternals>
 
@@ -125,6 +134,22 @@
             ["CountryDS"] = _countries    
         };
 
+
+    }
+
+    private void OnDropdownValueChanged(object newValue, Employee employee)
+    {
+        employee.CountryID = Convert.ToInt32(newValue);
+        // Update employee list
+
+        var foundEmployee = _employees.FirstOrDefault(e => e.ID == employee.ID);
+
+        if (foundEmployee != null)
+        {
+            foundEmployee.CountryID = employee.CountryID;
+        }
+
+        StateHasChanged();
 
     }
 
@@ -254,7 +279,7 @@
 
             return this;
         }
-        public Employee ToModel()
+        public Employee ToNewModel()
         {
             return new Employee
                 {
@@ -266,7 +291,8 @@
                     CountryID = this.CountryID
                 };
         }
-        public IActions ToIModel()
+
+        public IActions ToNewIModel()
         {
             return new Employee
                 {
@@ -286,5 +312,64 @@
             return model;
         }
 
+        public async Task<Employee> SaveModel(Employee model)
+        {
+            model.IsEditMode = false;
+            await Task.CompletedTask;
+            return model;
+        }
+
+        public async Task<Employee> SaveModelToNewModel(Employee model)
+        {
+            var newEmployee = new Employee()
+            {
+                IsEditMode = model.IsEditMode,
+                ID = model.ID,
+                FirstName = model.FirstName,
+                MiddleName = model.MiddleName,
+                LastName = model.LastName,
+                CountryID = model.CountryID
+            };
+
+            await Task.CompletedTask;
+
+            return newEmployee;
+        }
+
+        public async Task<IEnumerable<Employee>> UpdateList(IEnumerable<Employee> modelList, Employee updatedModel)
+        {
+            Employee? updatedEmployee = null;
+
+            updatedEmployee = modelList.FirstOrDefault(e => e.ID == updatedModel.ID);
+
+            if(updatedEmployee != null)
+            {
+                updatedEmployee.IsEditMode = updatedModel.IsEditMode;
+                updatedEmployee.ID = updatedModel.ID;
+                updatedEmployee.FirstName = updatedModel.FirstName;
+                updatedEmployee.MiddleName = updatedModel.MiddleName;
+                updatedEmployee.LastName = updatedModel.LastName;
+                updatedEmployee.CountryID = updatedModel.CountryID;
+            }
+
+            await Task.CompletedTask;
+
+            return modelList;
+        }
+
+        public async Task<IEnumerable<Employee>> DeleteItemFromList(IEnumerable<Employee> modelList, Employee deletedModel)
+        {
+            var list = modelList.ToList();
+
+            var isDeleted = list.Remove(deletedModel);
+
+            //TODO: sol: Add logic here for deleted and not deleted conditions
+            if (isDeleted){ }
+            else { }
+
+            await Task.CompletedTask;
+
+            return list;
+        }
     }
 }

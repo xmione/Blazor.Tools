@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using System.Data;
-using Blazor.Tools.BlazorBundler.Extensions;
-using DocumentFormat.OpenXml.EMMA;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -39,6 +37,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private int _totalPages = 0;
         private bool _isEditing;
         private TModel? _editedRow;
+        private TModel? _editedRowSaved;
         private bool _showAddButton;
         private bool _showAddRowModal;
         private TModel? _newRowData;
@@ -786,55 +785,38 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             if (Items != null && model != null && ModelVM != null)
             {
                 _isEditing = true;
+                
                 var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(model, _isEditing);
                 _editedRow = item;
-                
+                _editedRowSaved = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SaveModelToNewModel(item);
+
                 StateHasChanged();
             }
         }
 
-        private async Task DeleteRowAsync(TModel? row)
+        private async Task DeleteRowAsync(TModel? model)
         {
-            //if (_nodeDataTable != null && model != null)
-            //{
-            //    _nodeDataTable.Rows.Remove(model);
-            //    if (TableNodeContext != null)
-            //    {
-            //        TableNodeContext.DataTable = _nodeDataTable;
+            if (model != null && ModelVM != null)
+            {
+                Items = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).DeleteItemFromList(Items, model);
 
-            //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
-            //    }
+                await GetPageRowsAsync(Items);
 
-            //    StateHasChanged(); // Refresh UI after deleting model
-            //}
+                StateHasChanged();
+            }
 
             await Task.CompletedTask;
         }
 
         private async Task SaveRowAsync()
         {
-            if (_editedRow != null && Items != null)
+            if (_editedRow != null && ModelVM != null)
             {
-                //foreach (var column in Items)
-                //{
-                //    _editedRow = _nodeEditValues[column.ColumnName];
-                //}
+                _isEditing = false;
+                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SaveModel(_editedRow);
+                _editedRow = item;
 
-                //_editedRow = default!;
-                //_isEditing = false;
-
-                //if (TableNodeContext != null)
-                //{
-                //    TableNodeContext.DataTable = _nodeDataTable;
-                //    TableNodeContext.EditedRow = _editedRow;
-                //    TableNodeContext.IsEditing = _isEditing;
-
-                //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
-                //    await _sessionManager.SaveToSessionTableAsync($"{Title}_editedRow", _editedRow, serialize: true);
-                //    await _sessionManager.SaveToSessionTableAsync($"{Title}_isEditing", _isEditing, serialize: true);
-                //}
-
-                //StateHasChanged();
+                StateHasChanged(); // Refresh UI after canceling edit
             }
 
             await Task.CompletedTask;
@@ -842,12 +824,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task CancelEdit()
         {
-            if (_editedRow != null && ModelVM != null)
+            if (_editedRow != null && _editedRowSaved != null && ModelVM != null)
             {
                 _isEditing = false;
-                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(_editedRow, _isEditing);
-                _editedRow = item;
-                
+                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(_editedRowSaved, _isEditing);
+                Items = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).UpdateList(Items, item);
+
+                _editedRow = default!;
+                _editedRowSaved = default!;
+
+
                 StateHasChanged(); // Refresh UI after canceling edit
             }
         }
@@ -942,7 +928,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _filteredRows = items;
             _filteredItems = _filteredRows.Count();
-            _totalItems = _totalItems == 0 ? Items.Count() : _totalItems;
+            _totalItems = Items.Count();
             if (_pageSize == 0)
             {
                 _pageSize = _totalItems;

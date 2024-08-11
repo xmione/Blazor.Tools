@@ -16,6 +16,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 builder.OpenElement(0, "input");
                 builder.AddAttribute(1, "type", "number");
+                builder.AddAttribute(1, "class", "form-control");
                 builder.AddAttribute(2, "value", Value);
                 builder.CloseElement();
             }
