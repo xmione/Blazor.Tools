@@ -23,6 +23,7 @@
         <th>First Name</th>
         <th>Middle Name</th>
         <th>Last Name</th>
+        <th>DateOfBirth</th>
         <th>Country</th>
     </TableHeader>
     <RowTemplate>
@@ -37,13 +38,22 @@
         </td>
         <td>
             <TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
-                       ValueChanged="@((object newValue) => OnMiddleNameValueChanged(newValue, employee))" 
+            ValueChanged="@((object newValue) => OnMiddleNameValueChanged(newValue, employee))" 
             />
         </td>
         <td>
             <TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
-                       ValueChanged="@((object newValue) => OnLastNameValueChanged(newValue, employee))" 
+            ValueChanged="@((object newValue) => OnLastNameValueChanged(newValue, employee))" 
             />
+        </td>
+        <td>
+            @* <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
+            /> *@
+
+            <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
+            ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, employee))" 
+            />
+
         </td>
         <td>
             <DropdownList 
@@ -105,6 +115,7 @@
             ["FirstName"] = "First Name",
             ["MiddleName"] = "Middle Name",
             ["LastName"] = "Last Name",
+            ["DateOfBirth"] = "Date of Birth",
             ["CountryID"] = "Country",
         };
 
@@ -114,6 +125,7 @@
            .RuleFor(e => e.FirstName, f => f.Name.FirstName())
            .RuleFor(e => e.MiddleName, f => f.Name.FirstName().Substring(0, 1) + ".")
            .RuleFor(e => e.LastName, f => f.Name.LastName())
+           .RuleFor(e => e.DateOfBirth, f => DateOnly.FromDateTime(f.Date.Past(50, DateTime.Now.AddYears(-18))))
            .RuleFor(e => e.CountryID, f => f.Random.Int(1, 2));
 
         var countryFaker = new Faker<CountryVM>()
@@ -220,6 +232,22 @@
         StateHasChanged();
 
     }
+    
+    private void OnDateOfBirthValueChanged(DateOnly? newValue, EmployeeVM employeeVM)
+    {
+        employeeVM.DateOfBirth = newValue.GetValueOrDefault();
+
+        // Update employee list
+
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
+
+        if (foundEmployee != null)
+        {
+            foundEmployee.DateOfBirth = employeeVM.DateOfBirth;
+        }
+
+        StateHasChanged();
+    }
 
     private void OnIDValueChanged(object newValue, EmployeeVM employeeVM)
     {
@@ -255,6 +283,7 @@
         public string FirstName { get; set; } = default!;
         public string MiddleName { get; set; } = default!;
         public string LastName { get; set; } = default!;
+        public DateOnly DateOfBirth { get; set; } = default!;
         public int CountryID { get; set; } 
     }
 
@@ -285,6 +314,7 @@
             FirstName = model.FirstName;
             MiddleName = model.MiddleName;
             LastName = model.LastName;
+            DateOfBirth = model.DateOfBirth;
             CountryID = model.CountryID;
         }
 
@@ -298,6 +328,7 @@
             MiddleName = modelVM.MiddleName;
             LastName = modelVM.LastName;
             FirstName = modelVM.FirstName;
+            DateOfBirth = modelVM.DateOfBirth;
             CountryID = modelVM.CountryID;
         }
 
@@ -312,6 +343,7 @@
                     FirstName = this.FirstName,
                     MiddleName = this.MiddleName,
                     LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
                     CountryID = this.CountryID
                 };
         }
@@ -363,6 +395,7 @@
                         FirstName = model.FirstName;
                         MiddleName = model.MiddleName;
                         LastName = model.LastName;
+                        DateOfBirth = model.DateOfBirth;
                         CountryID = model.CountryID;
                     });
 
@@ -384,6 +417,7 @@
                     FirstName = this.FirstName,
                     MiddleName = this.MiddleName,
                     LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
                     CountryID = this.CountryID
                 };
         }
@@ -399,6 +433,7 @@
                     FirstName = this.FirstName,
                     MiddleName = this.MiddleName,
                     LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
                     CountryID = this.CountryID
                 };
         }
@@ -423,11 +458,12 @@
             {
                 RowID = modelVM.RowID,
                 IsEditMode = modelVM.IsEditMode,
-                    IsVisible = modelVM.IsVisible,
+                IsVisible = modelVM.IsVisible,
                 ID = modelVM.ID,
                 FirstName = modelVM.FirstName,
                 MiddleName = modelVM.MiddleName,
                 LastName = modelVM.LastName,
+                DateOfBirth = modelVM.DateOfBirth,
                 CountryID = modelVM.CountryID
             };
 
@@ -473,6 +509,7 @@
                     modelVM.FirstName = updatedModelVM.FirstName;
                     modelVM.MiddleName = updatedModelVM.MiddleName;
                     modelVM.LastName = updatedModelVM.LastName;
+                    modelVM.DateOfBirth = updatedModelVM.DateOfBirth;
                     modelVM.CountryID = updatedModelVM.CountryID;
                 }
             }
