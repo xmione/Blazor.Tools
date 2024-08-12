@@ -13,10 +13,11 @@
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TableGridInternals Title="Employee List" TModel="Employee" TModelVM="EmployeeVM" ModelVM="_employeeVM" TIModel="IActions" Items="_employees" 
-    DataSources="@_dataSources" Context="employee" ItemsChanged="OnItemsChanged" >
+<TableGridInternals Title="@_title" TModel="Employee" TModelVM="EmployeeVM" ModelVM="_employeeVM" TIModel="IActions" Items="_employees" 
+    DataSources="@_dataSources" Context="employee" ItemsChanged="OnItemsChanged" AllowCellRangeSelection="true"
+>
     <StartContent>
-        <h2>Employee List</h2>
+        <h2>@_title</h2>
     </StartContent>
     <TableHeader>
         <th>ID</th>
@@ -27,35 +28,32 @@
         <th>Country</th>
     </TableHeader>
     <RowTemplate>
-        <td>
+        <td title=@($"R{@employee.RowID}C1")>
             <NumberInput ColumnName="ID" Value="@employee.ID" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnIDValueChanged(newValue, employee))" />
         </td>
-        <td>
+        <td title=@($"R{@employee.RowID}C2")>
             <TextInput ColumnName="FirstName" Value="@employee.FirstName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"  
             ValueChanged="@((object newValue) => OnFirstNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td>
+        <td title=@($"R{@employee.RowID}C3")>
             <TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnMiddleNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td>
+        <td title=@($"R{@employee.RowID}C4")>
             <TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnLastNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td>
-            @* <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
-            /> *@
-
+        <td title=@($"R{@employee.RowID}C5")>
             <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, employee))" 
             />
 
         </td>
-        <td>
+        <td title=@($"R{@employee.RowID}C6")>
             <DropdownList 
                 Items="_countries" 
                 ColumnName="CountryID" 
@@ -102,7 +100,7 @@
     private Dictionary<string, string>? _countryHeaderNames;
     private EmployeeVM _employeeVM = new EmployeeVM();
     private CountryVM? _selectedCountry;
-
+    private const string _title = "Employee List";
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");

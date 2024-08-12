@@ -25,13 +25,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
+        [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
 
 
         //[Parameter] public RenderFragment ChildContent { get; set; } = null!;
         //[Parameter] public DataTable DataTable { get; set; } = null!;
         //[Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
         //[Parameter] public Dictionary<string, string>? HeaderNames { get; set; } = default!;
-        //[Parameter] public bool AllowCellSelection { get; set; } = false;
+
 
         private SessionManager _sessionManager = SessionManager.Instance;
         private IEnumerable<TModelVM> _filteredRows = default!;
@@ -46,6 +47,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private TModelVM? _editedRow;
         private TModelVM? _editedRowSaved;
         private TModelVM? _newRowData;
+        private string _startCell = string.Empty;
+        private string _endCell = string.Empty;
+        private bool _isFirstCellClicked;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -152,6 +156,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.CloseElement(); // div
 
             await RenderFooterAsync(builder, seq);
+
+            await RenderAllowSelection(builder, seq);
+
         }
         //        private bool _renderTable = false; // Flag to control when to render RenderTable()
 
@@ -819,50 +826,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.CloseElement(); // script
 
-            //if (AllowCellSelection)
-            //{
-            //    // Cell selection controls
-            //    builder.OpenElement(seq++, "div");
-            //    builder.AddAttribute(seq++, "class", "modelVM mb-2");
 
-            //    builder.OpenElement(seq++, "div");
-            //    builder.AddAttribute(seq++, "class", "col-auto");
-
-            //    builder.OpenComponent<Icon>(seq++);
-            //    builder.AddAttribute(seq++, "Name", "IconName.Recycle");
-            //    builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer");
-            //    builder.AddAttribute(seq++, "title", "Clear");
-            //    builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ClearSelectionAsync));
-            //    builder.CloseComponent();
-
-            //    builder.CloseElement(); // col-auto
-
-            //    builder.OpenElement(seq++, "div");
-            //    builder.AddAttribute(seq++, "class", "col");
-
-            //    builder.OpenElement(seq++, "input");
-            //    builder.AddAttribute(seq++, "value", _nodeStartCell);
-            //    builder.AddAttribute(seq++, "class", "form-control");
-            //    builder.AddAttribute(seq++, "placeholder", "Start Cell");
-            //    builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, HandleStartCellClick));
-            //    builder.CloseElement();
-
-            //    builder.CloseElement(); // col
-
-            //    builder.OpenElement(seq++, "div");
-            //    builder.AddAttribute(seq++, "class", "col");
-
-            //    builder.OpenElement(seq++, "input");
-            //    builder.AddAttribute(seq++, "value", _nodeEndCell);
-            //    builder.AddAttribute(seq++, "class", "form-control");
-            //    builder.AddAttribute(seq++, "placeholder", "End Cell");
-            //    builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, HandleEndCellClick));
-            //    builder.CloseElement();
-
-            //    builder.CloseElement(); // col
-
-            //    builder.CloseElement(); // modelVM
-            //}
 
             // Add Row Modal
             //if (_showAddRowModal)
@@ -876,6 +840,56 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //    builder.AddAttribute(seq++, "HiddenColumnNames", HiddenColumnNames);
             //    builder.CloseComponent();
             //}
+
+            await Task.CompletedTask;
+        }
+
+        private async Task RenderAllowSelection(RenderTreeBuilder builder, int seq)
+        {
+            if (AllowCellRangeSelection)
+            {
+                // Cell selection controls
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "class", "modelVM mb-2");
+
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "class", "col-auto");
+
+                builder.OpenComponent<Icon>(seq++);
+                builder.AddAttribute(seq++, "Name", IconName.Recycle);
+                builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer");
+                builder.AddAttribute(seq++, "title", "Clear");
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, ClearSelectionAsync));
+                builder.CloseComponent();
+
+                builder.CloseElement(); // col-auto
+
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "class", "col");
+
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "value", _startCell);
+                builder.AddAttribute(seq++, "class", "form-control");
+                builder.AddAttribute(seq++, "placeholder", "Start Cell");
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleStartCellClick));
+                builder.CloseElement();
+
+                builder.CloseElement(); // col
+
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "class", "col");
+
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "value", _endCell);
+                builder.AddAttribute(seq++, "class", "form-control");
+                builder.AddAttribute(seq++, "placeholder", "End Cell");
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleEndCellClick));
+                builder.CloseElement();
+
+                builder.CloseElement(); // col
+
+                builder.CloseElement(); // modelVM
+            }
 
             await Task.CompletedTask;
         }
@@ -1224,80 +1238,60 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        //        private async Task ClearSelectionAsync(MouseEventArgs e)
-        //        {
-        //            _nodeStartCell = string.Empty;
-        //            _nodeEndCell = string.Empty;
+        private async Task ClearSelectionAsync(MouseEventArgs e)
+        {
+            _startCell = string.Empty;
+            _endCell = string.Empty;
+            
+            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+            
+            await Task.CompletedTask;
+        }
 
-        //            if (TableNodeContext != null)
-        //            {
-        //                TableNodeContext.StartCell = _nodeStartCell;
-        //                TableNodeContext.EndCell = _nodeEndCell;
+        private async Task HandleStartCellClick(MouseEventArgs e)
+        {
+            _startCell = string.Empty;
 
-        //                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-        //                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
-        //            }
+            StateHasChanged();
 
-        //            await Task.CompletedTask;
-        //        }
+            await Task.CompletedTask;
+        }
 
-        //        private async Task HandleStartCellClick(MouseEventArgs e)
-        //        {
-        //            _nodeStartCell = string.Empty;
+        private async Task HandleEndCellClick(MouseEventArgs e)
+        {
+            _endCell = string.Empty;
 
-        //            StateHasChanged();
+            StateHasChanged();
 
-        //            await Task.CompletedTask;
-        //        }
+            await Task.CompletedTask;
+        }
 
-        //        private async Task HandleEndCellClick(MouseEventArgs e)
-        //        {
-        //            _nodeStartCell = string.Empty;
+        private async Task HandleCellClickAsync(int rowIndex, int columnIndex)
+        {
+            string cellIdentifier = $"R{rowIndex}C{columnIndex}";
 
-        //            StateHasChanged();
+            if (string.IsNullOrEmpty(_startCell) || _isFirstCellClicked)
+            {
+                _startCell = cellIdentifier;
+                _isFirstCellClicked = false;
 
-        //            await Task.CompletedTask;
-        //        }
+            }
+            else
+            {
+                _endCell = cellIdentifier;
+                _isFirstCellClicked = true;
 
+            }
 
-        //private void CloseAddRowModal()
-        //{
-        //    _showAddRowModal = false;
-        //    StateHasChanged(); // Ensure UI updates to hide the modal
-        //}
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
 
-        //        private async Task HandleCellClickAsync(int rowIndex, int columnIndex)
-        //        {
-        //            string cellIdentifier = $"R{rowIndex}C{columnIndex}";
+            StateHasChanged(); // Refresh UI to reflect the changes in cell selection
 
-        //            if (string.IsNullOrEmpty(_nodeStartCell) || _nodeIsFirstCellClicked)
-        //            {
-        //                _nodeStartCell = cellIdentifier;
-        //                _nodeIsFirstCellClicked = false;
-
-        //            }
-        //            else
-        //            {
-        //                _nodeEndCell = cellIdentifier;
-        //                _nodeIsFirstCellClicked = true;
-
-        //            }
-
-        //            if (TableNodeContext != null)
-        //            {
-        //                TableNodeContext.StartCell = _nodeStartCell;
-        //                TableNodeContext.EndCell = _nodeEndCell;
-        //                TableNodeContext.IsFirstCellClicked = _nodeIsFirstCellClicked;
-
-        //                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-        //                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
-        //                await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
-        //            }
-
-        //            StateHasChanged(); // Refresh UI to reflect the changes in cell selection
-
-        //            await Task.CompletedTask;
-        //        }
+            await Task.CompletedTask;
+        }
 
         //        public async Task HandleSelectedDataComb(DataRow[] selectedData)
         //        {
