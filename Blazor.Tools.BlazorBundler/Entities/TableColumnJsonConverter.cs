@@ -12,7 +12,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
     //        var jsonObject = new JObject();
     //        var tableColumn = value ?? new TableColumn();
     //        // Serialize public properties
-    //        foreach (PropertyInfo prop in tableColumn.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+    //        foreach (PropertyInfo prop in tableColumn.GetType().GetPropertyNames(BindingFlags.Public | BindingFlags.Instance))
     //        {
     //            if (prop.CanRead)
     //            {
@@ -45,7 +45,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
     //        var tableColumn = existingValue ?? new TableColumn();
 
     //        // Deserialize public properties
-    //        foreach (var prop in typeof(TableColumn).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+    //        foreach (var prop in typeof(TableColumn).GetPropertyNames(BindingFlags.Public | BindingFlags.Instance))
     //        {
     //            var propName = prop.Name;
     //            if (jsonObject.TryGetValue(propName, out var valueToken))

@@ -44,11 +44,29 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         }
 
         /// <summary>
+        /// Gets the PropertyInfo of an object.
+        /// </summary>
+        /// <param name="obj">The object to get the property infos from.</param>
+        /// <returns>PropertyInfo[]? that contains all the object's properties.</returns>
+        public static PropertyInfo[]? GetProperties(this object obj)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
+            var properties = obj.GetType()
+                      .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            return properties;
+        }
+        
+        /// <summary>
         /// Gets the property names of an object.
         /// </summary>
         /// <param name="obj">The object to get the property names from.</param>
         /// <returns>IEnumerable<string> that contains all the object's property names.</returns>
-        public static IEnumerable<string> GetProperties(this object obj)
+        public static IEnumerable<string> GetPropertyNames(this object obj)
         {
             if (obj == null)
             {

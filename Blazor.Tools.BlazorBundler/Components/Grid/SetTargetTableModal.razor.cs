@@ -152,7 +152,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //            {
     //                if (_targetTableColumnList.Any())
     //                {
-    //                    _columnProperties = _targetTableColumnList.First().GetProperties().ToList();
+    //                    _columnProperties = _targetTableColumnList.First().GetPropertyNames().ToList();
     //                }
     //                else
     //                {
@@ -293,7 +293,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //        {
     //            if (_targetTableColumnList.Any())
     //            {
-    //                _columnProperties = _targetTableColumnList.First().GetProperties().ToList();
+    //                _columnProperties = _targetTableColumnList.First().GetPropertyNames().ToList();
     //            }
     //            else
     //            {

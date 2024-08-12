@@ -5,10 +5,11 @@
         TModel ToNewModel();
         TIModel ToNewIModel();
         Task<TModelVM> FromModel(TModel model);
-        Task<TModel> SetEditMode(TModel model, bool isEditMode);
-        Task<TModel> SaveModel(TModel model);
-        Task<TModel> SaveModelToNewModel(TModel model);
-        Task<IEnumerable<TModel>> UpdateList(IEnumerable<TModel> modelList, TModel updatedModel);
-        Task<IEnumerable<TModel>> DeleteItemFromList(IEnumerable<TModel> modelList, TModel deletedModel);
+        Task<TModelVM> SetEditMode(TModelVM modelVM, bool isEditMode);
+        Task<TModelVM> SaveModelVM(TModelVM modelVM);
+        Task<TModelVM> SaveModelVMToNewModelVM(TModelVM modelVM);
+        Task<IEnumerable<TModelVM>> AddItemToList(IEnumerable<TModelVM> modelVMList, TModelVM newModelVM);
+        Task<IEnumerable<TModelVM>> UpdateList(IEnumerable<TModelVM> modelVMList, TModelVM updatedModelVM, bool isAdding);
+        Task<IEnumerable<TModelVM>> DeleteItemFromList(IEnumerable<TModelVM> modelVMList, TModelVM deletedModelVM);
     }
 }

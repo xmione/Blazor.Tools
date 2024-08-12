@@ -602,7 +602,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.CloseComponent();
 
                 // Cancel icon
-                // <Icon Name="IconName.XCircleFill" @onclick="CancelEdit" title="Cancel" class="text-secondary icon-button" />
+                // <Icon Name="IconName.XCircleFill" @onclick="CancelEditAsync" title="Cancel" class="text-secondary icon-button" />
                 builder.OpenComponent<Icon>(seq++);
                 builder.AddAttribute(seq++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
                 builder.AddAttribute(seq++, "Class", "text-secondary icon-button cursor-pointer");
