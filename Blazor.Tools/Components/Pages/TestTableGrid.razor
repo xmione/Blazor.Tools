@@ -8,12 +8,13 @@
 @using System.Data
 @using System.ComponentModel.DataAnnotations
 
+@inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TableGridInternals Title="@_title" TModel="Employee" TModelVM="EmployeeVM" ModelVM="_employeeVM" TIModel="IActions" Items="_employees" 
+<TableGridInternals Title="@_title" TableID="@_tableID" TModel="Employee" TModelVM="EmployeeVM" ModelVM="_employeeVM" TIModel="IModelExtendedProperties" Items="_employees" 
     DataSources="@_dataSources" Context="employee" ItemsChanged="OnItemsChanged" AllowCellRangeSelection="true"
 >
     <StartContent>
@@ -28,32 +29,37 @@
         <th>Country</th>
     </TableHeader>
     <RowTemplate>
-        <td title=@($"R{@employee.RowID}C1")>
+        @* 
+            Note: This should be the format for the td ids:
+            id="_tableID-row-col" 
+            <td id="employee-1-1">
+        *@
+
+        <td id=@($"{_tableID}-{employee.RowID}-1") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 1))">
             <NumberInput ColumnName="ID" Value="@employee.ID" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnIDValueChanged(newValue, employee))" />
         </td>
-        <td title=@($"R{@employee.RowID}C2")>
+        <td id=@($"{_tableID}-{@employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 2))">
             <TextInput ColumnName="FirstName" Value="@employee.FirstName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"  
             ValueChanged="@((object newValue) => OnFirstNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td title=@($"R{@employee.RowID}C3")>
+        <td id=@($"{_tableID}-{@employee.RowID}-3") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 3))">
             <TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnMiddleNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td title=@($"R{@employee.RowID}C4")>
+        <td id=@($"{_tableID}-{@employee.RowID}-4") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 4))">
             <TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnLastNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td title=@($"R{@employee.RowID}C5")>
+        <td id=@($"{_tableID}-{@employee.RowID}-5") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 5))">
             <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, employee))" 
             />
-
         </td>
-        <td title=@($"R{@employee.RowID}C6")>
+        <td id=@($"{_tableID}-{@employee.RowID}-6") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 6))">
             <DropdownList 
                 Items="_countries" 
                 ColumnName="CountryID" 
@@ -67,6 +73,51 @@
         </td>
     </RowTemplate>
 </TableGridInternals>
+
+<style>
+    .marked-border{
+        border: 5px solid blue!important;    
+    }
+
+</style>
+<script>
+    window.setValue = (elementId, newValue) => {
+        document.getElementById(elementId).value = newValue;
+    };
+
+    window.getValue = (elementId) => {
+        var el = document.getElementById(elementId);
+
+        var elementValue = null
+        if (el) {
+            elementValue = el.value;
+        }
+
+        return elementValue;
+    };
+
+    window.toggleCellBorders = (startRow, endRow, startCol, endCol, tableId, shouldMark) => {
+        for (var row = startRow; row < endRow + 1; row++) {
+            for (var col = startCol; col < endCol + 1; col++) {
+                var elementId = tableId + "-" + row + "-" + col;
+                var cellElement = document.getElementById(elementId);
+                if (cellElement) {
+                    if(shouldMark) {
+                        if (!cellElement.classList.contains('marked-border')) {
+                            cellElement.classList.add('marked-border');
+                        }
+                    }
+                    else {
+                        if (cellElement.classList.contains('marked-border')) {
+                            cellElement.classList.remove('marked-border');
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+</script>
 
 @* <TableGrid Title="Employees" AllowCellSelection="true">
     <TableSource Name="EmployeeDS" DataSource="@_employees" />
@@ -89,7 +140,7 @@
  *@
 @code {
 
-    //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+        //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private Dictionary<string, object> _dataSources = default!;
     private List<EmployeeVM> _employees = new List<EmployeeVM>();
@@ -101,6 +152,15 @@
     private EmployeeVM _employeeVM = new EmployeeVM();
     private CountryVM? _selectedCountry;
     private const string _title = "Employee List";
+    private const string _tableID = "employee";
+    private bool _isFirstCellClicked = true;
+    private string _startCell = string.Empty;
+    private string _endCell = string.Empty;
+    private int _startRow;
+    private int _endRow;
+    private int _startCol;
+    private int _endCol;
+
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
@@ -230,7 +290,7 @@
         StateHasChanged();
 
     }
-    
+
     private void OnDateOfBirthValueChanged(DateOnly? newValue, EmployeeVM employeeVM)
     {
         employeeVM.DateOfBirth = newValue.GetValueOrDefault();
@@ -268,10 +328,64 @@
         _employees = updatedItems.ToList();
     }
 
-    public interface IActions
+    private async Task HandleCellClickAsync(string id, EmployeeVM employee, int column)
+    {
+        string cellIdentifier = $"R{employee.RowID}C{column}";
+        
+        // get the values from the hidden input fields first
+        _startCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-start-cell");
+        _endCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-end-cell");
+
+        bool areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell); 
+        if (string.IsNullOrEmpty(_startCell) || _isFirstCellClicked)
+        {
+            _startRow = employee.RowID;
+            _startCol = column;
+            _startCell = cellIdentifier;
+            _isFirstCellClicked = areBothFilled? _isFirstCellClicked : false;
+
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-row", $"{_startRow}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-col", $"{_startCol}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-cell", cellIdentifier);
+        }
+        else
+        {
+            _endRow = employee.RowID;
+            _endCol = column;
+            _endCell = cellIdentifier;
+            _isFirstCellClicked = areBothFilled? _isFirstCellClicked : true;
+
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-row", $"{_endRow}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-col", $"{_endCol}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-cell", cellIdentifier);
+
+        }
+        
+        // you need to ask again because it already has ran through some codes that might affect its value.
+        areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell); 
+
+        if (areBothFilled)
+        {
+            // Now that they are both filled with values, mark them
+            await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, _tableID, true);
+        }
+
+        //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+        //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+        //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
+
+        StateHasChanged(); // Refresh UI to reflect the changes in cell selection
+
+        await Task.CompletedTask;
+    }
+
+    public interface IModelExtendedProperties
     {
         public bool IsEditMode { get; set; }    
         public bool IsVisible { get; set; }    
+        public int StartCell { get; set; }
+        public int EndCell { get; set; }
+        public bool IsFirstCellClicked { get; set; }
 
     }
 
@@ -297,12 +411,15 @@
         public List<T> DataSourceList { get; set; } = default!;
     }
 
-    public class EmployeeVM : Employee, IActions, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IActions, EmployeeVM>
+    public class EmployeeVM : Employee, IModelExtendedProperties, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IModelExtendedProperties, EmployeeVM>
     {
         private List<EmployeeVM> _employees = new List<EmployeeVM>(); // Initialize the list
         public int RowID { get; set; } // Integer property to indicate row ID
         public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
-        public bool IsVisible { get; set; } // Boolean property to indicate editing mode
+        public bool IsVisible { get; set; } // Boolean property to indicate if visible
+        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
+        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
+        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
 
         public EmployeeVM() { }
 
@@ -320,6 +437,9 @@
         {
             IsEditMode = modelVM.IsEditMode;
             IsVisible = modelVM.IsVisible;
+            IsFirstCellClicked = modelVM.IsFirstCellClicked;
+            StartCell = modelVM.StartCell;
+            EndCell = modelVM.EndCell;
             RowID = modelVM.RowID;
             ID = modelVM.ID;
             FirstName = modelVM.FirstName;
@@ -336,6 +456,9 @@
                 {
                     IsEditMode = this.IsEditMode,
                     IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
                     RowID = this.RowID,
                     ID = this.ID,
                     FirstName = this.FirstName,
@@ -420,12 +543,15 @@
                 };
         }
 
-        public IActions ToNewIModel()
+        public IModelExtendedProperties ToNewIModel()
         {
             return new EmployeeVM
                 {
                     IsEditMode = this.IsEditMode,
                     IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
                     RowID = this.RowID,
                     ID = this.ID,
                     FirstName = this.FirstName,
@@ -454,9 +580,12 @@
         {
             var newEmployee = new EmployeeVM()
             {
-                RowID = modelVM.RowID,
                 IsEditMode = modelVM.IsEditMode,
                 IsVisible = modelVM.IsVisible,
+                IsFirstCellClicked = modelVM.IsFirstCellClicked,
+                StartCell = modelVM.StartCell,
+                EndCell = modelVM.EndCell,
+                RowID = modelVM.RowID,
                 ID = modelVM.ID,
                 FirstName = modelVM.FirstName,
                 MiddleName = modelVM.MiddleName,
@@ -474,8 +603,16 @@
         {
             var list = modelVMList.ToList();
 
-            RowID = list.Count() + 1;
+            int listCount = list.Count();
+            RowID = listCount + 1;
             newModelVM.RowID = RowID;
+            if (listCount > 0)
+            {
+                var firstItem = list.First();
+                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;    
+                newModelVM.StartCell = firstItem.StartCell;
+                newModelVM.EndCell = firstItem.EndCell;
+            }
 
             list.Add(newModelVM);
 
@@ -503,6 +640,9 @@
                 {
                     modelVM.IsEditMode = updatedModelVM.IsEditMode;
                     modelVM.IsVisible = updatedModelVM.IsVisible;
+                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
+                    modelVM.StartCell = updatedModelVM.StartCell;
+                    modelVM.EndCell = updatedModelVM.EndCell;
                     modelVM.ID = updatedModelVM.ID;
                     modelVM.FirstName = updatedModelVM.FirstName;
                     modelVM.MiddleName = updatedModelVM.MiddleName;
@@ -535,12 +675,15 @@
 
     }
 
-    public class CountryVM : Country, IActions, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IActions, CountryVM>
+    public class CountryVM : Country, IModelExtendedProperties, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties, CountryVM>
     {
         private List<CountryVM> _countries = new List<CountryVM>(); // Initialize the list
         public int RowID { get; set; } // Integer property to indicate row ID
         public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
         public bool IsVisible { get; set; } // Boolean property to indicate editing mode
+        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
+        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
+        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
 
         public CountryVM() { }
         public CountryVM(Country model)
@@ -553,6 +696,9 @@
         {
             IsEditMode = modelVM.IsEditMode;
             IsVisible = modelVM.IsVisible;
+            IsFirstCellClicked = modelVM.IsFirstCellClicked;
+            StartCell = modelVM.StartCell;
+            EndCell = modelVM.EndCell;
             RowID = modelVM.RowID;
             ID = modelVM.ID;
             Name = modelVM.Name;
@@ -563,6 +709,9 @@
                 {
                     IsEditMode = this.IsEditMode,
                     IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
                     RowID = this.RowID,
                     ID = this.ID,
                     Name = this.Name,
@@ -633,12 +782,15 @@
                 };
         }
 
-        public IActions ToNewIModel()
+        public IModelExtendedProperties ToNewIModel()
         {
             return new CountryVM
                 {
                     IsEditMode = this.IsEditMode,
                     IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
                     RowID = this.RowID,
                     ID = this.ID,
                     Name = this.Name,
@@ -666,6 +818,9 @@
                 {
                     IsEditMode = modelVM.IsEditMode,
                     IsVisible = modelVM.IsVisible,
+                    IsFirstCellClicked = modelVM.IsFirstCellClicked,
+                    StartCell = modelVM.StartCell,
+                    EndCell = modelVM.EndCell,
                     RowID = modelVM.RowID,
                     ID = modelVM.ID,
                     Name = modelVM.Name,
@@ -680,8 +835,16 @@
         {
             var list = modelVMList.ToList();
 
-            RowID = list.Count() + 1;
+            int listCount = list.Count();
+            RowID = listCount + 1;
             newModelVM.RowID = RowID;
+            if (listCount > 0)
+            {
+                var firstItem = list.First();
+                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                newModelVM.StartCell = firstItem.StartCell;
+                newModelVM.EndCell = firstItem.EndCell;
+            }
 
             list.Add(newModelVM);
 
@@ -708,6 +871,9 @@
                 {
                     modelVM.IsEditMode = updatedModelVM.IsEditMode;
                     modelVM.IsVisible = updatedModelVM.IsVisible;
+                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
+                    modelVM.StartCell = updatedModelVM.StartCell;
+                    modelVM.EndCell = updatedModelVM.EndCell;
                     modelVM.RowID = updatedModelVM.RowID;
                     modelVM.ID = updatedModelVM.ID;
                     modelVM.Name = updatedModelVM.Name;

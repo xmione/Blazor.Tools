@@ -115,3 +115,18 @@
 .left-margin-5x {
     margin-left:5px;
 }
+
+.row-display {
+    display: flex!important;
+    align-items: center!important; /* Vertically align items */
+    gap: 10px!important; /* Space between items, adjust as needed */
+    margin-bottom:10px;
+}
+
+#pageSize {
+    width: 100px !important;
+}
+
+#current-page {
+    width: 100px!important;
+}

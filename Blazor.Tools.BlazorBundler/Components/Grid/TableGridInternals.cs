@@ -14,6 +14,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     public partial class TableGridInternals<TModel, TIModel, TModelVM> : ComponentBase
     {
         [Parameter] public string Title { get; set; } = "Sample List";
+        [Parameter] public string TableID { get; set; } = "table-id";
         [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
@@ -26,7 +27,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
-
+        [Parameter] public EventCallback OnCellClickAsync { get; set; }
 
         //[Parameter] public RenderFragment ChildContent { get; set; } = null!;
         //[Parameter] public DataTable DataTable { get; set; } = null!;
@@ -666,7 +667,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // Pagination controls
             builder.OpenElement(seq++, "div");
             builder.OpenElement(seq++, "div");
-            builder.AddAttribute(seq++, "class", "pagination-container");
+            builder.AddAttribute(seq++, "class", "pagination-container row-display");
 
             builder.OpenElement(seq++, "label");
             builder.AddContent(seq++, $"Total Items: {_filteredItems}/{_totalItems}");
@@ -680,7 +681,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.OpenElement(seq++, "select");
             builder.AddAttribute(seq++, "id", "pageSize");
-            builder.AddAttribute(seq++, "class", "left-margin-5x cursor-pointer");
+            builder.AddAttribute(seq++, "class", "form-control left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, PageSizeChangedAsync));
 
             foreach (var size in pageSizes)
@@ -736,11 +737,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.CloseElement();
 
             builder.OpenElement(seq++, "input");
+            builder.AddAttribute(seq++, "id", "current-page");
             builder.AddAttribute(seq++, "type", "number");
             builder.AddAttribute(seq++, "min", "1");
             builder.AddAttribute(seq++, "max", _totalPages.ToString());
             builder.AddAttribute(seq++, "value", _currentPage);
-            builder.AddAttribute(seq++, "class", "left-margin-5x cursor-pointer");
+            builder.AddAttribute(seq++, "class", "form-control left-margin-5x cursor-pointer");
             builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create(this, CurrentPageChangedAsync));
             builder.CloseElement();
 
@@ -850,44 +852,57 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 // Cell selection controls
                 builder.OpenElement(seq++, "div");
-                builder.AddAttribute(seq++, "class", "modelVM mb-2");
+                builder.AddAttribute(seq++, "class", "row-display mb-2");
 
-                builder.OpenElement(seq++, "div");
-                builder.AddAttribute(seq++, "class", "col-auto");
+                // hidden input fields for the cell range selection
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "type", "hidden");
+                builder.AddAttribute(seq++, "id", $"{TableID}-start-row");
+                builder.AddAttribute(seq++, "value", "");
+                builder.CloseElement();
 
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "type", "hidden");
+                builder.AddAttribute(seq++, "id", $"{TableID}-end-row");
+                builder.AddAttribute(seq++, "value", "");
+                builder.CloseElement();
+
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "type", "hidden");
+                builder.AddAttribute(seq++, "id", $"{TableID}-start-col");
+                builder.AddAttribute(seq++, "value", "");
+                builder.CloseElement();
+
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "type", "hidden");
+                builder.AddAttribute(seq++, "id", $"{TableID}-end-col");
+                builder.AddAttribute(seq++, "value", "");
+                builder.CloseElement();
+                 
                 builder.OpenComponent<Icon>(seq++);
+                builder.AddAttribute(seq++, "id", $"{TableID}-clear-selection");
                 builder.AddAttribute(seq++, "Name", IconName.Recycle);
                 builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer");
                 builder.AddAttribute(seq++, "title", "Clear");
                 builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, ClearSelectionAsync));
                 builder.CloseComponent();
-
-                builder.CloseElement(); // col-auto
-
-                builder.OpenElement(seq++, "div");
-                builder.AddAttribute(seq++, "class", "col");
-
+                  
                 builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "id", $"{TableID}-start-cell");
                 builder.AddAttribute(seq++, "value", _startCell);
                 builder.AddAttribute(seq++, "class", "form-control");
                 builder.AddAttribute(seq++, "placeholder", "Start Cell");
                 builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleStartCellClick));
                 builder.CloseElement();
-
-                builder.CloseElement(); // col
-
-                builder.OpenElement(seq++, "div");
-                builder.AddAttribute(seq++, "class", "col");
-
+  
                 builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "id", $"{TableID}-end-cell");
                 builder.AddAttribute(seq++, "value", _endCell);
                 builder.AddAttribute(seq++, "class", "form-control");
                 builder.AddAttribute(seq++, "placeholder", "End Cell");
                 builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, HandleEndCellClick));
                 builder.CloseElement();
-
-                builder.CloseElement(); // col
-
+                 
                 builder.CloseElement(); // modelVM
             }
 
@@ -1240,12 +1255,27 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task ClearSelectionAsync(MouseEventArgs e)
         {
+            //$"{TableID}-clear-selection"
+            var startRow = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-start-row");
+            var endRow = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-end-row");
+            var startCol = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-start-col");
+            var endCol = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-end-col");
+
+            await JSRuntime.InvokeVoidAsync("toggleCellBorders", startRow, endRow, startCol, endCol, TableID, false);
+
             _startCell = string.Empty;
             _endCell = string.Empty;
-            
+
+            await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-cell", "");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-cell", "");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-row", "");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-row", "");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-col", "");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-col", "");
+
             //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
             //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
-            
+
             await Task.CompletedTask;
         }
 
