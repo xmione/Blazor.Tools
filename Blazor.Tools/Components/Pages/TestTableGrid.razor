@@ -14,19 +14,21 @@
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TableGridInternals Title="@_title" TableID="@_tableID" TModel="Employee" TModelVM="EmployeeVM" ModelVM="_employeeVM" TIModel="IModelExtendedProperties" Items="_employees" 
-    DataSources="@_dataSources" Context="employee" ItemsChanged="OnItemsChanged" AllowCellRangeSelection="true"
+<TableGridInternals Title="@_title" TableID="@_tableID" HeaderNames="@_employeeHeaderNames" TModel="Employee" TModelVM="EmployeeVM" 
+    ModelVM="_employeeVM" TIModel="IModelExtendedProperties" Items="_employees" DataSources="@_dataSources" Context="employee" 
+    ItemsChanged="OnItemsChanged" AllowCellRangeSelection="true"
 >
     <StartContent>
         <h2>@_title</h2>
     </StartContent>
     <TableHeader>
-        <th>ID</th>
-        <th>First Name</th>
-        <th>Middle Name</th>
-        <th>Last Name</th>
-        <th>DateOfBirth</th>
-        <th>Country</th>
+        @if(_employeeHeaderNames != null)
+        {
+            foreach (KeyValuePair<string, string> column in _employeeHeaderNames)
+            {
+                <th>@column.Value</th>
+            }
+        }
     </TableHeader>
     <RowTemplate>
         @* 
@@ -35,31 +37,31 @@
             <td id="employee-1-1">
         *@
 
-        <td id=@($"{_tableID}-{employee.RowID}-1") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 1))">
+        <td id=@($"{_tableID}-{employee.RowID}-1") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 1))" class="cursor-pointer">
             <NumberInput ColumnName="ID" Value="@employee.ID" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnIDValueChanged(newValue, employee))" />
         </td>
-        <td id=@($"{_tableID}-{@employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 2))">
+        <td id=@($"{_tableID}-{@employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-2", employee, 2))" class="cursor-pointer">
             <TextInput ColumnName="FirstName" Value="@employee.FirstName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"  
             ValueChanged="@((object newValue) => OnFirstNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td id=@($"{_tableID}-{@employee.RowID}-3") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 3))">
+        <td id=@($"{_tableID}-{@employee.RowID}-3") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-3", employee, 3))"  class="cursor-pointer">
             <TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnMiddleNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td id=@($"{_tableID}-{@employee.RowID}-4") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 4))">
+        <td id=@($"{_tableID}-{@employee.RowID}-4") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-4", employee, 4))"  class="cursor-pointer">
             <TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnLastNameValueChanged(newValue, employee))" 
             />
         </td>
-        <td id=@($"{_tableID}-{@employee.RowID}-5") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 5))">
+        <td id=@($"{_tableID}-{@employee.RowID}-5") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-5", employee, 5))"  class="cursor-pointer">
             <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, employee))" 
             />
         </td>
-        <td id=@($"{_tableID}-{@employee.RowID}-6") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 6))">
+        <td id=@($"{_tableID}-{@employee.RowID}-6") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-6", employee, 6))" class="cursor-pointer">
             <DropdownList 
                 Items="_countries" 
                 ColumnName="CountryID" 
@@ -96,22 +98,37 @@
         return elementValue;
     };
 
-    window.toggleCellBorders = (startRow, endRow, startCol, endCol, tableId, shouldMark) => {
-        for (var row = startRow; row < endRow + 1; row++) {
-            for (var col = startCol; col < endCol + 1; col++) {
+    window.toggleCellBorders = (startRow, endRow, startCol, endCol, totalRows, totalCols, tableId, shouldMark) => {
+
+        // ran through all the cells 
+        for (var row = 1; row < totalRows + 1; row++) {
+            for (var col = 1; col < totalCols + 1; col++) {
                 var elementId = tableId + "-" + row + "-" + col;
                 var cellElement = document.getElementById(elementId);
                 if (cellElement) {
-                    if(shouldMark) {
-                        if (!cellElement.classList.contains('marked-border')) {
-                            cellElement.classList.add('marked-border');
+                    
+                    var isRowInBetweenRange = row >= startRow && row <= endRow;
+                    var isColInBetweenRange = col >= startCol && col <= endCol;
+                    if (isRowInBetweenRange && isColInBetweenRange) {
+                        // mark if row and col are in the range
+                        if (shouldMark) {
+                            if (!cellElement.classList.contains('marked-border')) {
+                                cellElement.classList.add('marked-border');
+                            }
+                        }
+                        else {
+                            if (cellElement.classList.contains('marked-border')) {
+                                cellElement.classList.remove('marked-border');
+                            }
                         }
                     }
-                    else {
+                    else{
+                        // unmark if row and col are not in the range
                         if (cellElement.classList.contains('marked-border')) {
                             cellElement.classList.remove('marked-border');
                         }
                     }
+                    
                 }
             }
         }
@@ -140,7 +157,7 @@
  *@
 @code {
 
-        //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
+    //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private Dictionary<string, object> _dataSources = default!;
     private List<EmployeeVM> _employees = new List<EmployeeVM>();
@@ -331,7 +348,7 @@
     private async Task HandleCellClickAsync(string id, EmployeeVM employee, int column)
     {
         string cellIdentifier = $"R{employee.RowID}C{column}";
-        
+
         // get the values from the hidden input fields first
         _startCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-start-cell");
         _endCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-end-cell");
@@ -360,14 +377,16 @@
             await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-cell", cellIdentifier);
 
         }
-        
+
         // you need to ask again because it already has ran through some codes that might affect its value.
         areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell); 
 
         if (areBothFilled)
         {
+            var totalRows = _employees.Count;
+            var totalCols = _employeeHeaderNames?.Count;
             // Now that they are both filled with values, mark them
-            await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, _tableID, true);
+            await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, _tableID, true);
         }
 
         //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);

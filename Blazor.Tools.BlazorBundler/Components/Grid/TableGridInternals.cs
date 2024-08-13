@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using System.Data;
-using DocumentFormat.OpenXml.EMMA;
 using Microsoft.JSInterop;
-using DocumentFormat.OpenXml.Bibliography;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -15,6 +13,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
+        [Parameter] public Dictionary<string, string> HeaderNames { get; set; } = default!;
         [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
@@ -881,8 +880,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                  
                 builder.OpenComponent<Icon>(seq++);
                 builder.AddAttribute(seq++, "id", $"{TableID}-clear-selection");
-                builder.AddAttribute(seq++, "Name", IconName.Recycle);
-                builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer");
+                builder.AddAttribute(seq++, "Name", IconName.ArrowClockwise);
+                builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer icon-large");
                 builder.AddAttribute(seq++, "title", "Clear");
                 builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, ClearSelectionAsync));
                 builder.CloseComponent();
@@ -1256,10 +1255,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private async Task ClearSelectionAsync(MouseEventArgs e)
         {
             //$"{TableID}-clear-selection"
-            var startRow = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-start-row");
-            var endRow = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-end-row");
-            var startCol = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-start-col");
-            var endCol = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-end-col");
+            var startRow = 1;
+            var endRow = Items.Count();
+            var startCol = 1;
+            var endCol = HeaderNames.Count();
 
             await JSRuntime.InvokeVoidAsync("toggleCellBorders", startRow, endRow, startCol, endCol, TableID, false);
 

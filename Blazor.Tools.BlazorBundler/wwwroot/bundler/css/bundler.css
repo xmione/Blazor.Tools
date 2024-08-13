@@ -130,3 +130,7 @@
 #current-page {
     width: 100px!important;
 }
+
+.icon-large {
+    font-size: 35px; /* Adjust the size as needed */
+}
