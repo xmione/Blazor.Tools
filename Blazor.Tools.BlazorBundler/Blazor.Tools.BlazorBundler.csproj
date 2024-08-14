@@ -19,6 +19,7 @@
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <IncludeSymbols>False</IncludeSymbols>
     <NoDefaultExcludes>true</NoDefaultExcludes>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -13,27 +13,21 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
-        [Parameter] public Dictionary<string, string> HeaderNames { get; set; } = default!;
+        [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
+        [Parameter] public TModelVM ModelVM { get; set; } = default!;
+        [Parameter] public TIModel IModel { get; set; } = default!;
         [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
-        [Parameter] public RenderFragment? StartContent { get; set; }
-        [Parameter] public RenderFragment? TableHeader { get; set; }
-        [Parameter] public RenderFragment<TModelVM> RowTemplate { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
-        [Parameter] public TModelVM ModelVM { get; set; } = default!;
-        [Parameter] public bool AllowAdding { get; set; } = true;
-        [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
-        [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
         [Parameter] public EventCallback OnCellClickAsync { get; set; }
-
-        //[Parameter] public RenderFragment ChildContent { get; set; } = null!;
-        //[Parameter] public DataTable DataTable { get; set; } = null!;
-        //[Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
-        //[Parameter] public Dictionary<string, string>? HeaderNames { get; set; } = default!;
-
-
+        [Parameter] public bool AllowAdding { get; set; } = true;
+        [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
+        [Parameter] public RenderFragment? StartContent { get; set; }
+        [Parameter] public RenderFragment? TableHeader { get; set; }
+        [Parameter] public RenderFragment<TModelVM> RowTemplate { get; set; } = default!;
+        [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
+        
         private SessionManager _sessionManager = SessionManager.Instance;
         private IEnumerable<TModelVM> _filteredRows = default!;
         private IEnumerable<TModelVM> _pagedRows = default!;
@@ -93,7 +87,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.OpenElement(seq, "div");
             //builder.AddContent(seq++, Title);
             builder.OpenElement(seq++, "div");
-            builder.AddAttribute(seq++, "id", $"{Title}-div");
+            builder.AddAttribute(seq++, "id", $"{TableID}-div");
             builder.AddAttribute(seq++, "class", "data-table-grid-div");
 
             builder.OpenElement(seq++, "table");
@@ -1258,7 +1252,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             var startRow = 1;
             var endRow = Items.Count();
             var startCol = 1;
-            var endCol = HeaderNames.Count();
+            var endCol = ColumnDefinitions.Count();
 
             await JSRuntime.InvokeVoidAsync("toggleCellBorders", startRow, endRow, startCol, endCol, TableID, false);
 

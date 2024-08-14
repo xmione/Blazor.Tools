@@ -14,19 +14,27 @@
 <PageTitle>Test Table Grid</PageTitle>
 
 <h1>Testing Sample Table Grid Component</h1>
-<TableGridInternals Title="@_title" TableID="@_tableID" HeaderNames="@_employeeHeaderNames" TModel="Employee" TModelVM="EmployeeVM" 
-    ModelVM="_employeeVM" TIModel="IModelExtendedProperties" Items="_employees" DataSources="@_dataSources" Context="employee" 
-    ItemsChanged="OnItemsChanged" AllowCellRangeSelection="true"
->
+<TableGridInternals Title="@_title"
+                    TableID="@_tableID"
+                    ColumnDefinitions="@_columnDefinitions"
+                    TModel="Employee"
+                    TModelVM="EmployeeVM"
+                    ModelVM="_employeeVM"
+                    TIModel="IModelExtendedProperties"
+                    Items="_employees"
+                    DataSources="@_dataSources"
+                    Context="employee"
+                    ItemsChanged="OnItemsChanged"
+                    AllowCellRangeSelection="true">
     <StartContent>
         <h2>@_title</h2>
     </StartContent>
     <TableHeader>
-        @if(_employeeHeaderNames != null)
+        @if(_columnDefinitions != null)
         {
-            foreach (KeyValuePair<string, string> column in _employeeHeaderNames)
+            foreach (var column in _columnDefinitions)
             {
-                <th>@column.Value</th>
+                <th>@column.HeaderText</th>
             }
         }
     </TableHeader>
@@ -38,7 +46,7 @@
         *@
 
         <td id=@($"{_tableID}-{employee.RowID}-1") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 1))" class="cursor-pointer">
-            <NumberInput ColumnName="ID" Value="@employee.ID" RowID="@employee.RowID"
+            <NumberInput ColumnName="ID" Value="@employee.ID" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
             ValueChanged="@((object newValue) => OnIDValueChanged(newValue, employee))" />
         </td>
         <td id=@($"{_tableID}-{@employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-2", employee, 2))" class="cursor-pointer">
@@ -164,8 +172,6 @@
     private List<CountryVM> _countries = new List<CountryVM>();
     private List<string>? _hiddenEmployeeColumns;
     private List<string>? _hiddenCountryColumns;
-    private Dictionary<string, string>? _employeeHeaderNames;
-    private Dictionary<string, string>? _countryHeaderNames;
     private EmployeeVM _employeeVM = new EmployeeVM();
     private CountryVM? _selectedCountry;
     private const string _title = "Employee List";
@@ -177,21 +183,74 @@
     private int _endRow;
     private int _startCol;
     private int _endCol;
+    private List<TableColumnDefinition> _columnDefinitions = default!;
+
+    private int GetRowID<TModelVM>(TModelVM model)
+    {
+        // Attempt to get the RowID property dynamically
+        var rowIDProperty = typeof(TModelVM).GetProperty("RowID");
+
+        if (rowIDProperty != null && rowIDProperty.PropertyType == typeof(int))
+        {
+            return (int)rowIDProperty.GetValue(model);
+        }
+
+        throw new InvalidOperationException("RowID property not found or not of type int.");
+    }
 
     protected override void OnParametersSet()
     {
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
         //SessionManager.GetInstance(_sessionTableService);
         // Initialize _employees DataTable
-
-        _employeeHeaderNames = new Dictionary<string, string>()
+         
+        _columnDefinitions = new List<TableColumnDefinition>
         {
-            ["ID"] = "ID",
-            ["FirstName"] = "First Name",
-            ["MiddleName"] = "Middle Name",
-            ["LastName"] = "Last Name",
-            ["DateOfBirth"] = "Date of Birth",
-            ["CountryID"] = "Country",
+            new TableColumnDefinition
+            {
+                ColumnName = "ID",
+                HeaderText = "ID",
+                ColumnType = typeof(int)
+            },
+            new TableColumnDefinition
+            {
+                ColumnName = "FirstName",
+                HeaderText = "First Name",
+                ColumnType = typeof(string),
+                ValueChanged = new Action<object, EmployeeVM>(OnFirstNameValueChanged)
+            },
+            new TableColumnDefinition
+            {
+                ColumnName = "MiddleName",
+                HeaderText = "Middle Name",
+                ColumnType = typeof(string),
+                ValueChanged = new Action<object, EmployeeVM>(OnMiddleNameValueChanged)
+            },
+            new TableColumnDefinition
+            {
+                ColumnName = "LastName",
+                HeaderText = "Lastst Name",
+                ColumnType = typeof(string),
+                ValueChanged = new Action<object, EmployeeVM>(OnLastNameValueChanged)
+            },
+            new TableColumnDefinition
+            {
+                ColumnName = "DateOfBirth",
+                HeaderText = "Date Of Birth",
+                ColumnType = typeof(DateOnly?),
+                ValueChanged = new Action<DateOnly?, EmployeeVM>(OnDateOfBirthValueChanged)
+            },
+            new TableColumnDefinition
+            {
+                Items = _countries,
+                ColumnName = "CountryID",
+                HeaderText = "Country",
+                OptionIDFieldName="ID",
+                OptionValueFieldName="Name",
+                ColumnType = typeof(string),
+                ValueChanged = new Action<object, EmployeeVM>(OnIDValueChanged)
+            }
+
         };
 
         var employeeFaker = new Faker<EmployeeVM>()
@@ -215,12 +274,6 @@
         }
 
         // Initialize and generate country data
-        _countryHeaderNames = new Dictionary<string, string>()
-        {
-            ["ID"] = "ID",
-            ["Name"] = "Country Name",
-        };
-
         for (int i = 0; i < 101; i++)
         {
             var country = countryFaker.Generate();
@@ -276,6 +329,7 @@
         StateHasChanged();
 
     }
+
     private void OnMiddleNameValueChanged(object newValue, EmployeeVM employeeVM)
     {
         employeeVM.MiddleName = newValue?.ToString() ?? string.Empty;
@@ -345,9 +399,9 @@
         _employees = updatedItems.ToList();
     }
 
-    private async Task HandleCellClickAsync(string id, EmployeeVM employee, int column)
+    private async Task HandleCellClickAsync(string id, EmployeeVM employee, int colNo)
     {
-        string cellIdentifier = $"R{employee.RowID}C{column}";
+        string cellIdentifier = $"R{employee.RowID}C{colNo}";
 
         // get the values from the hidden input fields first
         _startCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-start-cell");
@@ -357,7 +411,7 @@
         if (string.IsNullOrEmpty(_startCell) || _isFirstCellClicked)
         {
             _startRow = employee.RowID;
-            _startCol = column;
+            _startCol = colNo;
             _startCell = cellIdentifier;
             _isFirstCellClicked = areBothFilled? _isFirstCellClicked : false;
 
@@ -368,7 +422,7 @@
         else
         {
             _endRow = employee.RowID;
-            _endCol = column;
+            _endCol = colNo;
             _endCell = cellIdentifier;
             _isFirstCellClicked = areBothFilled? _isFirstCellClicked : true;
 
@@ -384,7 +438,7 @@
         if (areBothFilled)
         {
             var totalRows = _employees.Count;
-            var totalCols = _employeeHeaderNames?.Count;
+            var totalCols = _columnDefinitions?.Count;
             // Now that they are both filled with values, mark them
             await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, _tableID, true);
         }

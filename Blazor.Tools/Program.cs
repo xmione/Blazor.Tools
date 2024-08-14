@@ -14,7 +14,14 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        
+        // Configure logging to add console output
+        builder.Logging.ClearProviders(); // Clear default logging providers
+        builder.Logging.AddConsole();     // Add console logging
+        builder.Logging.AddDebug();     // Add console logging
+
+        // Set minimum level to Debug to capture all messages from Debug and above
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
         // Manually check for the environment variable
         var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
@@ -30,7 +37,7 @@ public class Program
 
         builder.AddServiceDefaults();
         // Configure Blazorise with existing registrations
-        //builder.Services.AddBlazorBootstrap();
+        builder.Services.AddBlazorBootstrap();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -63,7 +70,19 @@ public class Program
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+        // Configure logging
+        builder.Services.AddLogging(config =>
+        {
+            config.AddConsole();
+            config.SetMinimumLevel(LogLevel.Information);
+        });
+
         var app = builder.Build();
+
+        // Use DI to get the logger
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+        logger.LogInformation("Start processing Blazor.Tools");
 
         app.MapDefaultEndpoints();
 

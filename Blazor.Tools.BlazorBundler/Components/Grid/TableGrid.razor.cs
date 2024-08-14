@@ -1,14 +1,19 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components;
+using Blazor.Tools.BlazorBundler.Entities;
+using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
+using Blazor.Tools.BlazorBundler.Extensions;
+using Microsoft.AspNetCore.Components.Web;
+using System.Diagnostics;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
     public partial class TableGrid<TModel, TIModel, TModelVM> : ComponentBase
     {
-
         [Parameter] public string Title { get; set; } = string.Empty;
         [Parameter] public string TableID { get; set; } = string.Empty;
-        [Parameter] public Dictionary<string,string> HeaderNames { get; set; } = default!;
+        [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public TModel Model { get; set; } = default!;
         [Parameter] public TModelVM ModelVM { get; set; } = default!;
         [Parameter] public TIModel IModel { get; set; } = default!;
@@ -17,10 +22,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
 
+        [Inject] protected ILogger<TableGrid<TModel, TIModel, TModelVM>> Logger { get; set; } = default!;
+        [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
+
         protected override async Task OnParametersSetAsync()
         {
-
-
+            Logger.LogDebug("Parameters have been set.");
             await Task.CompletedTask;
         }
 
@@ -30,68 +37,164 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.OpenComponent<TableGridInternals<TModel, TIModel, TModelVM>>(seq++);
             builder.AddAttribute(seq++, "Title", Title);
             builder.AddAttribute(seq++, "TableID", TableID);
-            builder.AddAttribute(seq++, "HeaderNames", HeaderNames);
-            builder.AddAttribute(seq++, "TModel", Model);
-            builder.AddAttribute(seq++, "TModelVM", ModelVM);
-            builder.AddAttribute(seq++, "TIModel", IModel);
+            builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
+            builder.AddAttribute(seq++, "ModelVM", ModelVM);
+            builder.AddAttribute(seq++, "IModel", IModel);
             builder.AddAttribute(seq++, "Items", Items);
             builder.AddAttribute(seq++, "DataSources", DataSources);
-            builder.AddAttribute(seq++, "Context", ModelVM);
             builder.AddAttribute(seq++, "ItemsChanged", ItemsChanged);
             builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
-            builder.AddAttribute(seq++, "StartContent", (RenderFragment)(headerBuilder =>
-            {
-                headerBuilder.OpenElement(seq++, "h2");
-                headerBuilder.AddContent(seq++, Title);
-                headerBuilder.CloseElement(); // th
-                    
-            }));
-
-            // Render the TableHeader inside the TableGridInternals
-            builder.AddAttribute(seq++, "TableHeader", (RenderFragment)(headerBuilder =>
-            {
-                if (HeaderNames != null)
-                {
-                    foreach (var column in HeaderNames)
-                    {
-                        headerBuilder.OpenElement(seq++, "th");
-                        headerBuilder.AddContent(seq++, column.Value);
-                        headerBuilder.CloseElement(); // th
-                    }
-                }
-            }));
-
-            builder.AddAttribute(seq++, "RowTemplate", (RenderFragment)(headerBuilder =>
-            {
-                if (HeaderNames != null)
-                {
-                    foreach (var column in HeaderNames)
-                    {
-                        headerBuilder.OpenElement(seq++, "td");
-                        headerBuilder.AddAttribute(seq++, "id", $"{TableID}-{employee.RowID}-1");
-                        headerBuilder.AddContent(seq++, column.Value);
-                        headerBuilder.CloseElement(); // th
-                    }
-                }
-            }));
+            builder.AddAttribute(seq++, "StartContent", RenderStartContent());
+            builder.AddAttribute(seq++, "TableHeader", RenderTableHeader());
+            builder.AddAttribute(seq++, "RowTemplate", RenderRowTemplate());
 
             builder.CloseComponent(); // TableGridInternals
-
         }
-
-        private int GetRowID<TModelVM>(TModelVM model)
+        private RenderFragment RenderStartContent()
         {
-            // Attempt to get the RowID property dynamically
-            var rowIDProperty = typeof(TModelVM).GetProperty("RowID");
-
-            if (rowIDProperty != null && rowIDProperty.PropertyType == typeof(int))
-            {
-                return (int)rowIDProperty.GetValue(model);
-            }
-
-            throw new InvalidOperationException("RowID property not found or not of type int.");
+            return new RenderFragment(BuildStartContent);
         }
 
+        private void BuildStartContent(RenderTreeBuilder builder)
+        {
+            int seq = 0;
+            builder.OpenElement(seq++, "h2");
+            builder.AddContent(seq++, Title);
+            builder.CloseElement(); // h2
+        }
+
+        private RenderFragment RenderTableHeader()
+        {
+            var fragment = new RenderFragment(BuildTableHeader);
+            return fragment;
+        }
+
+        private void BuildTableHeader(RenderTreeBuilder builder)
+        {
+            Logger.LogInformation("Building table header...");
+            //LogToConsoleAsync("Building table header...").Wait();
+            int seq = 0;
+
+            foreach (var column in ColumnDefinitions)
+            {
+                builder.OpenElement(seq++, "th");
+                builder.AddContent(seq++, column.HeaderText);
+
+                Logger.LogDebug($"Column header text: {column.HeaderText}");
+                //LogToConsoleAsync($"Column header text: {column.HeaderText}").Wait();
+                builder.CloseElement(); // th
+            }
+        }
+
+        private RenderFragment<TModelVM> RenderRowTemplate()
+        {
+            return item =>
+            {
+                return builder =>
+                {
+                    Logger.LogInformation("Building row template...");
+                    int seq = 0;
+                     
+                        int colNo = 0;
+                        foreach (var column in ColumnDefinitions)
+                        {
+                            colNo++;
+                            Logger.LogDebug($"ColumnName: {column.ColumnName}");
+                            //LogToConsoleAsync($"ColumnName: {column.ColumnName}").Wait();
+                            builder.OpenElement(seq++, "td");
+                            var rowID = item.GetPropertyValue("RowID")?.ToString() ?? string.Empty;
+                            var id = $"{TableID}-{rowID}-{colNo}";
+                            builder.AddAttribute(seq++, "id", id);
+                            builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, async e =>
+                            {
+                                await column?.CellClicked?.Invoke(id, item, colNo);
+                            }));
+
+                            builder.AddAttribute(seq++, "class", "cursor-pointer");
+                            var value = item.GetPropertyValue(column.ColumnName);
+                            RenderCellContent(builder, column, value, item, rowID);
+                            builder.CloseElement(); // td
+                        }
+                 
+                };
+            };
+        }
+        private void RenderCellContent(RenderTreeBuilder builder, TableColumnDefinition column, object? value, TModelVM item, string rowID)
+        {
+            int seq = 0;
+            int.TryParse(rowID, out int rowNo);
+            var isEditMode = item.GetPropertyValue("IsEditMode");
+
+            switch (column.ColumnType)
+            {
+                case Type t when t == typeof(int):
+                    builder.OpenComponent<NumberInput>(seq++);
+                    builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
+                    builder.AddAttribute(seq++, "Value", value);
+                    builder.AddAttribute(seq++, "IsEditMode", isEditMode);
+                    builder.AddAttribute(seq++, "RowID", rowNo);
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.CloseComponent();
+
+                    Logger.LogDebug($"ColumnName: {column.ColumnName}");
+                    Logger.LogDebug($"value: {value}");
+                    Console.WriteLine($"ColumnName: {column.ColumnName}");
+                    Console.WriteLine($"value: {value}");
+
+                    break;
+
+                case Type t when t == typeof(string):
+                    builder.OpenComponent<TextInput>(seq++);
+                    builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
+                    builder.AddAttribute(seq++, "Value", value);
+                    builder.AddAttribute(seq++, "IsEditMode", isEditMode);
+                    builder.AddAttribute(seq++, "RowID", rowNo);
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.CloseComponent();
+                    break;
+
+                case Type t when t == typeof(DateOnly) || t == typeof(DateOnly?):
+                    builder.OpenComponent<DateOnlyPicker>(seq++);
+                    builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
+                    builder.AddAttribute(seq++, "Value", value);
+                    builder.AddAttribute(seq++, "IsEditMode", isEditMode);
+                    builder.AddAttribute(seq++, "RowID", rowNo);
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<DateOnly?>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.CloseComponent();
+                    break;
+
+                case Type t when t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IEnumerable<>) || t.GetGenericTypeDefinition() == typeof(ICollection<>)):
+
+                    var optionIDFieldName = item.GetPropertyValue("OptionIDFieldName");
+                    var optionValueFieldName = item.GetPropertyValue("OptionValueFieldName");
+                    builder.OpenComponent<DropdownList<TModelVM>>(seq++);
+                    builder.AddAttribute(seq++, "Items", DataSources[column.ColumnName]);
+                    builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
+                    builder.AddAttribute(seq++, "Value", value);
+                    builder.AddAttribute(seq++, "IsEditMode", isEditMode);
+                    builder.AddAttribute(seq++, "RowID", rowNo);
+                    builder.AddAttribute(seq++, "OptionIDFieldName", optionIDFieldName);
+                    builder.AddAttribute(seq++, "OptionValueFieldName", optionValueFieldName);
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.CloseComponent();
+                    break;
+
+                default:
+                    builder.AddContent(seq++, "Unsupported type");
+                    break;
+            }
+        }
+         
+        private void InvokeValueChanged(TableColumnDefinition column, object newValue, TModelVM item)
+        {
+            var valueChangedDelegate = column.ValueChanged;
+            valueChangedDelegate?.DynamicInvoke(newValue, item);
+        }
+
+        private async Task LogToConsoleAsync(string message)
+        {
+            await JSRuntime.InvokeVoidAsync("logToConsole", message);
+        }
 
     }
 }
