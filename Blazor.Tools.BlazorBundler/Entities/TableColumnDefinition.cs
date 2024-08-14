@@ -8,7 +8,7 @@
         public Delegate ValueChanged { get; set; } = default!;
         public Func<string, object, int, Task> CellClicked { get; set; } = default!;
         // Additional properties for DropdownList support
-        public IEnumerable<object> Items { get; set; } = Enumerable.Empty<object>();
+        public IEnumerable<object> Items { get; set; } = default!;
         public string OptionIDFieldName { get; set; } = string.Empty;
         public string OptionValueFieldName { get; set; } = string.Empty;
     }

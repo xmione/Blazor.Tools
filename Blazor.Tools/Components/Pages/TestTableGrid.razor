@@ -11,9 +11,8 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
-<PageTitle>Test Table Grid</PageTitle>
-
-<h1>Testing Sample Table Grid Component</h1>
+<PageTitle>Test TableGrid</PageTitle>
+<h1>Using TableGrid Component</h1>
 <TableGrid 
     Title="@_title" 
     TableID="@_tableID" 
@@ -170,7 +169,7 @@
                 HeaderText = "Country",
                 OptionIDFieldName="ID",
                 OptionValueFieldName="Name",
-                ColumnType = typeof(string),
+                ColumnType = typeof(IEnumerable<CountryVM>),
                 ValueChanged = new Action<object, EmployeeVM>(OnIDValueChanged)
             }
           

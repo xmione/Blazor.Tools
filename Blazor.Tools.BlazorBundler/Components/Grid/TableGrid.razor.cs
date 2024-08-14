@@ -6,6 +6,7 @@ using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using System.Diagnostics;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -123,7 +124,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             int seq = 0;
             int.TryParse(rowID, out int rowNo);
-            var isEditMode = item.GetPropertyValue("IsEditMode");
+            string isEditModeStringValue = item?.GetPropertyValue("IsEditMode")?.ToString() ?? "false";
+            bool.TryParse(isEditModeStringValue, out bool isEditMode);
 
             switch (column.ColumnType)
             {
@@ -163,12 +165,29 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     builder.CloseComponent();
                     break;
 
-                case Type t when t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IEnumerable<>) || t.GetGenericTypeDefinition() == typeof(ICollection<>)):
+                case Type t when t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(List<>) || t.GetGenericTypeDefinition() == typeof(IEnumerable<>) || t.GetGenericTypeDefinition() == typeof(ICollection<>)):
 
-                    var optionIDFieldName = item.GetPropertyValue("OptionIDFieldName");
-                    var optionValueFieldName = item.GetPropertyValue("OptionValueFieldName");
-                    builder.OpenComponent<DropdownList<TModelVM>>(seq++);
-                    builder.AddAttribute(seq++, "Items", DataSources[column.ColumnName]);
+                    var optionIDFieldName = column?.GetPropertyValue("OptionIDFieldName")?.ToString() ?? string.Empty;
+                    var optionValueFieldName = column?.GetPropertyValue("OptionValueFieldName")?.ToString() ?? string.Empty;
+
+                    // Use the factory to create an instance of DropdownList
+                    var dropdownList = DropdownListFactory.CreateDropdownList(
+                        typeof(object), // Pass the type of items here
+                        column.Items,
+                        column.ColumnName,
+                        column.HeaderText,
+                        value,
+                        optionIDFieldName,
+                        optionValueFieldName,
+                        isEditMode,
+                        rowNo,
+                        EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item))
+                    );
+
+                    var type = dropdownList?.GetType() ?? default!;
+                    // Use builder to add the component to the render tree
+                    builder.OpenComponent(seq++, type); // or DropdownList if specific type is used
+                    builder.AddAttribute(seq++, "Items", column.Items);
                     builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
                     builder.AddAttribute(seq++, "Value", value);
                     builder.AddAttribute(seq++, "IsEditMode", isEditMode);

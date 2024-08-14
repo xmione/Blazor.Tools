@@ -1,17 +1,17 @@
 ﻿using Blazor.Tools.BlazorBundler.Extensions;
-using DocumentFormat.OpenXml.Drawing;
+using Blazor.Tools.BlazorBundler.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public class DropdownList<TItem> : ComponentBase
+    public class DropdownList : ComponentBase, IDropdownList
     {
 
-        [Parameter] public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
+        [Parameter] public IEnumerable<object> Items { get; set; } = Enumerable.Empty<object>();
         [Parameter] public string ColumnName { get; set; } = default!;
         [Parameter] public string HeaderName { get; set; } = default!;
-        [Parameter] public object Value { get; set; } = default!;
+        [Parameter] public object? Value { get; set; } = default!;
         [Parameter] public string OptionIDFieldName { get; set; } = default!;
         [Parameter] public string OptionValueFieldName { get; set; } = default!;
         [Parameter] public bool IsEditMode { get; set; } = default!;
@@ -32,7 +32,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 bool isFirstItemSelected = true;
                 string? selectedValueString = Value?.ToString();
 
-                foreach (TItem item in Items)
+                foreach (var item in Items)
                 {
                     var optionID = item?.GetProperty(OptionIDFieldName);
                     var optionValue = item?.GetProperty(OptionValueFieldName)?.ToString() ?? string.Empty;
@@ -119,21 +119,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _ => value == null
             };
         }
-
-        private bool isFound(TItem? item)
-        {
-            bool isFound = false;
-            var propertyValue = item?.GetProperty(OptionIDFieldName);
-            if (propertyValue != null)
-            {
-                if (propertyValue.ToString() == Value.ToString())
-                {
-                    isFound = true;
-                }
-            }
-
-            return isFound;
-        }
+        
         private async Task HandleSelectedChangeAsync(ChangeEventArgs e)
         {
             Value = e?.Value ?? Value;
