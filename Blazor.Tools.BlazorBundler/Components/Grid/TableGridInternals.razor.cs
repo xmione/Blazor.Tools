@@ -9,19 +9,17 @@ using Microsoft.JSInterop;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGridInternals : ComponentBase
+    public partial class TableGridInternals : ComponentBase, ITableGridInternals
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public IBaseVM ModelVM { get; set; } = default!;
         [Parameter] public IEnumerable<IBaseVM> Items { get; set; } = Enumerable.Empty<IBaseVM>();
-        [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<IBaseVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
         [Parameter] public EventCallback OnCellClickAsync { get; set; }
         [Parameter] public bool AllowAdding { get; set; } = true;
-        [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
         [Parameter] public RenderFragment? TableHeader { get; set; }
         [Parameter] public RenderFragment<IBaseVM> RowTemplate { get; set; } = default!;

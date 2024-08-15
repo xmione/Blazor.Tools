@@ -20,7 +20,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public IBaseVM ModelVM { get; set; } = default!;
         [Parameter] public IEnumerable<IBaseVM> Items { get; set; } = Enumerable.Empty<IBaseVM>();
-        [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<IBaseVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
 
@@ -44,7 +43,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
             builder.AddAttribute(seq++, "ModelVM", ModelVM);
             builder.AddAttribute(seq++, "Items", Items);
-            builder.AddAttribute(seq++, "DataSources", DataSources);
             builder.AddAttribute(seq++, "ItemsChanged", ItemsChanged);
             builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
             builder.AddAttribute(seq++, "StartContent", RenderStartContent());
