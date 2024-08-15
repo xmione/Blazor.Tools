@@ -5,27 +5,30 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Microsoft.AspNetCore.Components.Web;
-using System.Diagnostics;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Blazor.Tools.BlazorBundler.Interfaces;
+using System.Data;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGrid<TModel, TIModel, TModelVM> : ComponentBase
+    public partial class TableGrid : ComponentBase, ITableGrid
     {
+        private DataRow[]? _selectedData;
+
         [Parameter] public string Title { get; set; } = string.Empty;
         [Parameter] public string TableID { get; set; } = string.Empty;
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
-        [Parameter] public TModel Model { get; set; } = default!;
-        [Parameter] public TModelVM ModelVM { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
-        [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
+        [Parameter] public IBaseVM ModelVM { get; set; } = default!;
+        [Parameter] public IEnumerable<IBaseVM> Items { get; set; } = Enumerable.Empty<IBaseVM>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
-        [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
+        [Parameter] public EventCallback<IEnumerable<IBaseVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
 
-        [Inject] protected ILogger<TableGrid<TModel, TIModel, TModelVM>> Logger { get; set; } = default!;
+        [Inject] protected ILogger<TableGrid> Logger { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
+        private SessionManager _sessionManager = SessionManager.Instance;
         protected override async Task OnParametersSetAsync()
         {
             Logger.LogDebug("Parameters have been set.");
@@ -35,12 +38,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             int seq = 0;
-            builder.OpenComponent<TableGridInternals<TModel, TIModel, TModelVM>>(seq++);
+            builder.OpenComponent<TableGridInternals>(seq++);
             builder.AddAttribute(seq++, "Title", Title);
             builder.AddAttribute(seq++, "TableID", TableID);
             builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
             builder.AddAttribute(seq++, "ModelVM", ModelVM);
-            builder.AddAttribute(seq++, "IModel", IModel);
             builder.AddAttribute(seq++, "Items", Items);
             builder.AddAttribute(seq++, "DataSources", DataSources);
             builder.AddAttribute(seq++, "ItemsChanged", ItemsChanged);
@@ -87,7 +89,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
         }
 
-        private RenderFragment<TModelVM> RenderRowTemplate()
+        private RenderFragment<IBaseVM> RenderRowTemplate()
         {
             return item =>
             {
@@ -120,7 +122,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 };
             };
         }
-        private void RenderCellContent(RenderTreeBuilder builder, TableColumnDefinition column, object? value, TModelVM item, string rowID)
+        private void RenderCellContent(RenderTreeBuilder builder, TableColumnDefinition column, object? value, IBaseVM item, string rowID)
         {
             int seq = 0;
             int.TryParse(rowID, out int rowNo);
@@ -171,7 +173,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     var optionValueFieldName = column?.GetPropertyValue("OptionValueFieldName")?.ToString() ?? string.Empty;
 
                     // Use the factory to create an instance of DropdownList
-                    var dropdownList = DropdownListFactory.CreateDropdownList(
+                    var dropdownList = DropdownListFactory.Create(
                         typeof(object), // Pass the type of items here
                         column.Items,
                         column.ColumnName,
@@ -204,7 +206,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
         }
          
-        private void InvokeValueChanged(TableColumnDefinition column, object newValue, TModelVM item)
+        private void InvokeValueChanged(TableColumnDefinition column, object newValue, IBaseVM item)
         {
             var valueChangedDelegate = column.ValueChanged;
             valueChangedDelegate?.DynamicInvoke(newValue, item);
@@ -213,6 +215,77 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private async Task LogToConsoleAsync(string message)
         {
             await JSRuntime.InvokeVoidAsync("logToConsole", message);
+        }
+
+        public async Task HandleSelectedDataComb(DataRow[] selectedData)
+        {
+            _selectedData = selectedData;
+
+            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+            
+            StateHasChanged();
+            await Task.CompletedTask;
+        }
+
+        public async Task<DataRow[]?> ShowSetTargetTableModalAsync()
+        {
+            var startCell = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-start-cell");
+            var endCell = await JSRuntime.InvokeAsync<string>("getValue", $"{TableID}-end-cell");
+            
+            if (!string.IsNullOrEmpty(startCell) && !string.IsNullOrEmpty(endCell))
+            {
+                // Extracting start row and column from startCell
+                int startRow = int.Parse(startCell.Substring(1, startCell.IndexOf('C') - 1));
+                int startCol = int.Parse(startCell.Substring(startCell.IndexOf('C') + 1));
+
+                // Extracting end row and column from endCell
+                int endRow = int.Parse(endCell.Substring(1, endCell.IndexOf('C') - 1));
+                int endCol = int.Parse(endCell.Substring(endCell.IndexOf('C') + 1));
+
+                _selectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
+
+                await Task.CompletedTask;
+            }
+
+            StateHasChanged();
+
+            return _selectedData;
+        }
+
+        private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
+        {
+            List<DataRow> dataInRange = new List<DataRow>();
+
+            if (Items != null)
+            {
+                // Convert Items to DataTable
+                DataTable itemsTable = Items.ToDataTable();
+                // Create a new DataTable with the selected columns
+                DataTable filteredDataTable = new DataTable();
+                for (int i = startCol; i <= endCol; i++)
+                {
+                    var column = ColumnDefinitions[i];
+
+                    filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.ColumnType));
+                }
+
+                for (int i = startRow; i <= endRow; i++)
+                {
+                    DataRow newRow = filteredDataTable.NewRow();
+
+                    for (int j = startCol; j <= endCol; j++)
+                    {
+                        newRow[j - startCol] = itemsTable.Rows[i][j];
+                    }
+
+                    dataInRange.Add(newRow);
+                }
+
+            }
+
+            return dataInRange.ToArray();
         }
 
     }

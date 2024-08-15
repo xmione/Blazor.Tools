@@ -9,28 +9,27 @@ using Microsoft.JSInterop;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGridInternals<TModel, TIModel, TModelVM> : ComponentBase
+    public partial class TableGridInternals : ComponentBase
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
-        [Parameter] public TModelVM ModelVM { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
-        [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
+        [Parameter] public IBaseVM ModelVM { get; set; } = default!;
+        [Parameter] public IEnumerable<IBaseVM> Items { get; set; } = Enumerable.Empty<IBaseVM>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
-        [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
+        [Parameter] public EventCallback<IEnumerable<IBaseVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
         [Parameter] public EventCallback OnCellClickAsync { get; set; }
         [Parameter] public bool AllowAdding { get; set; } = true;
         [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
         [Parameter] public RenderFragment? TableHeader { get; set; }
-        [Parameter] public RenderFragment<TModelVM> RowTemplate { get; set; } = default!;
+        [Parameter] public RenderFragment<IBaseVM> RowTemplate { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
         
         private SessionManager _sessionManager = SessionManager.Instance;
-        private IEnumerable<TModelVM> _filteredRows = default!;
-        private IEnumerable<TModelVM> _pagedRows = default!;
+        private IEnumerable<IBaseVM> _filteredRows = default!;
+        private IEnumerable<IBaseVM> _pagedRows = default!;
         private int _filteredItems = 0;
         private int _totalItems = 0;
         private int _currentPage = 0;
@@ -38,9 +37,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private int _totalPages = 0;
         private bool _isEditing;
         private bool _isAdding;
-        private TModelVM? _editedRow;
-        private TModelVM? _editedRowSaved;
-        private TModelVM? _newRowData;
+        private IBaseVM? _editedRow;
+        private IBaseVM? _editedRowSaved;
+        private IBaseVM? _newRowData;
         private string _startCell = string.Empty;
         private string _endCell = string.Empty;
         private bool _isFirstCellClicked;
@@ -60,9 +59,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
 
             // DTSearchBox component
-            builder.OpenComponent<DTSearchBox<TModelVM>>(seq++);
+            builder.OpenComponent<DTSearchBox<IBaseVM>>(seq++);
             builder.AddAttribute(seq++, "Data", Items);
-            builder.AddAttribute(seq++, "OnFilterData", EventCallback.Factory.Create<IEnumerable<TModelVM>>(this, HandleFilterDataTableAsync));
+            builder.AddAttribute(seq++, "OnFilterData", EventCallback.Factory.Create<IEnumerable<IBaseVM>>(this, HandleFilterDataTableAsync));
             builder.CloseComponent();
 
             //Render the table with headers and rows
@@ -553,7 +552,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //            await Task.CompletedTask;
         //        }
 
-        private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, TModelVM? row)
+        private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, IBaseVM? row)
         {
             builder.OpenElement(seq++, "td");
             builder.AddAttribute(seq++, "class", "icons-td");
@@ -913,12 +912,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _editedRow = default!;
                 _editedRowSaved = default!;
 
-                TModelVM newItem = Activator.CreateInstance<TModelVM>();
-                newItem = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(newItem, _isEditing);
+                IBaseVM newItem = Activator.CreateInstance<IBaseVM>();
+                newItem = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).SetEditMode(newItem, _isEditing);
                 _editedRow = newItem;
                 _editedRowSaved = newItem;
 
-                Items = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).AddItemToList(Items, newItem);
+                Items = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).AddItemToList(Items, newItem);
                 
                 // Notify parent component that Items list has changed
                 await ItemsChanged.InvokeAsync(Items);
@@ -931,25 +930,25 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private async void EditRow(TModelVM? modelVM)
+        private async void EditRow(IBaseVM? modelVM)
         {
             if (Items != null && modelVM != null && ModelVM != null)
             {
                 _isEditing = true;
                 
-                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(modelVM, _isEditing);
+                var item = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).SetEditMode(modelVM, _isEditing);
                 _editedRow = item;
-                _editedRowSaved = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SaveModelVMToNewModelVM(item);
+                _editedRowSaved = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).SaveModelVMToNewModelVM(item);
 
                 StateHasChanged();
             }
         }
 
-        private async Task DeleteRowAsync(TModelVM? modelVM)
+        private async Task DeleteRowAsync(IBaseVM? modelVM)
         {
             if (modelVM != null && ModelVM != null)
             {
-                Items = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).DeleteItemFromList(Items, modelVM);
+                Items = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).DeleteItemFromList(Items, modelVM);
 
                 await GetPageRowsAsync(Items);
 
@@ -959,12 +958,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private async Task SaveRowAsync(TModelVM? modelVM)
+        private async Task SaveRowAsync(IBaseVM? modelVM)
         {
             if (modelVM != null && _editedRow != null && ModelVM != null)
             {
                 _isEditing = false;
-                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(modelVM, _isEditing);
+                var item = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).SetEditMode(modelVM, _isEditing);
                 _editedRow = item;
 
                 await GetPageRowsAsync(Items);
@@ -982,8 +981,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             if (_editedRow != null && _editedRowSaved != null && ModelVM != null)
             {
-                var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(_editedRowSaved, false);
-                Items = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).UpdateList(Items, item, _isAdding);
+                var item = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).SetEditMode(_editedRowSaved, false);
+                Items = await ((IViewModel<IBaseModel, IModelExtendedProperties, IBaseVM>)ModelVM).UpdateList(Items, item, _isAdding);
 
                 await GetPageRowsAsync(Items);
 
@@ -1086,7 +1085,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         //            return builder;
         //        }
-        private async Task GetPageRowsAsync(IEnumerable<TModelVM> items)
+        private async Task GetPageRowsAsync(IEnumerable<IBaseVM> items)
         {
             _filteredRows = items;
             _filteredItems = _filteredRows.Count();
@@ -1102,7 +1101,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await Task.CompletedTask;
         }
-        private async Task HandleFilterDataTableAsync(IEnumerable<TModelVM> filteredRows)
+        private async Task HandleFilterDataTableAsync(IEnumerable<IBaseVM> filteredRows)
         {
             await GetPageRowsAsync(filteredRows);
             StateHasChanged(); 
