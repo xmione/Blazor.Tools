@@ -21,6 +21,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 instance.ColumnDefinitions = columnDefinitions;
                 instance.ModelVM = modelVM;
                 instance.Items = items;
+                instance.DataSources = dataSources;
                 instance.ItemsChanged = itemsChanged;
                 instance.AllowCellRangeSelection = allowCellRangeSelection;
                 
