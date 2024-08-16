@@ -2,7 +2,7 @@
 using Blazor.Tools.BlazorBundler.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
-namespace Blazor.Tools.Components.Pages.SampleObjects
+namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {
     public class EmployeeVM : Employee, IBaseVM, IModelExtendedProperties, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IModelExtendedProperties, EmployeeVM>
     {

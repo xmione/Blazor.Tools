@@ -1,4 +1,4 @@
-﻿namespace Blazor.Tools.Components.Pages.SampleObjects
+﻿namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {
     public class DataSource<T>
     {

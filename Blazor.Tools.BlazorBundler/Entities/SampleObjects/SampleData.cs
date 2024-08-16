@@ -1,12 +1,11 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
-using Blazor.Tools.BlazorBundler.Interfaces;
+﻿using Blazor.Tools.BlazorBundler.Interfaces;
 using Bogus;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace Blazor.Tools.Components.Pages.SampleObjects
+namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {
-    public class SampleData: ComponentBase
+    public class SampleData : ComponentBase
     {
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
 
@@ -31,17 +30,17 @@ namespace Blazor.Tools.Components.Pages.SampleObjects
 
         public string Title
         {
-            get{ return _title; }
-            private set{ _title = value; }
-        }
-        
-        public string TableID
-        {
-            get{ return _tableID; }
-            private set{ _tableID = value; }
+            get { return _title; }
+            private set { _title = value; }
         }
 
-        public List<TableColumnDefinition> ColumnDefinitions 
+        public string TableID
+        {
+            get { return _tableID; }
+            private set { _tableID = value; }
+        }
+
+        public List<TableColumnDefinition> ColumnDefinitions
         {
             get { return _columnDefinitions; }
             private set { _columnDefinitions = value; }
@@ -52,26 +51,26 @@ namespace Blazor.Tools.Components.Pages.SampleObjects
             get { return _employeeVM; }
             private set { _employeeVM = value; }
         }
-        
+
         public CountryVM? SelectedCountry
         {
             get { return _selectedCountry; }
             private set { _selectedCountry = value; }
         }
-        
-        public List<EmployeeVM> Employees 
+
+        public List<EmployeeVM> Employees
         {
             get { return _employees; }
             private set { _employees = value; }
         }
-        
-        public List<CountryVM> Countries 
+
+        public List<CountryVM> Countries
         {
             get { return _countries; }
             private set { _countries = value; }
         }
 
-        public SampleData() 
+        public SampleData()
         {
             CreateTableColumnDefinitions();
             CreateDummyData();
