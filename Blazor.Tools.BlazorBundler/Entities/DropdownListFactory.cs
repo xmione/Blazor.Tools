@@ -6,25 +6,25 @@ namespace Blazor.Tools.BlazorBundler.Entities
 {
     public static class DropdownListFactory
     {
-        public static IDropdownList? Create(Type itemType, IEnumerable<object> items, string columnName, string headerName, object? value, string optionIDFieldName, string optionValueFieldName, bool isEditMode, int rowID, EventCallback<object> valueChanged)
+        public static IDropdownList? CreateDropdownList(Type itemType, IEnumerable<object> items, string columnName, string headerName, object? value, string optionIDFieldName, string optionValueFieldName, bool isEditMode, int rowID, EventCallback<object> valueChanged)
         {
-            var type = typeof(DropdownList); // Non-generic DropdownList type
-            var instance = (IDropdownList?)Activator.CreateInstance(type);
+            var dropdownType = typeof(DropdownList); // Non-generic DropdownList type
+            var dropdownList = (IDropdownList?)Activator.CreateInstance(dropdownType);
 
-            if (instance != null)
+            if (dropdownList != null)
             {
-                instance.Items = items;
-                instance.ColumnName = columnName;
-                instance.HeaderName = headerName;
-                instance.Value = value;
-                instance.OptionIDFieldName = optionIDFieldName;
-                instance.OptionValueFieldName = optionValueFieldName;
-                instance.IsEditMode = isEditMode;
-                instance.RowID = rowID;
-                instance.ValueChanged = valueChanged;
+                dropdownList.Items = items;
+                dropdownList.ColumnName = columnName;
+                dropdownList.HeaderName = headerName;
+                dropdownList.Value = value;
+                dropdownList.OptionIDFieldName = optionIDFieldName;
+                dropdownList.OptionValueFieldName = optionValueFieldName;
+                dropdownList.IsEditMode = isEditMode;
+                dropdownList.RowID = rowID;
+                dropdownList.ValueChanged = valueChanged;
             }
 
-            return instance;
+            return dropdownList;
         }
     }
 

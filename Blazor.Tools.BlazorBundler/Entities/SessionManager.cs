@@ -47,7 +47,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
         }
 
         /// <summary>
-        /// Public static method to get the instance with a service. If instance is without a service, it creates it.
+        /// Public static method to get the instance with a service
         /// </summary> 
         /// <param name="sessionTableService">The session table service to interact with session data.</param>
         /// <returns>SessionManager - The SessionManager class with service instance.</returns>

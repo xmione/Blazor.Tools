@@ -2,14 +2,12 @@
 @rendermode InteractiveServer
 
 @using Blazor.Tools.BlazorBundler.Entities
-@using Blazor.Tools.BlazorBundler.Extensions
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Components.Grid
-@using Blazor.Tools.Components.Pages.SampleObjects
 @using Bogus
 @using System.Data
 @using System.ComponentModel.DataAnnotations
-@using ValidationResult = System.ComponentModel.DataAnnotations.ValidationResult
+
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
@@ -18,7 +16,10 @@
 <TableGridInternals Title="@_title"
                     TableID="@_tableID"
                     ColumnDefinitions="@_columnDefinitions"
+                    TModel="Employee"
+                    TModelVM="EmployeeVM"
                     ModelVM="_employeeVM"
+                    TIModel="IModelExtendedProperties"
                     Items="_employees"
                     DataSources="@_dataSources"
                     Context="employee"
@@ -42,55 +43,43 @@
             id="_tableID-row-col" 
             <td id="employee-1-1">
         *@
+
         <td id=@($"{_tableID}-{employee.RowID}-1") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-1", employee, 1))" class="cursor-pointer">
-            <NumberInput ColumnName="ID" 
-                Value="@(employee.GetProperty("ID"))"
-                IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
-                RowID="@employee.RowID"
-                ValueChanged="@(newValue => OnIDValueChanged(newValue, employee))"  
-                />
+            <NumberInput ColumnName="ID" Value="@employee.ID" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
+            ValueChanged="@((object newValue) => OnIDValueChanged(newValue, employee))" />
         </td>
-        <td id=@($"{_tableID}-{employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-2", employee, 2))" class="cursor-pointer">
-            <TextInput ColumnName="FirstName" 
-                Value="@(employee.GetProperty("FirstName"))"
-                IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
-                RowID="@employee.RowID"
-                ValueChanged="@(newValue => OnFirstNameValueChanged(newValue, employee))"  
-                />
+        <td id=@($"{_tableID}-{@employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-2", employee, 2))" class="cursor-pointer">
+            <TextInput ColumnName="FirstName" Value="@employee.FirstName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"  
+            ValueChanged="@((object newValue) => OnFirstNameValueChanged(newValue, employee))" 
+            />
         </td>
-        <td id=@($"{_tableID}-{employee.RowID}-3") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-3", employee, 3))" class="cursor-pointer">
-            <TextInput ColumnName="MiddleName"
-                       Value="@(employee.GetProperty("MiddleName"))"
-                       IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
-                       RowID="@employee.RowID"
-                       ValueChanged="@(newValue => OnMiddleNameValueChanged(newValue, employee))" />
+        <td id=@($"{_tableID}-{@employee.RowID}-3") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-3", employee, 3))"  class="cursor-pointer">
+            <TextInput ColumnName="MiddleName" Value="@employee.MiddleName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
+            ValueChanged="@((object newValue) => OnMiddleNameValueChanged(newValue, employee))" 
+            />
         </td>
-        <td id=@($"{_tableID}-{employee.RowID}-4") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-4", employee, 4))" class="cursor-pointer">
-            <TextInput ColumnName="LastName"
-                       Value="@(employee.GetProperty("LastName"))"
-                       IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
-                       RowID="@employee.RowID"
-                       ValueChanged="@(newValue => OnLastNameValueChanged(newValue, employee))" />
+        <td id=@($"{_tableID}-{@employee.RowID}-4") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-4", employee, 4))"  class="cursor-pointer">
+            <TextInput ColumnName="LastName" Value="@employee.LastName" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
+            ValueChanged="@((object newValue) => OnLastNameValueChanged(newValue, employee))" 
+            />
         </td>
-        <td id=@($"{_tableID}-{employee.RowID}-5") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-5", employee, 5))" class="cursor-pointer">
-            <DateOnlyPicker ColumnName="DateOfBirth"
-                Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
-                IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
-                RowID="@employee.RowID"
-                ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, employee))" />
-             
+        <td id=@($"{_tableID}-{@employee.RowID}-5") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-5", employee, 5))"  class="cursor-pointer">
+            <DateOnlyPicker ColumnName="DateOfBirth" Value="@employee.DateOfBirth" IsEditMode="@employee.IsEditMode" RowID="@employee.RowID"
+            ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, employee))" 
+            />
         </td>
         <td id=@($"{_tableID}-{@employee.RowID}-6") @onclick="@(async () => await HandleCellClickAsync($"{_tableID}-{employee.RowID}-6", employee, 6))" class="cursor-pointer">
-            <DropdownList Items="_countries"
-                          ColumnName="CountryID"
-                          Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
-                          IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
-                          OptionIDFieldName="ID"
-                          OptionValueFieldName="Name"
-                          RowID="@employee.RowID"
-                          ValueChanged="@((object newValue) => OnDropdownValueChanged(newValue, employee))" />
+            <DropdownList 
+                Items="_countries" 
+                ColumnName="CountryID" 
+                Value="@employee.CountryID" 
+                OptionIDFieldName="ID" 
+                OptionValueFieldName="Name" 
+                IsEditMode="@employee.IsEditMode"
+                RowID="@employee.RowID"
+                ValueChanged="@((object newValue) => OnDropdownValueChanged(newValue, employee))" 
+                />
         </td>
-
     </RowTemplate>
 </TableGridInternals>
 
@@ -153,7 +142,26 @@
     };
 
 </script>
- 
+
+@* <TableGrid Title="Employees" AllowCellSelection="true">
+    <TableSource Name="EmployeeDS" DataSource="@_employees" />
+    <TableSource Name="CountryDS" DataSource="@_countries" />
+    <TableNode DataSource="EmployeeDS">
+        <TableColumn DataSourceName="EmployeeDS" FieldName="ID" Type="TextBox" Visible="false" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="FirstName" Type="TextBox" HeaderName="First Name" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="MiddleName" Type="TextBox" HeaderName="Middle Name" />
+        <TableColumn DataSourceName="EmployeeDS" FieldName="LastName" Type="TextBox" HeaderName="Last Name" />
+        <TableColumn DataSourceName="CountryDS" FieldName="CountryID" Type="DropdownList" DisplayFieldName="Name" DisplayFieldValue="ID" HeaderName="Country" />
+    </TableNode>
+</TableGrid>
+
+<TableGrid 
+    Title="Countries" 
+    DataTable="@_countries" 
+    HiddenColumnNames="@_hiddenCountryColumns" 
+    HeaderNames="@_countryHeaderNames" 
+    />
+ *@
 @code {
 
     //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
@@ -163,7 +171,7 @@
     private List<CountryVM> _countries = new List<CountryVM>();
     private List<string>? _hiddenEmployeeColumns;
     private List<string>? _hiddenCountryColumns;
-    private EmployeeVM _employeeVM = new EmployeeVM(new ContextProvider());
+    private EmployeeVM _employeeVM = new EmployeeVM();
     private CountryVM? _selectedCountry;
     private const string _title = "Employee List";
     private const string _tableID = "employee";
@@ -194,7 +202,7 @@
         Console.WriteLine("TestTableGrid OnParametersSetAsync");
         //SessionManager.GetInstance(_sessionTableService);
         // Initialize _employees DataTable
-
+         
         _columnDefinitions = new List<TableColumnDefinition>
         {
             new TableColumnDefinition
@@ -220,7 +228,7 @@
             new TableColumnDefinition
             {
                 ColumnName = "LastName",
-                HeaderText = "Last Name",
+                HeaderText = "Lastst Name",
                 ColumnType = typeof(string),
                 ValueChanged = new Action<object, EmployeeVM>(OnLastNameValueChanged)
             },
@@ -229,7 +237,7 @@
                 ColumnName = "DateOfBirth",
                 HeaderText = "Date Of Birth",
                 ColumnType = typeof(DateOnly?),
-                 ValueChanged = new Action<object, EmployeeVM>(OnDateOfBirthValueChanged)
+                ValueChanged = new Action<DateOnly?, EmployeeVM>(OnDateOfBirthValueChanged)
             },
             new TableColumnDefinition
             {
@@ -238,7 +246,7 @@
                 HeaderText = "Country",
                 OptionIDFieldName="ID",
                 OptionValueFieldName="Name",
-                ColumnType = typeof(int),
+                ColumnType = typeof(string),
                 ValueChanged = new Action<object, EmployeeVM>(OnIDValueChanged)
             }
 
@@ -285,137 +293,684 @@
             ["CountryDS"] = _countries    
         };
 
-        _selectedCountry = new CountryVM(new ContextProvider());
+        _selectedCountry = new CountryVM();
         _selectedCountry = _countries[0];
     }
 
-    private void OnIDValueChanged(object newValue, IBaseVM baseVM)
+    private void OnDropdownValueChanged(object newValue, EmployeeVM employeeVM)
     {
-        if (baseVM is EmployeeVM employee)
-        {
-            employee.ID = Convert.ToInt32(newValue);
-            UpdateEmployeeInList(employee);
-        }
-    }
+        employeeVM.CountryID = Convert.ToInt32(newValue);
+        // Update employee list
 
-    private void OnFirstNameValueChanged(object newValue, IBaseVM baseVM)
-    {
-        if (baseVM is EmployeeVM employee)
-        {
-            employee.FirstName = newValue?.ToString() ?? string.Empty;
-            UpdateEmployeeInList(employee);
-        }
-    }
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
-    private void OnMiddleNameValueChanged(object newValue, IBaseVM baseVM)
-    {
-        if (baseVM is EmployeeVM employee)
-        {
-            employee.MiddleName = newValue.ToString() ?? string.Empty;
-            UpdateEmployeeInList(employee);
-        }
-    }
-
-    private void OnLastNameValueChanged(object newValue, IBaseVM baseVM)
-    {
-        if (baseVM is EmployeeVM employee)
-        {
-            employee.LastName = newValue.ToString() ?? string.Empty;
-            UpdateEmployeeInList(employee);
-        }
-    }
-
-    private void OnDateOfBirthValueChanged(object newValue, IBaseVM baseVM)
-    {
-        if (baseVM is EmployeeVM employee)
-        {
-            DateOnly.TryParse(newValue.ToString(), out DateOnly dateOnlyNewValue);
-            employee.DateOfBirth = dateOnlyNewValue;
-            UpdateEmployeeInList(employee);
-        }
-    }
-
-    private void OnDropdownValueChanged(object newValue, IBaseVM baseVM)
-    {
-        if (baseVM is EmployeeVM employee)
-        {
-            int.TryParse(newValue.ToString(), out int intValue);
-            employee.CountryID = intValue;
-            UpdateEmployeeInList(employee);
-        }
-    }
-
-    private void UpdateEmployeeInList(EmployeeVM employee)
-    {
-        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employee.RowID);
         if (foundEmployee != null)
         {
-            foundEmployee = employee; // Update the employee in the list
-            StateHasChanged();
+            foundEmployee.CountryID = employeeVM.CountryID;
         }
+
+        StateHasChanged();
+
     }
 
-    private void OnItemsChanged(IEnumerable<IBaseVM> updatedItems)
+    private void OnFirstNameValueChanged(object newValue, EmployeeVM employeeVM)
     {
-        var updatedList = (IEnumerable<EmployeeVM>)updatedItems;
-        _employees = updatedList.ToList();
-    }
+        employeeVM.FirstName = newValue?.ToString() ?? string.Empty;
+        // Update employee list
 
-    private async Task HandleCellClickAsync(string id, IBaseVM baseVM, int colNo)
-    {
-        if (baseVM is EmployeeVM employee)
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
+
+        if (foundEmployee != null)
         {
-            string cellIdentifier = $"R{employee.RowID}C{colNo}";
+            foundEmployee.FirstName = employeeVM.FirstName;
+        }
 
-            // get the values from the hidden input fields first
-            _startCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-start-cell");
-            _endCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-end-cell");
+        StateHasChanged();
 
-            bool areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell);
-            if (string.IsNullOrEmpty(_startCell) || _isFirstCellClicked)
-            {
-                _startRow = employee.RowID;
-                _startCol = colNo;
-                _startCell = cellIdentifier;
-                _isFirstCellClicked = areBothFilled ? _isFirstCellClicked : false;
+    }
 
-                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-row", $"{_startRow}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-col", $"{_startCol}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-cell", cellIdentifier);
-            }
-            else
-            {
-                _endRow = employee.RowID;
-                _endCol = colNo;
-                _endCell = cellIdentifier;
-                _isFirstCellClicked = areBothFilled ? _isFirstCellClicked : true;
+    private void OnMiddleNameValueChanged(object newValue, EmployeeVM employeeVM)
+    {
+        employeeVM.MiddleName = newValue?.ToString() ?? string.Empty;
+        // Update employee list
 
-                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-row", $"{_endRow}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-col", $"{_endCol}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-cell", cellIdentifier);
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
-            }
+        if (foundEmployee != null)
+        {
+            foundEmployee.MiddleName = employeeVM.MiddleName;
+        }
 
-            // you need to ask again because it already has ran through some codes that might affect its value.
-            areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell);
+        StateHasChanged();
 
-            if (areBothFilled)
-            {
-                var totalRows = _employees.Count;
-                var totalCols = _columnDefinitions?.Count;
-                // Now that they are both filled with values, mark them
-                await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, _tableID, true);
-            }
+    }
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
+    private void OnLastNameValueChanged(object newValue, EmployeeVM employeeVM)
+    {
+        employeeVM.LastName = newValue?.ToString() ?? string.Empty;
+        // Update employee list
 
-            StateHasChanged(); // Refresh UI to reflect the changes in cell selection
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
+
+        if (foundEmployee != null)
+        {
+            foundEmployee.LastName = employeeVM.LastName;
+        }
+
+        StateHasChanged();
+
+    }
+
+    private void OnDateOfBirthValueChanged(DateOnly? newValue, EmployeeVM employeeVM)
+    {
+        employeeVM.DateOfBirth = newValue.GetValueOrDefault();
+
+        // Update employee list
+
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
+
+        if (foundEmployee != null)
+        {
+            foundEmployee.DateOfBirth = employeeVM.DateOfBirth;
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnIDValueChanged(object newValue, EmployeeVM employeeVM)
+    {
+        employeeVM.ID = int.Parse(newValue?.ToString() ?? "0" );
+        // Update employee list
+
+        var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
+
+        if (foundEmployee != null)
+        {
+            foundEmployee.ID = employeeVM.ID;
+        }
+
+        StateHasChanged();
+
+    }
+
+    private void OnItemsChanged(IEnumerable<EmployeeVM> updatedItems)
+    {
+        _employees = updatedItems.ToList();
+    }
+
+    private async Task HandleCellClickAsync(string id, EmployeeVM employee, int colNo)
+    {
+        string cellIdentifier = $"R{employee.RowID}C{colNo}";
+
+        // get the values from the hidden input fields first
+        _startCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-start-cell");
+        _endCell = await JSRuntime.InvokeAsync<string>("getValue", $"{_tableID}-end-cell");
+
+        bool areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell); 
+        if (string.IsNullOrEmpty(_startCell) || _isFirstCellClicked)
+        {
+            _startRow = employee.RowID;
+            _startCol = colNo;
+            _startCell = cellIdentifier;
+            _isFirstCellClicked = areBothFilled? _isFirstCellClicked : false;
+
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-row", $"{_startRow}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-col", $"{_startCol}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-cell", cellIdentifier);
+        }
+        else
+        {
+            _endRow = employee.RowID;
+            _endCol = colNo;
+            _endCell = cellIdentifier;
+            _isFirstCellClicked = areBothFilled? _isFirstCellClicked : true;
+
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-row", $"{_endRow}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-col", $"{_endCol}");
+            await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-cell", cellIdentifier);
 
         }
+
+        // you need to ask again because it already has ran through some codes that might affect its value.
+        areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell); 
+
+        if (areBothFilled)
+        {
+            var totalRows = _employees.Count;
+            var totalCols = _columnDefinitions?.Count;
+            // Now that they are both filled with values, mark them
+            await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, _tableID, true);
+        }
+
+        //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+        //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+        //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
+
+        StateHasChanged(); // Refresh UI to reflect the changes in cell selection
 
         await Task.CompletedTask;
     }
-    
+
+    public interface IModelExtendedProperties
+    {
+        public bool IsEditMode { get; set; }    
+        public bool IsVisible { get; set; }    
+        public int StartCell { get; set; }
+        public int EndCell { get; set; }
+        public bool IsFirstCellClicked { get; set; }
+
+    }
+
+    public class Employee
+    { 
+        public int ID { get; set; }
+        public string FirstName { get; set; } = default!;
+        public string MiddleName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
+        public DateOnly DateOfBirth { get; set; } = default!;
+        public int CountryID { get; set; } 
+    }
+
+    public class Country
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = default!;
+    }
+
+    public class DataSource<T>
+    {
+        public string DataSourceName { get; set; } = default!;
+        public List<T> DataSourceList { get; set; } = default!;
+    }
+
+    public class EmployeeVM : Employee, IModelExtendedProperties, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IModelExtendedProperties, EmployeeVM>
+    {
+        private List<EmployeeVM> _employees = new List<EmployeeVM>(); // Initialize the list
+        public int RowID { get; set; } // Integer property to indicate row ID
+        public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
+        public bool IsVisible { get; set; } // Boolean property to indicate if visible
+        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
+        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
+        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
+
+        public EmployeeVM() { }
+
+        public EmployeeVM(Employee model)
+        {
+            ID = model.ID;
+            FirstName = model.FirstName;
+            MiddleName = model.MiddleName;
+            LastName = model.LastName;
+            DateOfBirth = model.DateOfBirth;
+            CountryID = model.CountryID;
+        }
+
+        public EmployeeVM(EmployeeVM modelVM)
+        {
+            IsEditMode = modelVM.IsEditMode;
+            IsVisible = modelVM.IsVisible;
+            IsFirstCellClicked = modelVM.IsFirstCellClicked;
+            StartCell = modelVM.StartCell;
+            EndCell = modelVM.EndCell;
+            RowID = modelVM.RowID;
+            ID = modelVM.ID;
+            FirstName = modelVM.FirstName;
+            MiddleName = modelVM.MiddleName;
+            LastName = modelVM.LastName;
+            FirstName = modelVM.FirstName;
+            DateOfBirth = modelVM.DateOfBirth;
+            CountryID = modelVM.CountryID;
+        }
+
+        public EmployeeVM Clone()
+        {
+            return new EmployeeVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public void SetList(List<EmployeeVM> items)
+        {
+            _employees = items;
+        }
+
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            // Ensure _clientVMEntryList is set before calling Validate
+            if (_employees == null)
+            {
+                // Log or handle the situation where _clientVMEntryList is not set
+                yield break; // Exit the validation early
+            }
+
+            // Implement your custom validation logic here
+            //if (!IsEditing && AlreadyExists(Name, ID)) // Check existence only in editing mode
+            //{
+            //    yield return new ValidationResult("Name already exists.", new[] { nameof(Name) });
+            //}
+        }
+
+        private bool AlreadyExists(string name, int currentItemId)
+        {
+            bool alreadyExists = false;
+
+            if (name != null)
+            {
+                // Exclude the current item from the search
+                var foundItem = _employees.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);
+                alreadyExists = foundItem != null;
+            }
+
+            return alreadyExists;
+        }
+
+        public async Task<EmployeeVM> FromModel(Employee model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        ID = model.ID;
+                        FirstName = model.FirstName;
+                        MiddleName = model.MiddleName;
+                        LastName = model.LastName;
+                        DateOfBirth = model.DateOfBirth;
+                        CountryID = model.CountryID;
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FromModel(Employee model, Dictionary<string, object> serviceList): {0}\r\n{1}", ex.Message, ex.StackTrace);
+            }
+
+            return this;
+        }
+
+        public Employee ToNewModel()
+        {
+            return new Employee
+                {
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public IModelExtendedProperties ToNewIModel()
+        {
+            return new EmployeeVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public async Task<EmployeeVM> SetEditMode(EmployeeVM modelVM, bool isEditMode)
+        {
+            modelVM.IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return modelVM;
+        }
+
+        public async Task<EmployeeVM> SaveModelVM(EmployeeVM modelVM)
+        {
+            modelVM.IsEditMode = false;
+            await Task.CompletedTask;
+            return modelVM;
+        }
+
+        public async Task<EmployeeVM> SaveModelVMToNewModelVM(EmployeeVM modelVM)
+        {
+            var newEmployee = new EmployeeVM()
+            {
+                IsEditMode = modelVM.IsEditMode,
+                IsVisible = modelVM.IsVisible,
+                IsFirstCellClicked = modelVM.IsFirstCellClicked,
+                StartCell = modelVM.StartCell,
+                EndCell = modelVM.EndCell,
+                RowID = modelVM.RowID,
+                ID = modelVM.ID,
+                FirstName = modelVM.FirstName,
+                MiddleName = modelVM.MiddleName,
+                LastName = modelVM.LastName,
+                DateOfBirth = modelVM.DateOfBirth,
+                CountryID = modelVM.CountryID
+            };
+
+            await Task.CompletedTask;
+
+            return newEmployee;
+        }
+
+        public async Task<IEnumerable<EmployeeVM>> AddItemToList(IEnumerable<EmployeeVM> modelVMList, EmployeeVM newModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            int listCount = list.Count();
+            RowID = listCount + 1;
+            newModelVM.RowID = RowID;
+            if (listCount > 0)
+            {
+                var firstItem = list.First();
+                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;    
+                newModelVM.StartCell = firstItem.StartCell;
+                newModelVM.EndCell = firstItem.EndCell;
+            }
+
+            list.Add(newModelVM);
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+
+        public async Task<IEnumerable<EmployeeVM>> UpdateList(IEnumerable<EmployeeVM> modelVMList, EmployeeVM updatedModelVM, bool isAdding)
+        {
+            EmployeeVM? modelVM = null;
+
+            if (isAdding)
+            {
+                var list   = modelVMList.ToList();
+                list.Remove(updatedModelVM);
+
+                modelVMList = list;
+            }
+            else
+            {
+                modelVM = modelVMList.FirstOrDefault(e => e.ID == updatedModelVM.ID);
+
+                if (modelVM != null)
+                {
+                    modelVM.IsEditMode = updatedModelVM.IsEditMode;
+                    modelVM.IsVisible = updatedModelVM.IsVisible;
+                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
+                    modelVM.StartCell = updatedModelVM.StartCell;
+                    modelVM.EndCell = updatedModelVM.EndCell;
+                    modelVM.ID = updatedModelVM.ID;
+                    modelVM.FirstName = updatedModelVM.FirstName;
+                    modelVM.MiddleName = updatedModelVM.MiddleName;
+                    modelVM.LastName = updatedModelVM.LastName;
+                    modelVM.DateOfBirth = updatedModelVM.DateOfBirth;
+                    modelVM.CountryID = updatedModelVM.CountryID;
+                }
+            }
+
+
+            await Task.CompletedTask;
+
+            return modelVMList;
+        }
+
+        public async Task<IEnumerable<EmployeeVM>> DeleteItemFromList(IEnumerable<EmployeeVM> modelVMList, EmployeeVM deletedModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            var isDeleted = list.Remove(deletedModelVM);
+
+            //TODO: sol: Add logic here for deleted and not deleted conditions
+            if (isDeleted){ }
+            else { }
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+
+    }
+
+    public class CountryVM : Country, IModelExtendedProperties, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties, CountryVM>
+    {
+        private List<CountryVM> _countries = new List<CountryVM>(); // Initialize the list
+        public int RowID { get; set; } // Integer property to indicate row ID
+        public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
+        public bool IsVisible { get; set; } // Boolean property to indicate editing mode
+        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
+        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
+        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
+
+        public CountryVM() { }
+        public CountryVM(Country model)
+        {
+            ID = model.ID;
+            Name = model.Name;
+        }
+
+        public CountryVM(CountryVM modelVM)
+        {
+            IsEditMode = modelVM.IsEditMode;
+            IsVisible = modelVM.IsVisible;
+            IsFirstCellClicked = modelVM.IsFirstCellClicked;
+            StartCell = modelVM.StartCell;
+            EndCell = modelVM.EndCell;
+            RowID = modelVM.RowID;
+            ID = modelVM.ID;
+            Name = modelVM.Name;
+        }
+        public CountryVM Clone()
+        {
+            return new CountryVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    Name = this.Name,
+                };
+        }
+
+        public void SetList(List<CountryVM> items)
+        {
+            _countries = items;
+        }
+
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            // Ensure _clientVMEntryList is set before calling Validate
+            if (_countries == null)
+            {
+                // Log or handle the situation where _clientVMEntryList is not set
+                yield break; // Exit the validation early
+            }
+
+            // Implement your custom validation logic here
+            //if (!IsEditing && AlreadyExists(Name, ID)) // Check existence only in editing mode
+            //{
+            //    yield return new ValidationResult("Name already exists.", new[] { nameof(Name) });
+            //}
+        }
+
+        private bool AlreadyExists(string name, int currentItemId)
+        {
+            bool alreadyExists = false;
+
+            if (name != null)
+            {
+                // Exclude the current item from the search
+                var foundItem = _countries.FirstOrDefault(p => p.Name == name && p.ID != currentItemId);
+                alreadyExists = foundItem != null;
+            }
+
+            return alreadyExists;
+        }
+        public async Task<CountryVM> FromModel(Country model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        ID = model.ID;
+                        Name = model.Name;
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FromModel(Country model, Dictionary<string, object> serviceList): {0}\r\n{1}", ex.Message, ex.StackTrace);
+            }
+
+            return this;
+        }
+        public Country ToNewModel()
+        {
+            return new Country
+                {
+                    ID = this.ID,
+                    Name = this.Name,
+                };
+        }
+
+        public IModelExtendedProperties ToNewIModel()
+        {
+            return new CountryVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    Name = this.Name,
+                };
+        }
+
+        public async Task<CountryVM> SetEditMode(CountryVM modelVM, bool isEditMode)
+        {
+            modelVM.IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return modelVM;
+        }
+
+        public async Task<CountryVM> SaveModelVM(CountryVM modelVM)
+        {
+            modelVM.IsEditMode = false;
+            await Task.CompletedTask;
+
+            return modelVM;
+        }
+
+        public async Task<CountryVM> SaveModelVMToNewModelVM(CountryVM modelVM)
+        {
+            var newModelVM = new CountryVM()
+                {
+                    IsEditMode = modelVM.IsEditMode,
+                    IsVisible = modelVM.IsVisible,
+                    IsFirstCellClicked = modelVM.IsFirstCellClicked,
+                    StartCell = modelVM.StartCell,
+                    EndCell = modelVM.EndCell,
+                    RowID = modelVM.RowID,
+                    ID = modelVM.ID,
+                    Name = modelVM.Name,
+                };
+
+            await Task.CompletedTask;
+
+            return newModelVM;
+        }
+
+        public async Task<IEnumerable<CountryVM>> AddItemToList(IEnumerable<CountryVM> modelVMList, CountryVM newModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            int listCount = list.Count();
+            RowID = listCount + 1;
+            newModelVM.RowID = RowID;
+            if (listCount > 0)
+            {
+                var firstItem = list.First();
+                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                newModelVM.StartCell = firstItem.StartCell;
+                newModelVM.EndCell = firstItem.EndCell;
+            }
+
+            list.Add(newModelVM);
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+
+        public async Task<IEnumerable<CountryVM>> UpdateList(IEnumerable<CountryVM> modelVMList, CountryVM updatedModelVM, bool isAdding)
+        {
+            CountryVM? modelVM = null;
+
+            if (isAdding)
+            {
+                var list = modelVMList.ToList();
+                list.Remove(updatedModelVM);
+                modelVMList = list;
+            }
+            else
+            { 
+                modelVM = modelVMList.FirstOrDefault(e => e.ID == updatedModelVM.ID);
+
+                if (modelVM != null)
+                {
+                    modelVM.IsEditMode = updatedModelVM.IsEditMode;
+                    modelVM.IsVisible = updatedModelVM.IsVisible;
+                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
+                    modelVM.StartCell = updatedModelVM.StartCell;
+                    modelVM.EndCell = updatedModelVM.EndCell;
+                    modelVM.RowID = updatedModelVM.RowID;
+                    modelVM.ID = updatedModelVM.ID;
+                    modelVM.Name = updatedModelVM.Name;
+                }
+
+            }
+            
+            await Task.CompletedTask;
+
+            return modelVMList;
+        }
+
+        public async Task<IEnumerable<CountryVM>> DeleteItemFromList(IEnumerable<CountryVM> modelVMList, CountryVM deletedModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            var isDeleted = list.Remove(deletedModelVM);
+
+            //TODO: sol: Add logic here for deleted and not deleted conditions
+            if (isDeleted) { }
+            else { }
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+    }
 }

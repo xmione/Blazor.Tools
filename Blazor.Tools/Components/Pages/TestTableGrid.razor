@@ -4,7 +4,6 @@
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Components.Grid
-@using Blazor.Tools.Components.Pages.SampleObjects
 @using Bogus
 @using System.Data
 @using System.ComponentModel.DataAnnotations
@@ -18,7 +17,10 @@
     Title="@_title" 
     TableID="@_tableID" 
     ColumnDefinitions="@_columnDefinitions" 
+    TModel="Employee" 
+    TModelVM="EmployeeVM" 
     ModelVM="_employeeVM" 
+    TIModel="IModelExtendedProperties" 
     Items="_employees" 
     DataSources="@_dataSources" 
     ItemsChanged="OnItemsChanged" 
@@ -99,7 +101,7 @@
     private List<CountryVM> _countries = new List<CountryVM>();
     private List<string>? _hiddenEmployeeColumns;
     private List<string>? _hiddenCountryColumns;
-    private EmployeeVM _employeeVM = new EmployeeVM(new ContextProvider());
+    private EmployeeVM _employeeVM = new EmployeeVM();
     private CountryVM? _selectedCountry;
     private const string _title = "Employee List";
     private const string _tableID = "employee";
@@ -214,7 +216,7 @@
             ["CountryDS"] = _countries    
         };
 
-        _selectedCountry = new CountryVM(new ContextProvider());
+        _selectedCountry = new CountryVM();
         _selectedCountry = _countries[0];
     }
 
@@ -314,9 +316,9 @@
 
     }
 
-    private void OnItemsChanged(IEnumerable<IBaseVM> updatedItems)
+    private void OnItemsChanged(IEnumerable<EmployeeVM> updatedItems)
     {
-        _employees = ((IEnumerable<EmployeeVM>)updatedItems).ToList();
+        _employees = updatedItems.ToList();
     }
 
     private async Task HandleCellClickAsync(string id, EmployeeVM employee, int column)
@@ -370,5 +372,528 @@
         StateHasChanged(); // Refresh UI to reflect the changes in cell selection
 
         await Task.CompletedTask;
+    }
+
+    public interface IModelExtendedProperties
+    {
+        public bool IsEditMode { get; set; }    
+        public bool IsVisible { get; set; }    
+        public int StartCell { get; set; }
+        public int EndCell { get; set; }
+        public bool IsFirstCellClicked { get; set; }
+
+    }
+
+    public class Employee
+    { 
+        public int ID { get; set; }
+        public string FirstName { get; set; } = default!;
+        public string MiddleName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
+        public DateOnly DateOfBirth { get; set; } = default!;
+        public int CountryID { get; set; } 
+    }
+
+    public class Country
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = default!;
+    }
+
+    public class DataSource<T>
+    {
+        public string DataSourceName { get; set; } = default!;
+        public List<T> DataSourceList { get; set; } = default!;
+    }
+
+    public class EmployeeVM : Employee, IModelExtendedProperties, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IModelExtendedProperties, EmployeeVM>
+    {
+        private List<EmployeeVM> _employees = new List<EmployeeVM>(); // Initialize the list
+        public int RowID { get; set; } // Integer property to indicate row ID
+        public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
+        public bool IsVisible { get; set; } // Boolean property to indicate if visible
+        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
+        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
+        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
+
+        public EmployeeVM() { }
+
+        public EmployeeVM(Employee model)
+        {
+            ID = model.ID;
+            FirstName = model.FirstName;
+            MiddleName = model.MiddleName;
+            LastName = model.LastName;
+            DateOfBirth = model.DateOfBirth;
+            CountryID = model.CountryID;
+        }
+
+        public EmployeeVM(EmployeeVM modelVM)
+        {
+            IsEditMode = modelVM.IsEditMode;
+            IsVisible = modelVM.IsVisible;
+            IsFirstCellClicked = modelVM.IsFirstCellClicked;
+            StartCell = modelVM.StartCell;
+            EndCell = modelVM.EndCell;
+            RowID = modelVM.RowID;
+            ID = modelVM.ID;
+            FirstName = modelVM.FirstName;
+            MiddleName = modelVM.MiddleName;
+            LastName = modelVM.LastName;
+            FirstName = modelVM.FirstName;
+            DateOfBirth = modelVM.DateOfBirth;
+            CountryID = modelVM.CountryID;
+        }
+
+        public EmployeeVM Clone()
+        {
+            return new EmployeeVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public void SetList(List<EmployeeVM> items)
+        {
+            _employees = items;
+        }
+
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            // Ensure _clientVMEntryList is set before calling Validate
+            if (_employees == null)
+            {
+                // Log or handle the situation where _clientVMEntryList is not set
+                yield break; // Exit the validation early
+            }
+
+            // Implement your custom validation logic here
+            //if (!IsEditing && AlreadyExists(Name, ID)) // Check existence only in editing mode
+            //{
+            //    yield return new ValidationResult("Name already exists.", new[] { nameof(Name) });
+            //}
+        }
+
+        private bool AlreadyExists(string name, int currentItemId)
+        {
+            bool alreadyExists = false;
+
+            if (name != null)
+            {
+                // Exclude the current item from the search
+                var foundItem = _employees.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);
+                alreadyExists = foundItem != null;
+            }
+
+            return alreadyExists;
+        }
+
+        public async Task<EmployeeVM> FromModel(Employee model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        ID = model.ID;
+                        FirstName = model.FirstName;
+                        MiddleName = model.MiddleName;
+                        LastName = model.LastName;
+                        DateOfBirth = model.DateOfBirth;
+                        CountryID = model.CountryID;
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FromModel(Employee model, Dictionary<string, object> serviceList): {0}\r\n{1}", ex.Message, ex.StackTrace);
+            }
+
+            return this;
+        }
+
+        public Employee ToNewModel()
+        {
+            return new Employee
+                {
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public IModelExtendedProperties ToNewIModel()
+        {
+            return new EmployeeVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    FirstName = this.FirstName,
+                    MiddleName = this.MiddleName,
+                    LastName = this.LastName,
+                    DateOfBirth = this.DateOfBirth,
+                    CountryID = this.CountryID
+                };
+        }
+
+        public async Task<EmployeeVM> SetEditMode(EmployeeVM modelVM, bool isEditMode)
+        {
+            modelVM.IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return modelVM;
+        }
+
+        public async Task<EmployeeVM> SaveModelVM(EmployeeVM modelVM)
+        {
+            modelVM.IsEditMode = false;
+            await Task.CompletedTask;
+            return modelVM;
+        }
+
+        public async Task<EmployeeVM> SaveModelVMToNewModelVM(EmployeeVM modelVM)
+        {
+            var newEmployee = new EmployeeVM()
+                {
+                    IsEditMode = modelVM.IsEditMode,
+                    IsVisible = modelVM.IsVisible,
+                    IsFirstCellClicked = modelVM.IsFirstCellClicked,
+                    StartCell = modelVM.StartCell,
+                    EndCell = modelVM.EndCell,
+                    RowID = modelVM.RowID,
+                    ID = modelVM.ID,
+                    FirstName = modelVM.FirstName,
+                    MiddleName = modelVM.MiddleName,
+                    LastName = modelVM.LastName,
+                    DateOfBirth = modelVM.DateOfBirth,
+                    CountryID = modelVM.CountryID
+                };
+
+            await Task.CompletedTask;
+
+            return newEmployee;
+        }
+
+        public async Task<IEnumerable<EmployeeVM>> AddItemToList(IEnumerable<EmployeeVM> modelVMList, EmployeeVM newModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            int listCount = list.Count();
+            RowID = listCount + 1;
+            newModelVM.RowID = RowID;
+            if (listCount > 0)
+            {
+                var firstItem = list.First();
+                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                newModelVM.StartCell = firstItem.StartCell;
+                newModelVM.EndCell = firstItem.EndCell;
+            }
+
+            list.Add(newModelVM);
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+
+        public async Task<IEnumerable<EmployeeVM>> UpdateList(IEnumerable<EmployeeVM> modelVMList, EmployeeVM updatedModelVM, bool isAdding)
+        {
+            EmployeeVM? modelVM = null;
+
+            if (isAdding)
+            {
+                var list = modelVMList.ToList();
+                list.Remove(updatedModelVM);
+
+                modelVMList = list;
+            }
+            else
+            {
+                modelVM = modelVMList.FirstOrDefault(e => e.ID == updatedModelVM.ID);
+
+                if (modelVM != null)
+                {
+                    modelVM.IsEditMode = updatedModelVM.IsEditMode;
+                    modelVM.IsVisible = updatedModelVM.IsVisible;
+                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
+                    modelVM.StartCell = updatedModelVM.StartCell;
+                    modelVM.EndCell = updatedModelVM.EndCell;
+                    modelVM.ID = updatedModelVM.ID;
+                    modelVM.FirstName = updatedModelVM.FirstName;
+                    modelVM.MiddleName = updatedModelVM.MiddleName;
+                    modelVM.LastName = updatedModelVM.LastName;
+                    modelVM.DateOfBirth = updatedModelVM.DateOfBirth;
+                    modelVM.CountryID = updatedModelVM.CountryID;
+                }
+            }
+
+
+            await Task.CompletedTask;
+
+            return modelVMList;
+        }
+
+        public async Task<IEnumerable<EmployeeVM>> DeleteItemFromList(IEnumerable<EmployeeVM> modelVMList, EmployeeVM deletedModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            var isDeleted = list.Remove(deletedModelVM);
+
+            //TODO: sol: Add logic here for deleted and not deleted conditions
+            if (isDeleted) { }
+            else { }
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+
+    }
+
+    public class CountryVM : Country, IModelExtendedProperties, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties, CountryVM>
+    {
+        private List<CountryVM> _countries = new List<CountryVM>(); // Initialize the list
+        public int RowID { get; set; } // Integer property to indicate row ID
+        public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
+        public bool IsVisible { get; set; } // Boolean property to indicate editing mode
+        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
+        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
+        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
+
+        public CountryVM() { }
+        public CountryVM(Country model)
+        {
+            ID = model.ID;
+            Name = model.Name;
+        }
+
+        public CountryVM(CountryVM modelVM)
+        {
+            IsEditMode = modelVM.IsEditMode;
+            IsVisible = modelVM.IsVisible;
+            IsFirstCellClicked = modelVM.IsFirstCellClicked;
+            StartCell = modelVM.StartCell;
+            EndCell = modelVM.EndCell;
+            RowID = modelVM.RowID;
+            ID = modelVM.ID;
+            Name = modelVM.Name;
+        }
+        public CountryVM Clone()
+        {
+            return new CountryVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    Name = this.Name,
+                };
+        }
+
+        public void SetList(List<CountryVM> items)
+        {
+            _countries = items;
+        }
+
+        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            // Ensure _clientVMEntryList is set before calling Validate
+            if (_countries == null)
+            {
+                // Log or handle the situation where _clientVMEntryList is not set
+                yield break; // Exit the validation early
+            }
+
+            // Implement your custom validation logic here
+            //if (!IsEditing && AlreadyExists(Name, ID)) // Check existence only in editing mode
+            //{
+            //    yield return new ValidationResult("Name already exists.", new[] { nameof(Name) });
+            //}
+        }
+
+        private bool AlreadyExists(string name, int currentItemId)
+        {
+            bool alreadyExists = false;
+
+            if (name != null)
+            {
+                // Exclude the current item from the search
+                var foundItem = _countries.FirstOrDefault(p => p.Name == name && p.ID != currentItemId);
+                alreadyExists = foundItem != null;
+            }
+
+            return alreadyExists;
+        }
+        public async Task<CountryVM> FromModel(Country model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    await Task.Run(() =>
+                    {
+                        ID = model.ID;
+                        Name = model.Name;
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FromModel(Country model, Dictionary<string, object> serviceList): {0}\r\n{1}", ex.Message, ex.StackTrace);
+            }
+
+            return this;
+        }
+        public Country ToNewModel()
+        {
+            return new Country
+                {
+                    ID = this.ID,
+                    Name = this.Name,
+                };
+        }
+
+        public IModelExtendedProperties ToNewIModel()
+        {
+            return new CountryVM
+                {
+                    IsEditMode = this.IsEditMode,
+                    IsVisible = this.IsVisible,
+                    IsFirstCellClicked = this.IsFirstCellClicked,
+                    StartCell = this.StartCell,
+                    EndCell = this.EndCell,
+                    RowID = this.RowID,
+                    ID = this.ID,
+                    Name = this.Name,
+                };
+        }
+
+        public async Task<CountryVM> SetEditMode(CountryVM modelVM, bool isEditMode)
+        {
+            modelVM.IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return modelVM;
+        }
+
+        public async Task<CountryVM> SaveModelVM(CountryVM modelVM)
+        {
+            modelVM.IsEditMode = false;
+            await Task.CompletedTask;
+
+            return modelVM;
+        }
+
+        public async Task<CountryVM> SaveModelVMToNewModelVM(CountryVM modelVM)
+        {
+            var newModelVM = new CountryVM()
+                {
+                    IsEditMode = modelVM.IsEditMode,
+                    IsVisible = modelVM.IsVisible,
+                    IsFirstCellClicked = modelVM.IsFirstCellClicked,
+                    StartCell = modelVM.StartCell,
+                    EndCell = modelVM.EndCell,
+                    RowID = modelVM.RowID,
+                    ID = modelVM.ID,
+                    Name = modelVM.Name,
+                };
+
+            await Task.CompletedTask;
+
+            return newModelVM;
+        }
+
+        public async Task<IEnumerable<CountryVM>> AddItemToList(IEnumerable<CountryVM> modelVMList, CountryVM newModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            int listCount = list.Count();
+            RowID = listCount + 1;
+            newModelVM.RowID = RowID;
+            if (listCount > 0)
+            {
+                var firstItem = list.First();
+                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                newModelVM.StartCell = firstItem.StartCell;
+                newModelVM.EndCell = firstItem.EndCell;
+            }
+
+            list.Add(newModelVM);
+
+            await Task.CompletedTask;
+
+            return list;
+        }
+
+        public async Task<IEnumerable<CountryVM>> UpdateList(IEnumerable<CountryVM> modelVMList, CountryVM updatedModelVM, bool isAdding)
+        {
+            CountryVM? modelVM = null;
+
+            if (isAdding)
+            {
+                var list = modelVMList.ToList();
+                list.Remove(updatedModelVM);
+                modelVMList = list;
+            }
+            else
+            {
+                modelVM = modelVMList.FirstOrDefault(e => e.ID == updatedModelVM.ID);
+
+                if (modelVM != null)
+                {
+                    modelVM.IsEditMode = updatedModelVM.IsEditMode;
+                    modelVM.IsVisible = updatedModelVM.IsVisible;
+                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
+                    modelVM.StartCell = updatedModelVM.StartCell;
+                    modelVM.EndCell = updatedModelVM.EndCell;
+                    modelVM.RowID = updatedModelVM.RowID;
+                    modelVM.ID = updatedModelVM.ID;
+                    modelVM.Name = updatedModelVM.Name;
+                }
+
+            }
+
+            await Task.CompletedTask;
+
+            return modelVMList;
+        }
+
+        public async Task<IEnumerable<CountryVM>> DeleteItemFromList(IEnumerable<CountryVM> modelVMList, CountryVM deletedModelVM)
+        {
+            var list = modelVMList.ToList();
+
+            var isDeleted = list.Remove(deletedModelVM);
+
+            //TODO: sol: Add logic here for deleted and not deleted conditions
+            if (isDeleted) { }
+            else { }
+
+            await Task.CompletedTask;
+
+            return list;
+        }
     }
 }
