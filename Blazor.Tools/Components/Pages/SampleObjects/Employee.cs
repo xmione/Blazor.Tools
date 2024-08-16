@@ -1,8 +1,8 @@
 ﻿using Blazor.Tools.BlazorBundler.Interfaces;
 
-namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
+namespace Blazor.Tools.Components.Pages.SampleObjects
 {
-    public class Employee : IBaseModel
+    public class Employee: IBaseModel
     {
         public int ID { get; set; }
         public string FirstName { get; set; } = default!;

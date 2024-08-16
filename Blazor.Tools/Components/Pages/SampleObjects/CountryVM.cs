@@ -2,7 +2,7 @@
 using Blazor.Tools.BlazorBundler.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
-namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
+namespace Blazor.Tools.Components.Pages.SampleObjects
 {
     public class CountryVM : Country, IBaseVM, IModelExtendedProperties, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties, CountryVM>
     {
