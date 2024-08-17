@@ -35,7 +35,7 @@ window.downloadFile = function (filePath) {
         .catch(error => console.error('Error:', error));
 }
 
-window.sendAlert= (message) => {
+window.sendAlert = (message) => {
     alert(message);
 };
 
@@ -178,3 +178,81 @@ window.DOMCleanup = {
         observer.observe(element, { attributes: true });
     }
 };
+
+window.setValue = (elementId, newValue) => {
+    document.getElementById(elementId).value = newValue;
+};
+
+window.getValue = (elementId) => {
+    var el = document.getElementById(elementId);
+
+    var elementValue = null
+    if (el) {
+        elementValue = el.value;
+    }
+
+    return elementValue;
+};
+
+window.toggleCellBorders = (startRow, endRow, startCol, endCol, totalRows, totalCols, tableId, shouldMark) => {
+
+    // ran through all the cells 
+    for (var row = 1; row < totalRows + 1; row++) {
+        for (var col = 1; col < totalCols + 1; col++) {
+            var elementId = tableId + "-" + row + "-" + col;
+            var cellElement = document.getElementById(elementId);
+            if (cellElement) {
+
+                var isRowInBetweenRange = row >= startRow && row <= endRow;
+                var isColInBetweenRange = col >= startCol && col <= endCol;
+                if (isRowInBetweenRange && isColInBetweenRange) {
+                    // mark if row and col are in the range
+                    if (shouldMark) {
+                        if (!cellElement.classList.contains('marked-border')) {
+                            cellElement.classList.add('marked-border');
+                        }
+                    }
+                    else {
+                        if (cellElement.classList.contains('marked-border')) {
+                            cellElement.classList.remove('marked-border');
+                        }
+                    }
+                }
+                else {
+                    // unmark if row and col are not in the range
+                    if (cellElement.classList.contains('marked-border')) {
+                        cellElement.classList.remove('marked-border');
+                    }
+                }
+
+            }
+        }
+    }
+};
+
+window.logToConsole = (message) => {
+    console.log(message);
+};
+
+window.scrollToBottom = (divId) => {
+    var div = document.getElementById(divId);
+    if (div) {
+        div.scrollTop = div.scrollHeight;
+    }
+}
+
+window.showElementById = (id) => {
+    var element = document.getElementById(id);
+    alert(element);
+    if (element) {
+        element.style.display = 'block';
+    }
+}
+
+window.hideElementById = (id) => {
+    var element = document.getElementById(id);
+    alert(element);
+    if (element) {
+        element.style.display = 'none';
+    }
+}

@@ -106,14 +106,25 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                             var rowID = item.GetPropertyValue("RowID")?.ToString() ?? string.Empty;
                             var id = $"{TableID}-{rowID}-{colNo}";
                             builder.AddAttribute(seq++, "id", id);
-                            builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, async e =>
+                            if (column?.CellClicked != null)
                             {
-                                await column?.CellClicked?.Invoke(id, item, colNo);
-                            }));
+                                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, async e =>
+                                {
+                                    if (column.CellClicked != null && item != null) // Extra check inside the delegate
+                                    {
+                                        await column.CellClicked.Invoke(id, item, colNo);
+                                    }
+                                }));
+                            }
 
                             builder.AddAttribute(seq++, "class", "cursor-pointer");
-                            var value = item.GetPropertyValue(column.ColumnName);
-                            RenderCellContent(builder, column, value, item, rowID);
+                            object? value;
+                            if (column != null)
+                            {
+                                value = item.GetPropertyValue(column.ColumnName);
+                                RenderCellContent(builder, column, value, item, rowID);
+                            }
+                            
                             builder.CloseElement(); // td
                         }
                  
@@ -170,32 +181,36 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     var optionIDFieldName = column?.GetPropertyValue("OptionIDFieldName")?.ToString() ?? string.Empty;
                     var optionValueFieldName = column?.GetPropertyValue("OptionValueFieldName")?.ToString() ?? string.Empty;
 
-                    // Use the factory to create an instance of DropdownList
-                    var dropdownList = DropdownListFactory.CreateDropdownList(
-                        typeof(object), // Pass the type of items here
-                        column.Items,
-                        column.ColumnName,
-                        column.HeaderText,
-                        value,
-                        optionIDFieldName,
-                        optionValueFieldName,
-                        isEditMode,
-                        rowNo,
-                        EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item))
-                    );
+                    if (column != null)
+                    {
+                        // Use the factory to create an instance of DropdownList
+                        var dropdownList = DropdownListFactory.CreateDropdownList(
+                            typeof(object), // Pass the type of items here
+                            column.Items,
+                            column.ColumnName,
+                            column.HeaderText,
+                            value,
+                            optionIDFieldName,
+                            optionValueFieldName,
+                            isEditMode,
+                            rowNo,
+                            EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item))
+                        );
 
-                    var type = dropdownList?.GetType() ?? default!;
-                    // Use builder to add the component to the render tree
-                    builder.OpenComponent(seq++, type); // or DropdownList if specific type is used
-                    builder.AddAttribute(seq++, "Items", column.Items);
-                    builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
-                    builder.AddAttribute(seq++, "Value", value);
-                    builder.AddAttribute(seq++, "IsEditMode", isEditMode);
-                    builder.AddAttribute(seq++, "RowID", rowNo);
-                    builder.AddAttribute(seq++, "OptionIDFieldName", optionIDFieldName);
-                    builder.AddAttribute(seq++, "OptionValueFieldName", optionValueFieldName);
-                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
-                    builder.CloseComponent();
+                        var type = dropdownList?.GetType() ?? default!;
+                        // Use builder to add the component to the render tree
+                        builder.OpenComponent(seq++, type); // or DropdownList if specific type is used
+                        builder.AddAttribute(seq++, "Items", column.Items);
+                        builder.AddAttribute(seq++, "ColumnName", column.ColumnName);
+                        builder.AddAttribute(seq++, "Value", value);
+                        builder.AddAttribute(seq++, "IsEditMode", isEditMode);
+                        builder.AddAttribute(seq++, "RowID", rowNo);
+                        builder.AddAttribute(seq++, "OptionIDFieldName", optionIDFieldName);
+                        builder.AddAttribute(seq++, "OptionValueFieldName", optionValueFieldName);
+                        builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                        builder.CloseComponent();
+                    }
+                    
                     break;
 
                 default:

@@ -20,7 +20,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
-        [Parameter] public EventCallback OnCellClickAsync { get; set; }
         [Parameter] public bool AllowAdding { get; set; } = true;
         [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
@@ -44,6 +43,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private string _startCell = string.Empty;
         private string _endCell = string.Empty;
         private bool _isFirstCellClicked;
+        private bool _isComponentInitialized;
+
+        protected override async Task OnInitializedAsync()
+        {
+            await base.OnInitializedAsync();
+            _isComponentInitialized = true;
+        }
 
         protected override async Task OnParametersSetAsync()
         {
@@ -616,7 +622,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "Name", IconName.XCircleFill); // Blazor.Bootstrap icon class
                 builder.AddAttribute(seq++, "Class", "text-secondary icon-button cursor-pointer");
                 builder.AddAttribute(seq++, "title", "Cancel");
-                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, CancelEditAsync));
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, async () => await CancelEditAsync()));
+
                 builder.CloseComponent();
             }
 
@@ -754,74 +761,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.CloseElement(); // Pagination container
             builder.CloseElement(); // div container
-            /*
-             <style>
-                .show-element{
-                    display: initial;
-                }
-
-                .hide-element{
-                    display: none;
-                }
-             </style>
-             */
-
-            // Render the style code
-            builder.OpenElement(seq++, "style");
-            builder.AddContent(seq++, @"
-                .show-element{
-                    display: initial;
-                }
-
-                .hide-element{
-                    display: none;
-                }
-
-            ");
-
-            builder.CloseElement(); // script
-            /*
-             <script>
-                function scrollToBottom(divId) {
-                    var div = document.getElementById(divId);
-                    if (div) {
-                        div.scrollTop = div.scrollHeight;
-                    }
-                }
-            </script>
-             */
-
-            // Render the JavaScript code
-            builder.OpenElement(seq++, "script");
-            builder.AddContent(seq++, @"
-                function scrollToBottom(divId) {
-                    var div = document.getElementById(divId);
-                    if (div) {
-                        div.scrollTop = div.scrollHeight;
-                    }
-                }
-
-                function showElementById(id) {
-                    var element = document.getElementById(id);
-                    alert(element);
-                    if (element) {
-                        element.style.display = 'block';
-                    }
-                }
-
-                function hideElementById(id) {
-                    var element = document.getElementById(id);
-                    alert(element);
-                    if (element) {
-                        element.style.display = 'none';
-                    }
-                }
-
-            ");
-
-            builder.CloseElement(); // script
-
-
 
             // Add Row Modal
             //if (_showAddRowModal)
@@ -980,6 +919,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task CancelEditAsync()
         {
+            if (!_isComponentInitialized)
+            {
+                Console.WriteLine("Component is not initialized yet.");
+                return;
+            }
+
             if (_editedRow != null && _editedRowSaved != null && ModelVM != null)
             {
                 var item = await ((IViewModel<TModel, TIModel, TModelVM>)ModelVM).SetEditMode(_editedRowSaved, false);
@@ -995,7 +940,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _editedRow = default!;
                 _editedRowSaved = default!;
 
-                StateHasChanged(); // Refresh UI after canceling edit
+                await InvokeAsync(() => StateHasChanged());
+
+
             }
 
         }
