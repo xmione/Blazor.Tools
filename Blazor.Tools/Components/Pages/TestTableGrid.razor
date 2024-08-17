@@ -9,37 +9,23 @@
 @using System.Data
 @using System.ComponentModel.DataAnnotations
 
-@inject IJSRuntime JSRuntime
-@inject NavigationManager Navigation
+@inherits SampleData
 
 <PageTitle>Test TableGrid</PageTitle>
 <h1>Using TableGrid Component</h1>
-@* <TableGrid 
-    Title="@_data.Title" 
-    TableID="@_data.TableID" 
-    ColumnDefinitions="@_data.ColumnDefinitions" 
+<TableGrid 
+    Title="@Title" 
+    TableID="@TableID" 
+    ColumnDefinitions="@ColumnDefinitions" 
     TModel="Employee" 
     TModelVM="EmployeeVM" 
-    ModelVM="@_data.ModelVM" 
+    ModelVM="@EmployeeVM" 
     TIModel="IModelExtendedProperties" 
-    Items="@_data.Items" 
-    DataSources="@_data.DataSources" 
-    ItemsChanged="@data.OnItemsChanged" 
+    Items="@Employees" 
+    DataSources="@DataSources" 
+    ItemsChanged="@OnItemsChanged" 
     AllowCellRangeSelection="true"
 >
-</TableGrid> *@
+</TableGrid>
  
  
-@code {
-    //   [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-
-    private SampleData _data = default!;
-    protected override void OnParametersSet()
-    {
-        Console.WriteLine("TestTableGrid OnParametersSetAsync");
-        //SessionManager.GetInstance(_sessionTableService);
-
-        _data = new SampleData();
-    }
-      
-}

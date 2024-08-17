@@ -17,6 +17,20 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             get { return _tableID; }
             set { _tableID = value; }
         }
+        
+        private int _totalRows;
+        public int TotalRows
+        {
+            get { return _totalRows; }
+            set { _totalRows = value; }
+        }
+        
+        private int _totalCols;
+        public int TotalCols
+        {
+            get { return _totalCols; }
+            set { _totalCols = value; }
+        }
 
         private List<TableColumnDefinition> _columnDefinitions = new List<TableColumnDefinition>();
         public List<TableColumnDefinition> ColumnDefinitions
@@ -62,6 +76,9 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 
             if (rawItems is IEnumerable<IModelExtendedProperties> items)
             {
+                _totalRows = items.Count();
+                _totalCols = _columnDefinitions.Count;
+
                 return items;
             }
             else

@@ -173,7 +173,9 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             DataSources.Add("EmployeeDS", _employees);
             DataSources.Add("CountryDS", _countries);
 
+            _employees = Items.Cast<EmployeeVM>().ToList();
         }
+
         public void OnDropdownValueChanged(object newValue, EmployeeVM employeeVM)
         {
             employeeVM.CountryID = Convert.ToInt32(newValue);

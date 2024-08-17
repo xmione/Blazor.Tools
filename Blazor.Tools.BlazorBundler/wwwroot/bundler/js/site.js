@@ -243,7 +243,7 @@ window.scrollToBottom = (divId) => {
 
 window.showElementById = (id) => {
     var element = document.getElementById(id);
-    alert(element);
+    console.log(element);
     if (element) {
         element.style.display = 'block';
     }
@@ -251,8 +251,100 @@ window.showElementById = (id) => {
 
 window.hideElementById = (id) => {
     var element = document.getElementById(id);
-    alert(element);
+    console.log(element);
     if (element) {
         element.style.display = 'none';
     }
+}
+
+window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
+    var employee = JSON.parse(employeeJson);
+    if (employee.IsEditMode) {
+        return;
+    }
+
+    var cellIdentifier = `R${employee.RowID}-C${col}`;
+    var startCellID = `${tableID}-start-cell`;
+    var endCellID = `${tableID}-end-cell`;
+
+    console.log("cellIdentifier", cellIdentifier);
+    console.log("startCellID", startCellID);
+    console.log("endCellID", endCellID);
+
+    var startCell = document.getElementById(startCellID);
+    var endCell = document.getElementById(endCellID);
+    var startCellValue = startCell.value;
+    var endCellValue = endCell.value;
+
+    console.log("startCell", startCell);
+    console.log("endCell", endCell);
+    console.log("startCellValue", startCellValue);
+    console.log("endCellValue", endCellValue);
+
+    var areBothFilled = startCellValue && endCellValue;
+    var areBothEmpty = !startCellValue && !endCellValue;
+
+    console.log("areBothFilled", areBothFilled);
+    console.log("areBothEmpty", areBothEmpty);
+
+    // Check if the element is currently in focus
+    var isStartCellInFocus = (document.activeElement === startCell);
+    var isEndCellInFocus = (document.activeElement === endCell);
+
+    console.log("isStartCellInFocus", isStartCellInFocus); // Output: true or false
+    console.log("isEndCellInFocus", isEndCellInFocus); // Output: true or false
+
+    var startRow = 0;
+    var endRow = 0;
+    var startCol = 0;
+    var endCol = 0;
+
+    // when you click a cell in the table grid, determine if both start and end cell controls are empty
+    if (areBothEmpty) {
+        startCell.value = cellIdentifier;
+
+        // mark start cell only
+        var startCellSplit = cellIdentifier.split('-');
+        startRow = parseInt(startCellSplit[0].replace('R', ''));
+        startCol = parseInt(startCellSplit[1].replace('C', ''));
+        endRow = parseInt(startRow);
+        endCol = parseInt(startCol);
+
+    }
+    else {
+        if (startCellValue) {
+            // start cell has value. split it and set end cell value from params
+            endCell.value = cellIdentifier;
+
+            // mark start cell only
+            var startCellSplit = startCellValue.split('-');
+            startRow = parseInt(startCellSplit[0].replace('R', ''));
+            startCol = parseInt(startCellSplit[1].replace('C', ''));
+            endRow = employee.RowID;
+            endCol = col;
+        }
+        else {
+            // end cell has value. split it and set start cell value from params
+            startCell.value = cellIdentifier;
+
+            // mark end cell only
+            var endCellSplit = endCellValue.split('-');
+            startRow = employee.RowID;
+            startCol = col;
+            endRow = parseInt(endCellSplit[0].replace('R', ''));
+            endCol = parseInt(endCellSplit[1].replace('C', ''));
+        }
+
+    }
+
+    // and then mark it.
+    var shouldMark = true;
+
+    toggleCellBorders(startRow, endRow, startCol, endCol, totalRows, totalCols, tableID, shouldMark);
+
+}
+
+// window.CellClick = (employee, col, tableID, totalRows, totalCols) => {
+window.CellClick2 = (employeeJson) => {
+    alert(employeeJson);
 }

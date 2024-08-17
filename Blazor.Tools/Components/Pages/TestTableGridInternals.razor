@@ -9,7 +9,7 @@
 @using Bogus
 @using System.Data
 @using System.ComponentModel.DataAnnotations
-
+@using System.Text.Json
 @inherits SampleData
 
 <PageTitle>Test TableGridInternals</PageTitle>
@@ -46,7 +46,7 @@
             <td id="employee-1-1">
         *@
 
-        <td id=@($"{TableID}-{employee.RowID}-1") @onclick="@(async () => await HandleCellClickAsync($"{TableID}-{employee.RowID}-1", (EmployeeVM)employee, 1))" class="cursor-pointer">
+        <td id="@($"{TableID}-{employee.RowID}-1")" onclick="CellClick('@JsonSerializer.Serialize(employee)', 1, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <NumberInput ColumnName="ID" 
                 Value="@(employee.GetProperty("ID"))"
                 IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
@@ -54,28 +54,28 @@
                 ValueChanged="@(newValue => OnIDValueChanged(newValue, (EmployeeVM)employee))"  
                 />
         </td>
-        <td id=@($"{TableID}-{employee.RowID}-2") @onclick="@(async () => await HandleCellClickAsync($"{TableID}-{employee.RowID}-2", (EmployeeVM)employee, 2))" class="cursor-pointer">
+        <td id=@($"{TableID}-{employee.RowID}-2") onclick="CellClick('@JsonSerializer.Serialize(employee)', 2, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <TextInput ColumnName="FirstName" 
                 Value="@(employee.GetProperty("FirstName"))"
                 IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
                 RowID="@employee.RowID"
                        ValueChanged="@(newValue => OnFirstNameValueChanged(newValue, (EmployeeVM)employee))" />
         </td>
-        <td id=@($"{TableID}-{employee.RowID}-3") @onclick="@(async () => await HandleCellClickAsync($"{TableID}-{employee.RowID}-3", (EmployeeVM)employee, 3))" class="cursor-pointer">
+        <td id=@($"{TableID}-{employee.RowID}-3") onclick="CellClick('@JsonSerializer.Serialize(employee)', 3, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <TextInput ColumnName="MiddleName"
                        Value="@(employee.GetProperty("MiddleName"))"
                        IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
                        RowID="@employee.RowID"
                        ValueChanged="@(newValue => OnMiddleNameValueChanged(newValue, (EmployeeVM)employee))" />
         </td>
-        <td id=@($"{TableID}-{employee.RowID}-4") @onclick="@(async () => await HandleCellClickAsync($"{TableID}-{employee.RowID}-4", (EmployeeVM)employee, 4))" class="cursor-pointer">
+        <td id=@($"{TableID}-{employee.RowID}-4") onclick="CellClick('@JsonSerializer.Serialize(employee)', 4, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <TextInput ColumnName="LastName"
                        Value="@(employee.GetProperty("LastName"))"
                        IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
                        RowID="@employee.RowID"
                        ValueChanged="@(newValue => OnLastNameValueChanged(newValue, (EmployeeVM)employee))" />
         </td>
-        <td id=@($"{TableID}-{employee.RowID}-5") @onclick="@(async () => await HandleCellClickAsync($"{TableID}-{employee.RowID}-5", (EmployeeVM)employee, 5))" class="cursor-pointer">
+        <td id=@($"{TableID}-{employee.RowID}-5") onclick="CellClick('@JsonSerializer.Serialize(employee)', 5, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <DateOnlyPicker ColumnName="DateOfBirth"
                 Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
                 IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
@@ -83,7 +83,7 @@
                             ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, (EmployeeVM)employee))" />
              
         </td>
-        <td id=@($"{TableID}-{@employee.RowID}-6") @onclick="@(async () => await HandleCellClickAsync($"{TableID}-{employee.RowID}-6", (EmployeeVM)employee, 6))" class="cursor-pointer">
+        <td id=@($"{TableID}-{@employee.RowID}-6") onclick="CellClick('@JsonSerializer.Serialize(employee)', 6, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <DropdownList Items="Countries"
                           ColumnName="CountryID"
                           Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
