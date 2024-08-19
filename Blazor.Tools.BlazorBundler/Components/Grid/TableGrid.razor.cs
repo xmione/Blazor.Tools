@@ -7,6 +7,7 @@ using Blazor.Tools.BlazorBundler.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using System.Diagnostics;
 using DocumentFormat.OpenXml.Spreadsheet;
+using System.Text.Json;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -106,17 +107,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                             var rowID = item.GetPropertyValue("RowID")?.ToString() ?? string.Empty;
                             var id = $"{TableID}-{rowID}-{colNo}";
                             builder.AddAttribute(seq++, "id", id);
-                            if (column?.CellClicked != null)
-                            {
-                                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, async e =>
-                                {
-                                    if (column.CellClicked != null && item != null) // Extra check inside the delegate
-                                    {
-                                        await column.CellClicked.Invoke(id, item, colNo);
-                                    }
-                                }));
-                            }
 
+                            var itemString = JsonSerializer.Serialize(item);
+                            var paramString = $"CellClick('{itemString}',{colNo}, '{TableID}', {Items.Count()}, {ColumnDefinitions.Count})";
+                            builder.AddAttribute(seq++, "onclick", paramString);
                             builder.AddAttribute(seq++, "class", "cursor-pointer");
                             object? value;
                             if (column != null)
