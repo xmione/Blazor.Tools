@@ -180,7 +180,10 @@ window.DOMCleanup = {
 };
 
 window.setValue = (elementId, newValue) => {
-    document.getElementById(elementId).value = newValue;
+    var el = document.getElementById(elementId);
+    if (el) {
+        el.value = newValue;
+    }
 };
 
 window.getValue = (elementId) => {
@@ -257,6 +260,34 @@ window.hideElementById = (id) => {
     }
 }
 
+var _isStartCellInFocus = true;
+window.StartCellClicked = (isStartCellClicked, tableID) => {
+    _isStartCellInFocus = isStartCellClicked;
+
+    // mark startCell or endCell control
+    var startCellID = `${tableID}-start-cell`;
+    var endCellID = `${tableID}-end-cell`;
+    var startCellElement = document.getElementById(startCellID);
+    var endCellElement = document.getElementById(endCellID);
+
+    if (isStartCellClicked) {
+        if (endCellElement.classList.contains('marked-border')) {
+            endCellElement.classList.remove('marked-border');
+        }
+        if (!startCellElement.classList.contains('marked-border')) {
+            startCellElement.classList.add('marked-border');
+        }
+    }
+    else {
+        if (startCellElement.classList.contains('marked-border')) {
+            startCellElement.classList.remove('marked-border');
+        }
+        if (!endCellElement.classList.contains('marked-border')) {
+            endCellElement.classList.add('marked-border');
+        }
+    }
+}
+
 window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
     var employee = JSON.parse(employeeJson);
     if (employee.IsEditMode) {
@@ -288,57 +319,208 @@ window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
     console.log("areBothEmpty", areBothEmpty);
 
     // Check if the element is currently in focus
-    var isStartCellInFocus = (document.activeElement === startCell);
-    var isEndCellInFocus = (document.activeElement === endCell);
 
-    console.log("isStartCellInFocus", isStartCellInFocus); // Output: true or false
-    console.log("isEndCellInFocus", isEndCellInFocus); // Output: true or false
+    console.log("_isStartCellInFocus", _isStartCellInFocus); // Output: true or false
 
     var startRow = 0;
     var endRow = 0;
     var startCol = 0;
     var endCol = 0;
+    var isRowReversed = false;
+    var isColReversed = false;
+    // Save values first
+    var savedStartRow = startRow;
+    var savedEndRow = endRow;
+    var savedStartCol = startCol;
+    var savedEndCol = endCol;
 
     // when you click a cell in the table grid, determine if both start and end cell controls are empty
     if (areBothEmpty) {
         startCell.value = cellIdentifier;
+        startCellValue = cellIdentifier;
 
-        // mark start cell only
-        var startCellSplit = cellIdentifier.split('-');
+        StartCellClicked(true, tableID);
+
+        // get existing startCell value first
+        var startCellSplit = startCellValue.split('-');
+
+        // mark selected table cell as start cell
         startRow = parseInt(startCellSplit[0].replace('R', ''));
         startCol = parseInt(startCellSplit[1].replace('C', ''));
         endRow = parseInt(startRow);
         endCol = parseInt(startCol);
-
     }
     else {
-        if (startCellValue) {
-            // start cell has value. split it and set end cell value from params
-            endCell.value = cellIdentifier;
-
-            // mark start cell only
+        if (areBothFilled) {
+            // Determine first were to put te cellIdentifier value.
+            // get existing values first
             var startCellSplit = startCellValue.split('-');
             startRow = parseInt(startCellSplit[0].replace('R', ''));
             startCol = parseInt(startCellSplit[1].replace('C', ''));
-            endRow = employee.RowID;
-            endCol = col;
-        }
-        else {
-            // end cell has value. split it and set start cell value from params
-            startCell.value = cellIdentifier;
 
-            // mark end cell only
             var endCellSplit = endCellValue.split('-');
-            startRow = employee.RowID;
-            startCol = col;
             endRow = parseInt(endCellSplit[0].replace('R', ''));
             endCol = parseInt(endCellSplit[1].replace('C', ''));
-        }
 
+            // Save values first
+            savedStartRow = startRow;
+            savedEndRow = endRow;
+            savedStartCol = startCol;
+            savedEndCol = endCol;
+
+            //================================================================>
+            // Case 1: Click cell in between currently selected cell:
+            // Currently selected cell range: [2,2,4,4] [row,col,row,col]
+            // Currently clicked cell = 3,3
+            // Should depend on _isStartCellInFocus
+            // if _isStartCellInFocus = true, store to startCell.value
+            // else store to endCell.value
+
+            // Check if values are in between range: 
+            // Note: Remember to use saved variables in comparing values
+            var isRowInBetweenRange = employee.RowID >= savedStartRow && employee.RowID <= savedEndRow;
+            var isColInBetweenRange = col >= savedStartCol && col <= savedEndCol;
+            var isBothInRange = isRowInBetweenRange && isColInBetweenRange;
+            if (isBothInRange) {
+                if (_isStartCellInFocus) {
+                    //store to startCell.value
+                    startRow = employee.RowID;
+                    startCol = col;
+                    startCell.value = cellIdentifier;
+                }
+                else {
+                    endRow = employee.RowID;
+                    endCol = col;
+                    endCell.value = cellIdentifier;
+                }
+            }
+
+            //================================================================>
+            // Case 2: Click cell above the row of currently selected cell:
+            // Currently selected cell range: [2,2,4,4] [row,col,row,col]
+            // Currently clicked cell = 1,3 or any row above startCell.value row
+            //  regardless of the clicked column
+            // This should immediately set _isStartCellInFocus = true
+            // store to startCell.value
+            var isRowAboveRange = employee.RowID <= savedStartRow;
+            if (isRowAboveRange) {
+                StartCellClicked(true, tableID);
+                startCell.value = cellIdentifier;
+                startRow = employee.RowID;
+                startCol = col;
+            }
+
+            //================================================================>
+            // Case 3: Click cell below the row of currently selected cell:
+            // Currently selected cell range: [2,2,4,4] [row,col,row,col]
+            // Currently clicked cell = 4,3 or any row below endCell.value row
+            //  regardless of the clicked column
+            // This should immediately set _isStartCellInFocus = false
+            // store to endCell.value
+            var isRowBelowRange = employee.RowID >= savedEndRow;
+            if (isRowBelowRange) {
+                StartCellClicked(false, tableID);
+                endCell.value = cellIdentifier;
+                endRow = employee.RowID;
+                endCol = col;
+            }
+
+            //================================================================>
+            // Case 4: Click cell on the same row of selected range but
+            //  above the col of currently selected cell:
+            // Currently selected cell range: [2,2,4,4] [row,col,row,col]
+            // Currently clicked cell = 2,1 or any col above startCell.value col
+            //  on the any row in the currently selected range
+            // This should immediately set _isStartCellInFocus = true
+            // store to startCell.value
+
+            var isColAboveRange = col <= savedStartCol;
+            if (isColAboveRange && isRowInBetweenRange) {
+                StartCellClicked(true, tableID);
+                startCell.value = cellIdentifier;
+                startRow = employee.RowID;
+                startCol = col;
+            }
+
+            //================================================================>
+            // Case 5: Click cell on the same row of selected range but
+            //  below the col of currently selected cell:
+            // Currently selected cell range: [2,2,4,4] [row,col,row,col]
+            // Currently clicked cell = 2,5 or any col below endCell.value col
+            //  on the any row in the currently selected range
+            // This should immediately set _isStartCellInFocus = false
+            // store to endCell.value
+
+            var isColBelowRange = col >= savedEndCol;
+            if (isColBelowRange && isRowInBetweenRange) {
+                StartCellClicked(false, tableID);
+                endCell.value = cellIdentifier;
+                endRow = employee.RowID;
+                endCol = col;
+            }
+        }
+        else {
+            // check if startCellValue has value
+            if (startCellValue) {
+                // get existing values first
+                var startCellSplit = startCellValue.split('-');
+                startRow = parseInt(startCellSplit[0].replace('R', ''));
+                startCol = parseInt(startCellSplit[1].replace('C', ''));
+
+                endRow = employee.RowID;
+                endCol = col;
+
+                StartCellClicked(false, tableID);
+                endCell.value = cellIdentifier;
+            }
+            else {
+                // get existing values first
+                var endCellSplit = endCellValue.split('-');
+                endRow = parseInt(endCellSplit[0].replace('R', ''));
+                endCol = parseInt(endCellSplit[1].replace('C', ''));
+
+                startRow = employee.RowID;
+                startCol = col;
+
+                StartCellClicked(true, tableID);
+                startCell.value = cellIdentifier;
+            }
+
+            // Save values first
+            savedStartRow = startRow;
+            savedEndRow = endRow;
+            savedStartCol = startCol;
+            savedEndCol = endCol;
+
+            // Check if values should be reversed
+            isRowReversed = startRow > endRow;
+            isColReversed = startCol > endCol;
+
+            startRow = isRowReversed ? savedEndRow : startRow;
+            endRow = isRowReversed ? savedStartRow : endRow;
+            startCol = isColReversed ? savedEndCol : startCol;
+            endCol = isColReversed ? savedStartCol : endCol;
+
+        }
     }
 
     // and then mark it.
     var shouldMark = true;
+
+    //var savedStartRow = startRow;
+    //var savedEndRow = endRow;
+    //var savedStartCol = startCol;
+    //var savedEndCol = endCol;
+    //startRow = isRowReversed ? savedEndRow : startRow;
+    //endRow = isRowReversed ? savedStartRow : endRow;
+    //startCol = isColReversed ? savedEndCol : startCol;
+    //endCol = isColReversed ? savedStartCol : endCol;
+
+    //startCellValue = `R${startRow}-C${startCol}`;;
+    //endCellValue = `R${endRow}-C${endCol}`;;
+
+    //setValue(startCellID, startCellValue);
+    //setValue(endCellID, endCellValue);
 
     toggleCellBorders(startRow, endRow, startCol, endCol, totalRows, totalCols, tableID, shouldMark);
 

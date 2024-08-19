@@ -736,6 +736,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _startCell = string.Empty;
 
+            await JSRuntime.InvokeVoidAsync("StartCellClicked", true, TableID);
             StateHasChanged();
 
             await Task.CompletedTask;
@@ -745,6 +746,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _endCell = string.Empty;
 
+            await JSRuntime.InvokeVoidAsync("StartCellClicked", false, TableID);
             StateHasChanged();
 
             await Task.CompletedTask;
@@ -780,7 +782,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             if (firstRender)
             {
-                
+                await JSRuntime.InvokeVoidAsync("StartCellClicked", true, TableID);
             }
 
             if (_isAdding)
