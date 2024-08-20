@@ -1,7 +1,8 @@
-﻿namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
+﻿namespace Blazor.Tools.BlazorBundler.Interfaces
 {
     public interface IModelExtendedProperties
     {
+        public int RowID { get; set; }
         public bool IsEditMode { get; set; }
         public bool IsVisible { get; set; }
         public int StartCell { get; set; }

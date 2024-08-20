@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Bogus;
+using System.Data;
+using Blazor.Tools.BlazorBundler.Extensions;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {
@@ -9,10 +11,6 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
 
         private Dictionary<string, object> _dataSources = default!;
-        
-        
-        private List<string>? _hiddenEmployeeColumns;
-        private List<string>? _hiddenCountryColumns;
 
         private bool _isFirstCellClicked = true;
         private string _startCell = string.Empty;
@@ -54,17 +52,63 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             set { _countryVM = value; }
         }
 
-        private List<EmployeeVM> _employees = new List<EmployeeVM>();
+        private List<EmployeeVM> _employees;
         public List<EmployeeVM> Employees {
             get { return _employees; }
             set { _employees = value; }
         }
 
-        private List<CountryVM> _countries = new List<CountryVM>();
+        private List<CountryVM> _countries;
         public List<CountryVM> Countries
         {
             get { return _countries; }
             set { _countries = value; }
+        }
+        
+        private DataTable _employeeDataTable;
+        public DataTable EmployeeDataTable
+        {
+            get { return _employeeDataTable; }
+            set { _employeeDataTable = value; }
+        }
+        
+        private DataTable _countryDataTable;
+        public DataTable CountryDataTable
+        {
+            get { return _countryDataTable; }
+            set { _countryDataTable = value; }
+        }
+
+        private List<string> _hiddenEmployeeColumns;
+        
+        public List<string> HiddenEmployeeColumns
+        {
+            get { return _hiddenEmployeeColumns; }
+            set { _hiddenEmployeeColumns = value; }
+        }
+
+        private List<string> _hiddenCountryColumns;
+
+        public List<string> HiddenCountryColumns
+        {
+            get { return _hiddenCountryColumns; }
+            set { _hiddenCountryColumns = value; }
+        }
+
+        private Dictionary<string, string> _employeeHeaderNames;
+        
+        public Dictionary<string, string> EmployeeHeaderNames
+        {
+            get { return _employeeHeaderNames; }
+            set { _employeeHeaderNames = value; }
+        }
+
+        private Dictionary<string, string> _countryHeaderNames;
+
+        public Dictionary<string, string> CountryHeaderNames
+        {
+            get { return _countryHeaderNames; }
+            set { _countryHeaderNames = value; }
         }
 
         public SampleData()
@@ -78,6 +122,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             _country = new Country();
             _employeeVM = new EmployeeVM(new ContextProvider());
             _countryVM = new CountryVM(new ContextProvider());
+            _employees = new List<EmployeeVM>();
+            _countries = new List<CountryVM>();
+            _employeeDataTable = new DataTable("Employee");
+            _countryDataTable = new DataTable("Country");
+            _hiddenEmployeeColumns = new List<string>();
+            _hiddenCountryColumns = new List<string>();
+            _employeeHeaderNames = default!;
+            _countryHeaderNames = default!;
 
             CreateTableColumnDefinitions();
             CreateDummyData();
@@ -145,7 +197,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
         {
             var employeeFaker = new Faker<EmployeeVM>()
                .RuleFor(e => e.ID, f => f.IndexFaker + 1)
-               .RuleFor(e => e.RowID, f => f.IndexFaker + 1)
+               //.RuleFor(e => e.RowID, f => f.IndexFaker + 1)
                .RuleFor(e => e.FirstName, f => f.Name.FirstName())
                .RuleFor(e => e.MiddleName, f => f.Name.FirstName().Substring(0, 1) + ".")
                .RuleFor(e => e.LastName, f => f.Name.LastName())
@@ -153,7 +205,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
                .RuleFor(e => e.CountryID, f => f.Random.Int(1, 2));
 
             var countryFaker = new Faker<CountryVM>()
-            .RuleFor(e => e.RowID, f => f.IndexFaker + 1)
+            //.RuleFor(e => e.RowID, f => f.IndexFaker + 1)
             .RuleFor(c => c.ID, f => f.IndexFaker + 1)
             .RuleFor(c => c.Name, f => f.Address.Country());
 
@@ -174,6 +226,26 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             DataSources.Add("CountryDS", _countries);
 
             _employees = Items.Cast<EmployeeVM>().ToList();
+            _employeeDataTable = _employees.ToDataTable();
+            _countryDataTable = _countries.ToDataTable();
+
+            _hiddenEmployeeColumns.Add("ID");
+            _hiddenCountryColumns.Add("ID");
+
+            _employeeHeaderNames = new Dictionary<string, string>()
+            {
+                ["ID"] = "ID",
+                ["FirstName"] = "First Name",
+                ["MiddleName"] = "Middle Name",
+                ["LastName"] = "Last Name",
+                ["CountryID"] = "Country",
+            };
+
+            _countryHeaderNames = new Dictionary<string, string>()
+            {
+                ["ID"] = "ID",
+                ["Name"] = "Country Name",
+            };
         }
 
         public void OnDropdownValueChanged(object newValue, EmployeeVM employeeVM)

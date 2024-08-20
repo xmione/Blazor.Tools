@@ -76,7 +76,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             _employees = items;
         }
 
-        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             // Ensure _clientVMEntryList is set before calling Validate
             if (_employees == null)

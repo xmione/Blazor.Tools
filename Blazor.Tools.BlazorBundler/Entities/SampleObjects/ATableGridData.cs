@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazor.Tools.BlazorBundler.Interfaces;
+using Microsoft.AspNetCore.Components;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {

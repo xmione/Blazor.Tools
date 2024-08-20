@@ -4,8 +4,6 @@ using Blazor.Tools.BlazorBundler.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.Extensions;
-using Microsoft.AspNetCore.Components.Web;
-using System.Diagnostics;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Text.Json;
 
@@ -17,8 +15,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string TableID { get; set; } = string.Empty;
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public TModel Model { get; set; } = default!;
-        [Parameter] public TModelVM ModelVM { get; set; } = default!;
         [Parameter] public TIModel IModel { get; set; } = default!;
+        [Parameter] public TModelVM ModelVM { get; set; } = default!;
         [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
@@ -224,6 +222,85 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await JSRuntime.InvokeVoidAsync("logToConsole", message);
         }
 
+        //public async Task HandleSelectedDataComb(DataRow[] selectedData)
+        //{
+        //    _nodeSelectedData = selectedData;
+
+        //    if (TableNodeContext != null)
+        //    {
+        //        TableNodeContext.SelectedData = _nodeSelectedData;
+        //        TableNodeContext.StartCell = _nodeStartCell;
+        //        TableNodeContext.EndCell = _nodeEndCell;
+
+        //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
+        //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
+        //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+
+        //    }
+
+        //    StateHasChanged();
+        //    await Task.CompletedTask;
+        //}
+
+        //public async Task<DataRow[]?> ShowSetTargetTableModalAsync()
+        //{
+        //    if (!string.IsNullOrEmpty(_nodeStartCell) && !string.IsNullOrEmpty(_nodeEndCell))
+        //    {
+        //        // Extracting start row and column from startCell
+        //        int startRow = int.Parse(_nodeStartCell.Substring(1, _nodeStartCell.IndexOf('C') - 1));
+        //        int startCol = int.Parse(_nodeStartCell.Substring(_nodeStartCell.IndexOf('C') + 1));
+
+        //        // Extracting end row and column from endCell
+        //        int endRow = int.Parse(_nodeEndCell.Substring(1, _nodeEndCell.IndexOf('C') - 1));
+        //        int endCol = int.Parse(_nodeEndCell.Substring(_nodeEndCell.IndexOf('C') + 1));
+
+        //        _nodeSelectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+
+        //        if (TableNodeContext != null)
+        //        {
+        //            TableNodeContext.SelectedData = _nodeSelectedData;
+
+        //            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
+        //        }
+
+        //        await Task.CompletedTask;
+        //    }
+
+        //    StateHasChanged();
+
+        //    return _nodeSelectedData;
+        //}
+
+        //private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
+        //{
+        //    List<DataRow> dataInRange = new List<DataRow>();
+
+        //    if (_nodeDataTable != null)
+        //    {
+        //        // Create a new DataTable with the selected columns
+        //        DataTable filteredDataTable = new DataTable();
+        //        for (int i = startCol; i <= endCol; i++)
+        //        {
+        //            DataColumn column = _nodeDataTable.Columns[i];
+        //            filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
+        //        }
+
+        //        for (int i = startRow; i <= endRow; i++)
+        //        {
+        //            DataRow newRow = filteredDataTable.NewRow();
+
+        //            for (int j = startCol; j <= endCol; j++)
+        //            {
+        //                newRow[j - startCol] = _nodeDataTable.Rows[i][j];
+        //            }
+
+        //            dataInRange.Add(newRow);
+        //        }
+
+        //    }
+
+        //    return dataInRange.ToArray();
+        //}
     }
 }
 

@@ -21,7 +21,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
         [Parameter] public bool AllowAdding { get; set; } = true;
-        [Parameter] public List<string>? HiddenColumnNames { get; set; } = default!;
         [Parameter] public RenderFragment? StartContent { get; set; }
         [Parameter] public RenderFragment? TableHeader { get; set; }
         [Parameter] public RenderFragment<TModelVM> RowTemplate { get; set; } = default!;
@@ -60,6 +59,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // It is better to use private variables to play with within the component.
 
             _items = Items;
+            
+            int currentId = 1;
+
+            _items.ToList().ForEach(item =>
+            {
+                item?.GetType().GetProperty("RowID")?.SetValue(item, currentId++);
+            });
+
+
             await GetPageRowsAsync(_items);
         }
         protected override async void BuildRenderTree(RenderTreeBuilder builder)
@@ -370,19 +378,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.CloseElement(); // Pagination container
             builder.CloseElement(); // div container
-
-            // Add Row Modal
-            //if (_showAddRowModal)
-            //{
-            //    builder.OpenComponent<AddRowModal>(seq++);
-            //    builder.AddAttribute(seq++, "ShowAddRowModal", _showAddRowModal);
-            //    builder.AddAttribute(seq++, "Data", _items);
-            //    builder.AddAttribute(seq++, "NewRowData", _newRowData);
-            //    builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseAddRowModal));
-            //    builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create(this, AddRowAsync));
-            //    builder.AddAttribute(seq++, "HiddenColumnNames", HiddenColumnNames);
-            //    builder.CloseComponent();
-            //}
 
             await Task.CompletedTask;
         }
@@ -782,7 +777,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             if (firstRender)
             {
-                await JSRuntime.InvokeVoidAsync("StartCellClicked", true, TableID);
+                if (AllowCellRangeSelection)
+                {
+                    await JSRuntime.InvokeVoidAsync("StartCellClicked", true, TableID);
+                }
+                
             }
 
             if (_isAdding)
