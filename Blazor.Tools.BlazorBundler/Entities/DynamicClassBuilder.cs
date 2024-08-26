@@ -48,9 +48,11 @@ namespace Blazor.Tools.BlazorBundler.Entities
         private readonly ModuleBuilder _moduleBuilder;
         private readonly TypeBuilder _typeBuilder;
         private readonly bool _hasInterfaces;
-
-        private Type _dynamicType;
-        private readonly List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> _constructors = new List<(ConstructorBuilder, Type[])>();
+        private Type[]? _interfaces;
+        private Type _dynamicType = default!;
+        private readonly List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> _constructors = default!;
+        private List<string> _addedProperties = default!;
+        private List<string> _addedMethods = default!;
         public Type DynamicType
         {
             get { return _dynamicType; }
@@ -64,7 +66,10 @@ namespace Blazor.Tools.BlazorBundler.Entities
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule("MainModule");
 
             _hasInterfaces = interfaces != null && interfaces.Length > 0;
-
+            _interfaces = interfaces;
+            _constructors = new List<(ConstructorBuilder, Type[])>();
+            _addedProperties = new List<string>();
+            _addedMethods = new List<string>();
             _typeBuilder = _moduleBuilder.DefineType(
                 className,
                 TypeAttributes.Public | TypeAttributes.Class,
@@ -150,11 +155,64 @@ namespace Blazor.Tools.BlazorBundler.Entities
             return Activator.CreateInstance(_dynamicType);
         }
 
-        public void CreateClassFromDataTable(DataTable table)
+        public void CreateClassFromDataTable(DataTable? table)
         {
-            foreach (DataColumn column in table.Columns)
+            if (table != null)
             {
-                AddProperty(column.ColumnName, column.DataType);
+                foreach (DataColumn column in table.Columns)
+                {
+                    AddProperty(column.ColumnName, column.DataType);
+                }
+
+                // Automatically add properties from implemented interfaces
+                if (_interfaces != null)
+                {
+                    foreach (Type interfaceType in _interfaces)
+                    {
+                        var properties = interfaceType.GetProperties();
+                        foreach (PropertyInfo property in properties)
+                        {
+                            if (!_addedProperties.Contains(property.Name)) // Check if property already added
+                            {
+                                AddProperty(property.Name, property.PropertyType);
+                                _addedProperties.Add(property.Name);
+                            }
+
+                            // Check if the property is a getter
+                            if (property.CanRead)
+                            {
+                                string getMethodName = $"get_{property.Name}";
+                                if (!_addedMethods.Contains(getMethodName)) // Check if method already added
+                                {
+                                    // Define a default getter method
+                                    DefineMethod(getMethodName, property.PropertyType, Type.EmptyTypes, (ilg, _) =>
+                                    {
+                                        // Implement the getter logic
+                                        // For example, return a default value or throw an exception
+                                        // In this case, we don't need to return a default value
+                                        // as the property will have its default value (0)
+                                        ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                                        ilg.Emit(OpCodes.Ldfld, _typeBuilder.DefineField($"_{property.Name.ToLower()}", property.PropertyType, FieldAttributes.Private));
+                                        ilg.Emit(OpCodes.Ret);
+                                    });
+
+                                    string setMethodName = $"set_{property.Name}";
+                                    // Define setter method (optional, if needed)
+                                    DefineMethod(setMethodName, null, new[] { property.PropertyType }, (ilg, _) =>
+                                    {
+                                        // Implement logic to set the property value in the private field
+                                        ilg.Emit(OpCodes.Ldarg_0);  // Load 'this'
+                                        ilg.Emit(OpCodes.Ldarg_1);  // Load the value to set
+                                        ilg.Emit(OpCodes.Stfld, _typeBuilder.DefineField($"_{property.Name.ToLower()}", property.PropertyType, FieldAttributes.Private));
+                                        ilg.Emit(OpCodes.Ret);
+                                    });
+
+                                    _addedMethods.Add(getMethodName);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

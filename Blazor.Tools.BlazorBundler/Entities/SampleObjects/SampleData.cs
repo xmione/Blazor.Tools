@@ -231,7 +231,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             {
                 var country = countryFaker.Generate();
                 _countries.Add(country);
-                _employeeDataTable.Rows.Add(i + 1, country.Name);
+                _countryDataTable.Rows.Add(i + 1, country.Name);
             }
 
             DataSources.Add("EmployeeDS", _employees);
