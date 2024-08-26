@@ -6,15 +6,21 @@
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css" />
+    <None Remove="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js" />
+    <None Remove="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js" />
+    <None Remove="wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css" />
+    <None Remove="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff" />
+    <None Remove="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2" />
+    <None Remove="wwwroot\bundler\css\bundler.css" />
+    <None Remove="wwwroot\bundler\js\bootstrap.bundle.min.js" />
+    <None Remove="wwwroot\bundler\js\site.js" />
     <None Remove="Docs\~%24ep-by-Step Implementation.docx" />
     <None Remove="Docs\~%24tural Language Requirements Specification Document.docx" />
     <None Remove="Docs\~WRL0005.tmp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="blazor.bootstrap" Version="1.11.1" />
-    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.0.8" />
-    <PackageReference Include="bogus" Version="35.6.0" />
-    <PackageReference Include="closedxml" Version="0.102.3" />
+    <PackageReference Include="Bogus" Version="35.6.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
@@ -33,6 +39,7 @@
     <PackageReference Include="system.diagnostics.performancecounter" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +48,51 @@
   <ItemGroup>
     <Content Update="Components\Pages\TestTableGrid.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css">
+      <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js">
+      <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
+      <PackagePath>\wwwroot\bundler\blazored-typeahead\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css">
+      <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff">
+      <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2">
+      <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\css\bundler.css">
+      <PackagePath>\wwwroot\bundler\css\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\js\bootstrap.bundle.min.js">
+      <PackagePath>\wwwroot\bundler\js\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </Content>
+    <Content Update="wwwroot\bundler\js\site.js">
+      <PackagePath>\wwwroot\bundler\js\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
     </Content>
   </ItemGroup>
   <ItemGroup>

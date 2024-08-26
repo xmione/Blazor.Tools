@@ -1,0 +1,98 @@
+﻿@page "/test-table-grid-internals"
+@rendermode InteractiveServer
+
+@using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Entities.SampleObjects
+@using Blazor.Tools.BlazorBundler.Extensions
+@using Blazor.Tools.BlazorBundler.Interfaces
+@using Blazor.Tools.BlazorBundler.Components.Grid
+@using Bogus
+@using System.Data
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@inherits SampleData
+
+<PageTitle>Test TableGridInternals</PageTitle>
+<h1>Using TableGridInternals Component</h1>
+<TableGridInternals Title="@Title"
+                    TableID="@TableID"
+                    ColumnDefinitions="@ColumnDefinitions"
+                    TModel="Employee"
+                    ModelVM="@EmployeeVM"
+                    TIModel="IModelExtendedProperties"
+                    Items="Employees"
+                    DataSources="DataSources"
+                    Context="employee"
+                    ItemsChanged="OnItemsChanged"
+                    AllowCellRangeSelection="true"
+>
+    <StartContent>
+        <h2>@Title</h2>
+    </StartContent>
+    <TableHeader>
+        @if(ColumnDefinitions != null)
+        {
+            foreach (var column in ColumnDefinitions)
+            {
+                <th>@column.HeaderText</th>
+            }
+        }
+    </TableHeader>
+    <RowTemplate>
+        @* 
+            Note: This should be the format for the td ids:
+            id="TableID-row-col" 
+            <td id="employee-1-1">
+        *@
+
+        <td id="@($"{TableID}-{employee.RowID}-1")" onclick="CellClick('@JsonSerializer.Serialize(employee)', 1, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
+            <NumberInput ColumnName="ID" 
+                Value="@(employee.GetProperty("ID"))"
+                IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
+                RowID="@employee.RowID"
+                ValueChanged="@(newValue => OnIDValueChanged(newValue, (EmployeeVM)employee))"  
+                />
+        </td>
+        <td id=@($"{TableID}-{employee.RowID}-2") onclick="CellClick('@JsonSerializer.Serialize(employee)', 2, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
+            <TextInput ColumnName="FirstName" 
+                Value="@(employee.GetProperty("FirstName"))"
+                IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
+                RowID="@employee.RowID"
+                       ValueChanged="@(newValue => OnFirstNameValueChanged(newValue, (EmployeeVM)employee))" />
+        </td>
+        <td id=@($"{TableID}-{employee.RowID}-3") onclick="CellClick('@JsonSerializer.Serialize(employee)', 3, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
+            <TextInput ColumnName="MiddleName"
+                       Value="@(employee.GetProperty("MiddleName"))"
+                       IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
+                       RowID="@employee.RowID"
+                       ValueChanged="@(newValue => OnMiddleNameValueChanged(newValue, (EmployeeVM)employee))" />
+        </td>
+        <td id=@($"{TableID}-{employee.RowID}-4") onclick="CellClick('@JsonSerializer.Serialize(employee)', 4, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
+            <TextInput ColumnName="LastName"
+                       Value="@(employee.GetProperty("LastName"))"
+                       IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
+                       RowID="@employee.RowID"
+                       ValueChanged="@(newValue => OnLastNameValueChanged(newValue, (EmployeeVM)employee))" />
+        </td>
+        <td id=@($"{TableID}-{employee.RowID}-5") onclick="CellClick('@JsonSerializer.Serialize(employee)', 5, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
+            <DateOnlyPicker ColumnName="DateOfBirth"
+                Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
+                IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
+                RowID="@employee.RowID"
+                ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, (EmployeeVM)employee))" />
+             
+        </td>
+        <td id=@($"{TableID}-{@employee.RowID}-6") onclick="CellClick('@JsonSerializer.Serialize(employee)', 6, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
+            <DropdownList Items="Countries"
+                          ColumnName="CountryID"
+                          Value="@(employee.GetProperty("CountryID"))"
+                          IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
+                          OptionIDFieldName="ID"
+                          OptionValueFieldName="Name"
+                          RowID="@employee.RowID"
+                          ValueChanged="@((object newValue) => OnDropdownValueChanged(newValue, (EmployeeVM)employee))" />
+        </td>
+    </RowTemplate>
+</TableGridInternals>
+
+ 

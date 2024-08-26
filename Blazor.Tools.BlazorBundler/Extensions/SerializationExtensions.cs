@@ -1,4 +1,5 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using System.Data;
 
@@ -35,17 +36,26 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                 };
 
                 // Conditionally add converters based on value type
-                if (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition() == typeof(List<>))
+                if (value != null)
                 {
-                    var innerType = value.GetType().GetGenericArguments()[0];
-                    if (innerType == typeof(TargetTable))
+                    if (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition() == typeof(List<>))
                     {
-                        settings.Converters.Add(new TargetTableColumnConverter());
+                        var innerType = value.GetType().GetGenericArguments()[0];
+                        if (innerType == typeof(TargetTable))
+                        {
+                            settings.Converters.Add(new TargetTableColumnConverter());
+                        }
+                        else if (innerType == typeof(TableColumn))
+                        {
+                            //settings.Converters.Add(new TableColumnJsonConverter());
+                        }
+
                     }
-                }
-                else if (value.GetType() == typeof(DataTable))
-                {
-                    settings.Converters.Add(new DataTableJsonConverter());
+                    else if (value.GetType() == typeof(DataTable))
+                    {
+                        settings.Converters.Add(new DataTableJsonConverter());
+                    }
+
                 }
 
                 serializedObject = JsonConvert.SerializeObject(value, settings);
@@ -98,6 +108,10 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                 else if (typeof(T) == typeof(DataTable))
                 {
                     settings.Converters.Add(new DataTableJsonConverter());
+                }
+                else if (typeof(T) == typeof(BBBrowserFile))
+                {
+                    settings.Converters.Add(new BBBrowserFileJsonConverter());
                 }
 
                 deserializedData = JsonConvert.DeserializeObject<T>(serializedData, settings);

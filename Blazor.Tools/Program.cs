@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Blazor.Tools.Components;
 using Blazor.Tools.Components.Account;
 using Blazor.Tools.Data;
+//using Blazor.Tools.BlazorBundler.Interfaces;
+//using Blazor.Tools.BlazorBundler.Entities;
 
 namespace Blazor.Tools;
 
@@ -12,6 +14,27 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        // Configure logging to add console output
+        builder.Logging.ClearProviders(); // Clear default logging providers
+        builder.Logging.AddConsole();     // Add console logging
+        builder.Logging.AddDebug();     // Add console logging
+
+        // Set minimum level to Debug to capture all messages from Debug and above
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
+        // Manually check for the environment variable
+        var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+        // Load configuration
+        builder.Configuration
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
+
+        var _baseAPIUrl = builder.Configuration.GetSection("APIBaseURL").Value ?? string.Empty;
+        var _baseAPIPort = int.Parse(builder.Configuration.GetSection("APIBasePort").Value ?? string.Empty);
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
         builder.AddServiceDefaults();
         // Configure Blazorise with existing registrations
         builder.Services.AddBlazorBootstrap();
@@ -24,6 +47,7 @@ public class Program
         builder.Services.AddScoped<IdentityUserAccessor>();
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+        //builder.Services.AddScoped<SessionTable>();
 
         builder.Services.AddAuthentication(options =>
             {
@@ -32,7 +56,9 @@ public class Program
             })
             .AddIdentityCookies();
 
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        //RegisterHttpClientService<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionTableService>(builder, _baseAPIUrl);
+        //RegisterHttpClientService<ISessionTableService, SessionTableService>(builder, _baseAPIUrl);
+
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -44,7 +70,19 @@ public class Program
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+        // Configure logging
+        builder.Services.AddLogging(config =>
+        {
+            config.AddConsole();
+            config.SetMinimumLevel(LogLevel.Information);
+        });
+
         var app = builder.Build();
+
+        // Use DI to get the logger
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+        logger.LogInformation("Start processing Blazor.Tools");
 
         app.MapDefaultEndpoints();
 
@@ -72,5 +110,29 @@ public class Program
         app.MapAdditionalIdentityEndpoints();
 
         app.Run();
+    }
+
+    private static void RegisterHttpClientService<TInterface, TImplementation>(WebApplicationBuilder builder, string baseAPIUrl)
+            where TInterface : class
+            where TImplementation : class, TInterface
+    {
+        builder.Services.AddHttpClient<TInterface, TImplementation>(client =>
+        {
+            client.BaseAddress = !string.IsNullOrEmpty(baseAPIUrl) ? new Uri(baseAPIUrl) : null;
+            var environment = builder.Environment;
+            client.Timeout = environment.IsDevelopment() ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(30);
+        });
+    }
+
+    private static void RegisterHttpClientReportService<TInterface, TImplementation>(WebApplicationBuilder builder, string baseAPIUrl)
+        where TInterface : class
+        where TImplementation : class, TInterface
+    {
+        builder.Services.AddHttpClient<TInterface, TImplementation>(client =>
+        {
+            client.BaseAddress = !string.IsNullOrEmpty(baseAPIUrl) ? new Uri(baseAPIUrl) : null;
+            var environment = builder.Environment;
+            client.Timeout = environment.IsDevelopment() ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(30);
+        });
     }
 }

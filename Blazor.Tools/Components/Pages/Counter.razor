@@ -1,19 +1,71 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
 
+@* @using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Interfaces
+
 <PageTitle>Counter</PageTitle>
 
-<h1>Counter</h1>
+<h3>Message: @currentMessage</h3>
+<h3>Current Count: @currentCount</h3>
+<button @onclick="UpdateMessage">Update Message</button>
+<button @onclick="IncrementCount">Increment Count</button>
 
-<p role="status">Current count: @currentCount</p>
+<select @onchange="OnDropdown1Change">
+    <option value="">Select an option (will re-render)</option>
+    <option value="1">Option 1</option>
+    <option value="2">Option 2</option>
+</select>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<select @onchange="OnDropdown2Change">
+    <option value="">Select an option (will not re-render)</option>
+    <option value="1">Option 1</option>
+    <option value="2">Option 2</option>
+</select>
 
 @code {
+    private IRenderState renderState = new RenderState();
+    private string currentMessage = "Hello, World!";
     private int currentCount = 0;
+
+    private void UpdateMessage()
+    {
+        currentMessage = "Updated Message";
+        renderState.Reset(); // Control rendering
+        StateHasChanged();
+    }
 
     private void IncrementCount()
     {
         currentCount++;
+        if (currentCount % 2 == 0)
+        {
+            renderState.MarkAsChanged(); // Control rendering
+        }
+
+        currentMessage = "Count incremented";
+        StateHasChanged();
+    }
+
+    private void OnDropdown1Change(ChangeEventArgs e)
+    {
+        currentMessage = "Selected from Dropdown1";
+        renderState.MarkAsChanged(); // Control rendering
+        StateHasChanged();
+    }
+
+    private void OnDropdown2Change(ChangeEventArgs e)
+    {
+        currentMessage = "Selected from Dropdown2";
+        renderState.Reset(); // Control rendering
+        StateHasChanged();
+    }
+
+    protected override bool ShouldRender()
+    {
+        bool shouldRender = renderState.ShouldRender;
+        renderState.Reset(); // Reset after checking
+        return shouldRender;
     }
 }
+ *@

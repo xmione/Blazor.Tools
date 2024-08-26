@@ -44,11 +44,29 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         }
 
         /// <summary>
+        /// Gets the PropertyInfo of an object.
+        /// </summary>
+        /// <param name="obj">The object to get the property infos from.</param>
+        /// <returns>PropertyInfo[]? that contains all the object's properties.</returns>
+        public static PropertyInfo[]? GetProperties(this object obj)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
+            var properties = obj.GetType()
+                      .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            return properties;
+        }
+        
+        /// <summary>
         /// Gets the property names of an object.
         /// </summary>
         /// <param name="obj">The object to get the property names from.</param>
         /// <returns>IEnumerable<string> that contains all the object's property names.</returns>
-        public static IEnumerable<string> GetProperties(this object obj)
+        public static IEnumerable<string> GetPropertyNames(this object obj)
         {
             if (obj == null)
             {
@@ -86,7 +104,8 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                 throw new ArgumentException($"Property '{propertyName}' not found on '{obj.GetType().Name}'.", nameof(propertyName));
             }
 
-            return property.GetValue(obj);
+            object? propertyValue = property.GetValue(obj);
+            return propertyValue;
         }
 
         /// <summary>
@@ -106,7 +125,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             Type? type = assembly?.GetTypes()?.FirstOrDefault(t => t.FullName == typeName);
             if (type == null)
             {
-                throw new ArgumentException($"Type '{typeName}' not found in assembly '{assembly.FullName}'.");
+                throw new ArgumentException($"Type '{typeName}' not found in assembly '{assembly?.FullName}'.");
             }
 
             // Check if the type matches the expected kind (interface or class)
@@ -144,9 +163,9 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             List<Tuple<string, string>> interfaceNames = new List<Tuple<string, string>>();
 
             // Add the full name and short name of each interface to the list
-            foreach (Type iface in interfaces)
+            foreach (Type iFace in interfaces)
             {
-                interfaceNames.Add(new Tuple<string, string>(iface.FullName, iface.Name));
+                interfaceNames.Add(new Tuple<string, string>(iFace.FullName ?? default!, iFace.Name));
             }
 
             return interfaceNames;

@@ -1,0 +1,15 @@
+## How to update SessionTable Value varbinary(max) field
+
+SELECT TOP (1000) [ID]
+      ,[Name]
+      ,[Value]
+      ,[ExpiresAtTime]
+      ,[SlidingExpirationInSeconds]
+      ,[AbsoluteExpiration]
+  FROM [AccSol].[dbo].[SessionTable]
+
+  
+
+UPDATE [AccSol].[dbo].[SessionTable]
+SET [Value] = CONVERT(varbinary(max), 'R7C0')
+WHERE [Name] = '_nodeStartCell';

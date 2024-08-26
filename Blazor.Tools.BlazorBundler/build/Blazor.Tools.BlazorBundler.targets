@@ -50,10 +50,6 @@
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\css\bundler.css')"
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
-
-    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.ps1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
  
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
@@ -67,11 +63,7 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-Tools.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\README.md')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\README.md"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />-->
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AIChatBot.razor')"
+    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AIChatBot.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\AIChatBot.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
 
@@ -115,8 +107,8 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\DTSearchBox.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SearchFieldsEntryModal.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\SearchFieldsEntryModal.razor"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddLookupTableModal.razor')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddLookupTableModal.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
 
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SetTargetTableModal.razor')"
@@ -142,6 +134,10 @@
     <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor')"
           SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor"
           DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
+
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor.cs')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor.cs"
+          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />-->
 
     <!--<ItemGroup>
       <PackageReferenceToUpdate Include="Blazor.Bootstrap" Version="1.11.1" />

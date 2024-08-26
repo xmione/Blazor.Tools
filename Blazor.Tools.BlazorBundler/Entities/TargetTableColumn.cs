@@ -8,8 +8,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
         public string TargetTableName { get; set; } = default!;
         public string TargetFieldName { get; set; } = default!;
         public string CheckOnTableName { get; set; } = default!;
-        public List<string> CheckOnFieldNames { get; set; } = new List<string>();
-        public List<CheckOnFieldValueEnum> CheckOnFieldValues { get; set; } = new List<CheckOnFieldValueEnum>();
+        public IDictionary<string, object> CheckOnFieldNames { get; set; } = default!;
         public string PrimaryKey { get; set; } = default!;
         public string ForeignKey { get; set; } = default!;
         public string DataType { get; set; } = default!;

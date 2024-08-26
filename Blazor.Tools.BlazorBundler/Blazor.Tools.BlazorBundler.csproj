@@ -18,6 +18,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <IncludeSymbols>False</IncludeSymbols>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,13 +36,13 @@
     </None>
 
     <!-- None items in the packages folder -->
-    <None Include="packages/*.nupkg">
+    <None Include="packages\*.*">
       <Pack>True</Pack>
       <PackagePath>\packages\</PackagePath>
     </None>
 
     <!-- None items in the tools folder -->
-    <None Include=" tools/install-nupkg.ps1">
+    <None Include=" tools\install-nupkg.ps1">
       <Pack>True</Pack>
       <PackagePath>\tools\</PackagePath>
     </None>
@@ -101,14 +103,10 @@
       <PackagePath>\wwwroot\bundler\js\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+     
     <!-- Add files in the Components folder-->
-    <Content Include="Components\AI\AIChatBot.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\AI\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
 
-    <Content Include="Components\AI\AITables.sql">
+    <!--<Content Include="Components\AI\AITables.sql">
       <Pack>True</Pack>
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -119,97 +117,35 @@
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <Content Include="Components\Grid\ExcelUploader.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\Grid\ExcelUploaderDetail.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\Grid\ExcelUploaderHeader.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Components\Grid\ExcelUploaderTitle.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Components\Grid\SessionDemo.razor">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>-->
 
-    <Content Include="Components\Grid\AddRowModal.razor">
+    <!--<Content Include="Components\Grid\TableColumn.razor.cs">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>-->
 
-    <Content Include="Components\Grid\DataTableGrid.razor">
+    <!--<Content Include="Components\Grid\TestComponent.razor.cs">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-
-    <Content Include="Components\Grid\DTSearchBox.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\SearchFieldsEntryModal.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\SetTargetTableModal.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TableColumn.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TableGrid.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TableNode.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TableSource.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
-    <Content Include="Components\Grid\TestComponent.razor">
-      <Pack>True</Pack>
-      <PackagePath>\Components\Grid\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-
+    <RazorComponent Include="Components\**\*.razor" />
+    
+    -->
+    
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
+    <PackageReference Include="Bogus" Version="35.6.0" />
     <PackageReference Include="ClosedXML" Version="0.102.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
@@ -224,22 +160,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Components\Grid\DataRowViewModel.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Components\Grid\ExcelUploader.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
     <Compile Update="Entities\AIDataAccess.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\AssemblyTable.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Entities\CheckOnFieldValueEnum.cs">
+    <Compile Update="Entities\BBBrowserFile.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\BBBrowserFileJsonConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\BrowserFileConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\DataRowViewModel.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\DataTableJsonConverter.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\ExcelProcessor.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\LanguageData.cs">
@@ -248,10 +190,16 @@
     <Compile Update="Entities\LanguagePrediction.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
+    <Compile Update="Entities\LookupFieldConditionEnum.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
     <Compile Update="Entities\Message.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\ProcessManager.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Entities\RenderState.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Entities\SearchField.cs">

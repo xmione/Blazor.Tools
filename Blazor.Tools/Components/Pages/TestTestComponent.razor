@@ -1,0 +1,44 @@
+﻿@page "/test-test-component"
+@using Blazor.Tools.BlazorBundler.Components.Grid
+@using Bogus
+
+@inject NavigationManager Navigation
+
+<PageTitle>Home</PageTitle>
+
+<TestComponent TItem="Country" Items="_countries" Context="country">
+    <StartContent>
+        <h2>Country List</h2>
+    </StartContent>
+    <TableHeader>
+        <th>ID</th>
+        <th>Name</th>
+    </TableHeader>
+    <RowTemplate>
+        <td><NumberInput ColumnName="ID" Value="@country.ID"/></td>
+        <td><TextInput ColumnName="Name" Value="@country.Name" /></td>
+    </RowTemplate>
+</TestComponent>
+
+@code {
+    private List<Country> _countries = new List<Country>();
+
+    protected override void OnInitialized()
+    {
+        var countryFaker = new Faker<Country>()
+            .RuleFor(c => c.ID, f => f.IndexFaker + 1)
+            .RuleFor(c => c.Name, f => f.Address.Country());
+
+        for (int i = 0; i < 101; i++)
+        {
+            var country = countryFaker.Generate();
+            _countries.Add(country);
+        }
+    }
+
+    public class Country
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = default!;
+    }
+}
