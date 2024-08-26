@@ -5,7 +5,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
 {
     public class BBBrowserFileJsonConverter : JsonConverter<BBBrowserFile>
     {
-        public override BBBrowserFile ReadJson(JsonReader reader, Type objectType, BBBrowserFile existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override BBBrowserFile ReadJson(JsonReader reader, Type objectType, BBBrowserFile? existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             // Deserialize the JSON into a temporary object
             var tempObject = new { Name = string.Empty, LastModified = DateTimeOffset.MinValue, Size = 0L, ContentType = string.Empty };
@@ -46,10 +46,10 @@ namespace Blazor.Tools.BlazorBundler.Entities
 
         private class DummyBrowserFile : IBrowserFile
         {
-            public string Name { get; set; }
+            public string Name { get; set; } = string.Empty;
             public DateTimeOffset LastModified { get; set; }
             public long Size { get; set; }
-            public string ContentType { get; set; }
+            public string ContentType { get; set; } = string.Empty;
 
             public Stream OpenReadStream(long maxAllowedSize = 512000, CancellationToken cancellationToken = default)
             {

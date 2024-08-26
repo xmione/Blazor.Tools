@@ -1,15 +1,16 @@
 ﻿namespace Blazor.Tools.BlazorBundler.Interfaces
 {
-    public interface IViewModel<TModel, TIModel, TModelVM>
+    public interface IViewModel<TModel, TIModel> : IModelExtendedProperties
     {
         TModel ToNewModel();
         TIModel ToNewIModel();
-        Task<TModelVM> FromModel(TModel model);
-        Task<TModelVM> SetEditMode(TModelVM modelVM, bool isEditMode);
-        Task<TModelVM> SaveModelVM(TModelVM modelVM);
-        Task<TModelVM> SaveModelVMToNewModelVM(TModelVM modelVM);
-        Task<IEnumerable<TModelVM>> AddItemToList(IEnumerable<TModelVM> modelVMList, TModelVM newModelVM);
-        Task<IEnumerable<TModelVM>> UpdateList(IEnumerable<TModelVM> modelVMList, TModelVM updatedModelVM, bool isAdding);
-        Task<IEnumerable<TModelVM>> DeleteItemFromList(IEnumerable<TModelVM> modelVMList, TModelVM deletedModelVM);
+        Task<IViewModel<TModel, TIModel>> FromModel(TModel model);
+        Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
+        Task<IViewModel<TModel, TIModel>> SaveModelVM();
+        Task<IViewModel<TModel, TIModel>> SaveModelVMToNewModelVM();
+        Task<IEnumerable<IViewModel<TModel, TIModel>>> AddItemToList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
+        Task<IEnumerable<IViewModel<TModel, TIModel>>> UpdateList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList, bool isAdding);
+        Task<IEnumerable<IViewModel<TModel, TIModel>>> DeleteItemFromList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
     }
+
 }

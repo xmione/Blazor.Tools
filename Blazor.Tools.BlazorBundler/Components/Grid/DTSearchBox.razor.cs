@@ -130,8 +130,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(sequence++, "value", _searchQuery);
             builder.AddAttribute(sequence++, "oninput", EventCallback.Factory.Create(this, (ChangeEventArgs e) =>
             {
-                _searchQuery = e.Value?.ToString();
-                SearchData();
+                _searchQuery = e.Value?.ToString() ?? string.Empty;
+                SearchData().Wait();
             }));
             builder.AddAttribute(sequence++, "placeholder", _searchPlaceHolder);
             builder.AddAttribute(sequence++, "class", "form-control mb-2");

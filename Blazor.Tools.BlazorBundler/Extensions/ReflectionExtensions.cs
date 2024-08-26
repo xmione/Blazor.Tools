@@ -125,7 +125,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             Type? type = assembly?.GetTypes()?.FirstOrDefault(t => t.FullName == typeName);
             if (type == null)
             {
-                throw new ArgumentException($"Type '{typeName}' not found in assembly '{assembly.FullName}'.");
+                throw new ArgumentException($"Type '{typeName}' not found in assembly '{assembly?.FullName}'.");
             }
 
             // Check if the type matches the expected kind (interface or class)
@@ -163,9 +163,9 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             List<Tuple<string, string>> interfaceNames = new List<Tuple<string, string>>();
 
             // Add the full name and short name of each interface to the list
-            foreach (Type iface in interfaces)
+            foreach (Type iFace in interfaces)
             {
-                interfaceNames.Add(new Tuple<string, string>(iface.FullName, iface.Name));
+                interfaceNames.Add(new Tuple<string, string>(iFace.FullName ?? default!, iFace.Name));
             }
 
             return interfaceNames;

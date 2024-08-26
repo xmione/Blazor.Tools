@@ -35,43 +35,56 @@
         Console.WriteLine($"Id: {idValue}, Name: {nameValue}, Age: {ageValue}");
 
   ====================================================================================================*/
+using System.Data;
+using System.Reflection;
+using System.Reflection.Emit;
+
 namespace Blazor.Tools.BlazorBundler.Entities
 {
-    using System;
-    using System.Data;
-    using System.Reflection;
-    using System.Reflection.Emit;
-
     public class DynamicClassBuilder
     {
         private readonly AssemblyName _assemblyName;
         private readonly AssemblyBuilder _assemblyBuilder;
         private readonly ModuleBuilder _moduleBuilder;
         private readonly TypeBuilder _typeBuilder;
+        private readonly bool _hasInterfaces;
 
-        public DynamicClassBuilder(string className)
+        private Type _dynamicType;
+        private readonly List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> _constructors = new List<(ConstructorBuilder, Type[])>();
+        public Type DynamicType
         {
-            // Define the assembly name
-            _assemblyName = new AssemblyName("DynamicAssembly");
+            get { return _dynamicType; }
+            set { _dynamicType = value; }
+        }
 
-            // Create the assembly and module
+        public DynamicClassBuilder(string className, Type? baseType = null, Type[]? interfaces = null)
+        {
+            _assemblyName = new AssemblyName("DynamicAssembly");
             _assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.Run);
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule("MainModule");
 
-            // Define the type (class) with the given name
-            _typeBuilder = _moduleBuilder.DefineType(className, TypeAttributes.Public);
+            _hasInterfaces = interfaces != null && interfaces.Length > 0;
+
+            _typeBuilder = _moduleBuilder.DefineType(
+                className,
+                TypeAttributes.Public | TypeAttributes.Class,
+                baseType,
+                interfaces
+            );
         }
 
-        // Method to add a property to the dynamic class
+        public FieldBuilder DefineField(string fieldName, Type fieldType, FieldAttributes attributes)
+        {
+            // Define a private field for the property
+            return _typeBuilder.DefineField($"_{fieldName.ToLower()}", fieldType, attributes);
+        }
+
         public void AddProperty(string propertyName, Type propertyType)
         {
-            // Define the private field to store the property value
             FieldBuilder fieldBuilder = _typeBuilder.DefineField($"_{propertyName.ToLower()}", propertyType, FieldAttributes.Private);
 
-            // Define the public property
             PropertyBuilder propertyBuilder = _typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
 
-            // Define the 'get' accessor method
             MethodBuilder getMethodBuilder = _typeBuilder.DefineMethod($"get_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                 propertyType, Type.EmptyTypes);
@@ -81,7 +94,6 @@ namespace Blazor.Tools.BlazorBundler.Entities
             getIL.Emit(OpCodes.Ldfld, fieldBuilder);
             getIL.Emit(OpCodes.Ret);
 
-            // Define the 'set' accessor method
             MethodBuilder setMethodBuilder = _typeBuilder.DefineMethod($"set_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                 null, new Type[] { propertyType });
@@ -92,29 +104,52 @@ namespace Blazor.Tools.BlazorBundler.Entities
             setIL.Emit(OpCodes.Stfld, fieldBuilder);
             setIL.Emit(OpCodes.Ret);
 
-            // Map the get and set methods to the property
             propertyBuilder.SetGetMethod(getMethodBuilder);
             propertyBuilder.SetSetMethod(setMethodBuilder);
         }
 
+        public void DefineConstructor(Type[] parameterTypes, Action<ILGenerator> generateConstructorBody)
+        {
+            var constructorBuilder = _typeBuilder.DefineConstructor(
+                MethodAttributes.Public,
+                CallingConventions.Standard,
+                parameterTypes
+            );
 
+            _constructors.Add((constructorBuilder, parameterTypes));
 
-        // Method to create the dynamic class type
+            var ilg = constructorBuilder.GetILGenerator();
+            generateConstructorBody(ilg);
+            ilg.Emit(OpCodes.Ret);
+        }
+
+        public IReadOnlyList<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> GetDefinedConstructors()
+        {
+            return _constructors.AsReadOnly();
+        }
+
         public Type CreateType()
         {
-            return _typeBuilder.CreateType();
+            Type? type = null;
+
+            try 
+            {
+                type = _typeBuilder.CreateType() ?? throw new InvalidOperationException("Failed to create type.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            
+            return type;
         }
 
-        // Method to create an instance of the dynamic class
         public object? CreateInstance()
         {
-            Type dynamicType = CreateType();
-            var instance = Activator.CreateInstance(dynamicType);
-
-            return instance;
+            _dynamicType = CreateType();
+            return Activator.CreateInstance(_dynamicType);
         }
 
-        // Method to create a class from a DataTable
         public void CreateClassFromDataTable(DataTable table)
         {
             foreach (DataColumn column in table.Columns)
@@ -122,6 +157,47 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 AddProperty(column.ColumnName, column.DataType);
             }
         }
-    }
 
+        public void DefineMethod(string methodName, Type returnType, Type[] parameterTypes, Action<ILGenerator, LocalBuilder?> generateMethodBody)
+        {
+            MethodBuilder methodBuilder = _typeBuilder.DefineMethod(
+                methodName,
+                MethodAttributes.Public | MethodAttributes.Virtual,
+                returnType,
+                parameterTypes
+            );
+
+            ILGenerator ilg = methodBuilder.GetILGenerator();
+
+            generateMethodBody(ilg, null);
+
+            if (_hasInterfaces)
+            {
+                // If working with interfaces, override the method
+                Type? interfaceType = _typeBuilder.GetInterfaces().FirstOrDefault();
+                if (interfaceType != null)
+                {
+                    MethodInfo? interfaceMethod = interfaceType.GetMethod(methodName);
+                    if (interfaceMethod != null)
+                    {
+                        _typeBuilder.DefineMethodOverride(methodBuilder, interfaceMethod);
+                    }
+                }
+            }
+        }
+
+        public ConstructorInfo[] GetConstructors()
+        {
+            Type dynamicType = CreateType();
+            if (dynamicType == null)
+            {
+                throw new InvalidOperationException("Dynamic type creation failed.");
+            }
+
+            return dynamicType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        }
+
+    }
 }
+
+

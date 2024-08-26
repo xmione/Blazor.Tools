@@ -6,23 +6,24 @@ using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.Extensions;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Text.Json;
+using Blazor.Tools.BlazorBundler.Interfaces;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGrid<TModel, TIModel, TModelVM> : ComponentBase
+    public partial class TableGrid<TModel, TIModel> : ComponentBase
     {
         [Parameter] public string Title { get; set; } = string.Empty;
         [Parameter] public string TableID { get; set; } = string.Empty;
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public TModel Model { get; set; } = default!;
         [Parameter] public TIModel IModel { get; set; } = default!;
-        [Parameter] public TModelVM ModelVM { get; set; } = default!;
-        [Parameter] public IEnumerable<TModelVM> Items { get; set; } = Enumerable.Empty<TModelVM>();
+        [Parameter] public IViewModel<TModel, TIModel> ModelVM { get; set; } = default!;
+        [Parameter] public IEnumerable<IViewModel<TModel, TIModel>> Items { get; set; } = Enumerable.Empty<IViewModel<TModel, TIModel>>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
-        [Parameter] public EventCallback<IEnumerable<TModelVM>> ItemsChanged { get; set; }
+        [Parameter] public EventCallback<IEnumerable<IViewModel<TModel, TIModel>>> ItemsChanged { get; set; }
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
 
-        [Inject] protected ILogger<TableGrid<TModel, TIModel, TModelVM>> Logger { get; set; } = default!;
+        [Inject] protected ILogger<TableGrid<TModel, TIModel>> Logger { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
 
         protected override async Task OnParametersSetAsync()
@@ -34,7 +35,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             int seq = 0;
-            builder.OpenComponent<TableGridInternals<TModel, TIModel, TModelVM>>(seq++);
+            builder.OpenComponent<TableGridInternals<TModel, TIModel>>(seq++);
             builder.AddAttribute(seq++, "Title", Title);
             builder.AddAttribute(seq++, "TableID", TableID);
             builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
@@ -86,7 +87,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
         }
 
-        private RenderFragment<TModelVM> RenderRowTemplate()
+        private RenderFragment<IViewModel<TModel, TIModel>> RenderRowTemplate()
         {
             return item =>
             {
@@ -123,7 +124,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 };
             };
         }
-        private void RenderCellContent(RenderTreeBuilder builder, TableColumnDefinition column, object? value, TModelVM item, string rowID)
+        private void RenderCellContent(RenderTreeBuilder builder, TableColumnDefinition column, object? value, IViewModel<TModel, TIModel> item, string rowID)
         {
             int seq = 0;
             int.TryParse(rowID, out int rowNo);
@@ -138,7 +139,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     builder.AddAttribute(seq++, "Value", value);
                     builder.AddAttribute(seq++, "IsEditMode", isEditMode);
                     builder.AddAttribute(seq++, "RowID", rowNo);
-                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item ?? default!)));
                     builder.CloseComponent();
 
                     Logger.LogDebug($"ColumnName: {column.ColumnName}");
@@ -154,7 +155,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     builder.AddAttribute(seq++, "Value", value);
                     builder.AddAttribute(seq++, "IsEditMode", isEditMode);
                     builder.AddAttribute(seq++, "RowID", rowNo);
-                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item ?? default!)));
                     builder.CloseComponent();
                     break;
 
@@ -164,7 +165,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     builder.AddAttribute(seq++, "Value", value);
                     builder.AddAttribute(seq++, "IsEditMode", isEditMode);
                     builder.AddAttribute(seq++, "RowID", rowNo);
-                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<DateOnly?>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                    builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<DateOnly?>(this, newValue => InvokeValueChanged(column, newValue ?? default, item ?? default!)));
                     builder.CloseComponent();
                     break;
 
@@ -186,7 +187,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                             optionValueFieldName,
                             isEditMode,
                             rowNo,
-                            EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item))
+                            EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item ?? default!))
                         );
 
                         var type = dropdownList?.GetType() ?? default!;
@@ -199,7 +200,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                         builder.AddAttribute(seq++, "RowID", rowNo);
                         builder.AddAttribute(seq++, "OptionIDFieldName", optionIDFieldName);
                         builder.AddAttribute(seq++, "OptionValueFieldName", optionValueFieldName);
-                        builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item)));
+                        builder.AddAttribute(seq++, "ValueChanged", EventCallback.Factory.Create<object>(this, newValue => InvokeValueChanged(column, newValue, item ?? default!)));
                         builder.CloseComponent();
                     }
                     
@@ -211,7 +212,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
         }
          
-        private void InvokeValueChanged(TableColumnDefinition column, object newValue, TModelVM item)
+        private void InvokeValueChanged(TableColumnDefinition column, object newValue, IViewModel<TModel, TIModel> item)
         {
             var valueChangedDelegate = column.ValueChanged;
             valueChangedDelegate?.DynamicInvoke(newValue, item);

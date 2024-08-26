@@ -18,7 +18,6 @@
                     TableID="@TableID"
                     ColumnDefinitions="@ColumnDefinitions"
                     TModel="Employee"
-                    TModelVM="EmployeeVM"
                     ModelVM="@EmployeeVM"
                     TIModel="IModelExtendedProperties"
                     Items="Employees"
@@ -80,13 +79,13 @@
                 Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
                 IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
                 RowID="@employee.RowID"
-                            ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, (EmployeeVM)employee))" />
+                ValueChanged="@((DateOnly? newValue) => OnDateOfBirthValueChanged(newValue, (EmployeeVM)employee))" />
              
         </td>
         <td id=@($"{TableID}-{@employee.RowID}-6") onclick="CellClick('@JsonSerializer.Serialize(employee)', 6, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <DropdownList Items="Countries"
                           ColumnName="CountryID"
-                          Value="@(employee.GetProperty("DateOfBirth") as DateOnly? ?? default!)"
+                          Value="@(employee.GetProperty("CountryID"))"
                           IsEditMode="@(employee.GetProperty("IsEditMode") as bool? ?? false)"
                           OptionIDFieldName="ID"
                           OptionValueFieldName="Name"

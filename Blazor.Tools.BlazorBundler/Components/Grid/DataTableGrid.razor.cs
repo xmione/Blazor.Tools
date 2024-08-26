@@ -1,4 +1,5 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using BlazorBootstrap;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
 using System.Data;
 using System.Reflection;
+using System.Reflection.Emit;
 using DataTableExtensions = Blazor.Tools.BlazorBundler.Extensions.DataTableExtensions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
@@ -67,7 +69,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             var sequence = 0;
 
             // Get the TableGrid component type with the correct generic types
-            var tableGridType = typeof(TableGrid<,,>).MakeGenericType(_modelType, _interfaceType, _modelVMType);
+            var tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _interfaceType);
 
             // Open the component using the resolved type
             builder.OpenComponent(sequence++, tableGridType);
@@ -141,19 +143,454 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private async Task InitializeVariables()
         {
             _tableName = SelectedTable?.TableName ?? _tableName;
-            _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM;
+            //_selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM;
 
             // Create an instance of DynamicClassBuilder for TModel
             var modelClassBuilder = new DynamicClassBuilder(_tableName);
+
             // Create the TModel class from the DataTable
-            modelClassBuilder.CreateClassFromDataTable(SelectedTable);
+            if (SelectedTable != null)
+            {
+                modelClassBuilder.CreateClassFromDataTable(SelectedTable);
+            }
+
             // Create an instance of the dynamic TModel class
             _modelInstance = modelClassBuilder.CreateInstance();
+            if (_modelInstance == null)
+            {
+                throw new InvalidOperationException("Failed to create an instance of TModel.");
+            }
 
-            // Create an instance of DynamicClassBuilder for TModelVM
-            var modelVMClassBuilder = new DynamicClassBuilder($"{_tableName}");
+            // Retrieve type from the model instance
+            var tModelType = _modelInstance.GetType();
+            if (tModelType == null)
+            {
+                throw new InvalidOperationException("Failed to retrieve the type from the model instance.");
+            }
+
+            // Define and create an instance of DynamicClassBuilder for TModelVM
+            var tiModelType = typeof(IModelExtendedProperties);
+            var iViewModel = new Type[] { typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType) };
+            var modelVMClassBuilder = new DynamicClassBuilder(
+                _tableName +"VM",
+                tModelType, // No base class
+                iViewModel
+            );
+
             // Create the TModelVM class from the DataTable
-            modelVMClassBuilder.CreateClassFromDataTable(_selectedTableVM);
+            modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
+            // Define the field for the contextProvider only once
+            FieldBuilder contextProviderField = modelVMClassBuilder.DefineField("_contextProvider", typeof(IContextProvider), FieldAttributes.Private);
+
+            // Define constructors
+            // Parameterless constructor
+            modelVMClassBuilder.DefineConstructor(Type.EmptyTypes, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Initialize contextProvider with a new instance of ContextProvider
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Newobj, typeof(ContextProvider).GetConstructor(Type.EmptyTypes)!);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with no parameters defined.");
+            });
+
+
+            // Constructor with IContextProvider parameter
+            modelVMClassBuilder.DefineConstructor(new[] { typeof(IContextProvider) }, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Set contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with IContextProvider parameter defined.");
+            });
+
+            // Constructor with IContextProvider and Employee parameter
+            modelVMClassBuilder.DefineConstructor(new[] { typeof(IContextProvider), typeof(Employee) }, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Set contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+
+                // Set properties from Employee model
+                ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
+                foreach (var prop in typeof(Employee).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    if (prop.CanWrite)
+                    {
+                        ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                        ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
+                        ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                    }
+                }
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with IContextProvider and Employee parameter defined.");
+            });
+
+            // Constructor with IContextProvider and EmployeeVM parameter
+            modelVMClassBuilder.DefineConstructor(new[] { typeof(IContextProvider), typeof(EmployeeVM) }, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Set contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+
+                // Set properties from EmployeeVM modelVM
+                ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
+                foreach (var prop in typeof(EmployeeVM).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    if (prop.CanWrite)
+                    {
+                        ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                        ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
+                        ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                    }
+                }
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with IContextProvider and EmployeeVM parameter defined.");
+            });
+
+            //// Verify all constructors
+            //var vmType = modelVMClassBuilder.CreateType(); // Create the final VM class
+
+            //// Log all constructors to ensure they are defined
+            //var constructors = vmType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            //foreach (var ctor in constructors)
+            //{
+            //    var parameters = ctor.GetParameters();
+            //    Console.WriteLine($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.ParameterType.Name))}");
+            //}
+
+            // Define methods dynamically
+            modelVMClassBuilder.DefineMethod("ToNewModel", tModelType, Type.EmptyTypes, (ilg, localBuilder) =>
+            {
+                // Check for parameterless constructor
+                ConstructorInfo constructor = tModelType.GetConstructor(Type.EmptyTypes)
+                    ?? throw new InvalidOperationException($"No parameterless constructor found for type {tModelType.Name}");
+
+                // Emit IL code to call the constructor
+                ilg.Emit(OpCodes.Newobj, constructor);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+
+            modelVMClassBuilder.DefineMethod("ToNewIModel", tiModelType, Type.EmptyTypes, (ilg, localBuilder) =>
+            {
+                // Get the constructor of tModelType
+                ConstructorInfo? constructor = tModelType.GetConstructor(Type.EmptyTypes);
+                if (constructor == null)
+                {
+                    throw new InvalidOperationException($"No parameterless constructor found for type {tModelType.Name}");
+                }
+
+                // Emit IL to create a new instance of tModelType
+                ilg.Emit(OpCodes.Newobj, constructor); // Create new instance of tModelType
+                LocalBuilder localBuilderInstance = ilg.DeclareLocal(tModelType); // Declare a local variable for the instance
+                ilg.Emit(OpCodes.Stloc, localBuilderInstance); // Store the instance in the local variable
+
+                // Get properties of tModelType
+                var properties = tModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite) // Only properties with setters
+                    .ToArray();
+
+                // Set properties on the new instance
+                foreach (var property in properties)
+                {
+                    // Load the instance and the value to set
+                    ilg.Emit(OpCodes.Ldloc, localBuilderInstance); // Load instance
+                    ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+
+                    // Load the value of the property from 'this'
+                    var prop = tModelType.GetProperty(property.Name, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                    if (prop != null)
+                    {
+                        ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()); // Call property getter
+                        ilg.Emit(OpCodes.Callvirt, property.GetSetMethod()); // Call property setter
+                    }
+                }
+
+                // Return the new instance
+                ilg.Emit(OpCodes.Ldloc, localBuilderInstance);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            // Define the method in the dynamic class builder
+            modelVMClassBuilder.DefineMethod("FromModel", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { tModelType }, (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Load the model argument onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Get the 'FromModel' method from the IViewModel<TModel, TIModel> interface
+                var iViewModelType = typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType);
+                var fromModelMethod = iViewModelType.GetMethod("FromModel", new[] { tModelType });
+
+                if (fromModelMethod == null)
+                {
+                    throw new InvalidOperationException($"No method found with name 'FromModel' in type {iViewModelType.Name}");
+                }
+
+                // Call the 'FromModel' method
+                ilg.Emit(OpCodes.Callvirt, fromModelMethod);
+
+                // Convert the result to Task<IViewModel<TModel, TIModel>>
+                ilg.Emit(OpCodes.Castclass, typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)));
+
+                // Return the result
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            modelVMClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Load the isEditMode argument onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Set the IsEditMode property
+                var isEditModeProperty = tModelType.GetProperty("IsEditMode", BindingFlags.Public | BindingFlags.Instance);
+                if (isEditModeProperty == null)
+                {
+                    throw new InvalidOperationException("IsEditMode property not found.");
+                }
+                ilg.Emit(OpCodes.Callvirt, isEditModeProperty.GetSetMethod());
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            modelVMClassBuilder.DefineMethod("SaveModelVM", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), Type.EmptyTypes, (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Set the IsEditMode property to false
+                var isEditModeProperty = tModelType.GetProperty("IsEditMode", BindingFlags.Public | BindingFlags.Instance);
+                if (isEditModeProperty == null)
+                {
+                    throw new InvalidOperationException("IsEditMode property not found.");
+                }
+                ilg.Emit(OpCodes.Ldc_I4_0);
+                ilg.Emit(OpCodes.Callvirt, isEditModeProperty.GetSetMethod());
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            modelVMClassBuilder.DefineMethod("SaveModelVMToNewModelVM", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), Type.EmptyTypes, (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Get all defined constructors
+                var constructors = modelVMClassBuilder.GetDefinedConstructors();
+
+                foreach (var (ctor, parameters) in constructors)
+                {
+                    Console.WriteLine($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.Name))}");
+                }
+
+                // Identify the constructor with IContextProvider
+                var constructor = constructors.FirstOrDefault(c =>
+                    c.ParameterTypes.Length == 1 && c.ParameterTypes[0] == typeof(IContextProvider));
+
+                if (constructor == default)
+                {
+                    throw new InvalidOperationException("Constructor with IContextProvider not found.");
+                }
+
+                // Create a new instance of tModelType using the identified constructor
+                ilg.Emit(OpCodes.Ldarg_1); // Load the IContextProvider argument
+                ilg.Emit(OpCodes.Newobj, constructor.ConstructorBuilder); // Call the constructor to create a new instance
+
+                // Store the new instance in a local variable
+                var newInstance = ilg.DeclareLocal(tModelType);
+                ilg.Emit(OpCodes.Stloc, newInstance);
+
+                // Load properties from 'this' and set them on the new instance
+                var properties = tModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite)
+                    .ToArray();
+
+                foreach (var property in properties)
+                {
+                    // Load the new instance
+                    ilg.Emit(OpCodes.Ldloc, newInstance);
+
+                    // Load property value from 'this'
+                    ilg.Emit(OpCodes.Ldarg_0);
+                    ilg.Emit(OpCodes.Callvirt, property.GetGetMethod());
+
+                    // Set the property on the new instance
+                    ilg.Emit(OpCodes.Callvirt, property.GetSetMethod());
+                }
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+
+                // Load the new instance and return it as Task<IViewModel<TModel, TIModel>>
+                ilg.Emit(OpCodes.Ldloc, newInstance);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            modelVMClassBuilder.DefineMethod("AddItemToList",
+             typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType))),
+             new[] { typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) },
+             (ilg, localBuilder) =>
+            {
+                // Load the modelVMList argument
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Create a list from the argument
+                var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)
+                    .MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType));
+                ilg.Emit(OpCodes.Call, toListMethod);
+
+                // Add 'this' to the list
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ldarg_0);
+                var addMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)).GetMethod("Add");
+                ilg.Emit(OpCodes.Callvirt, addMethod);
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+
+            modelVMClassBuilder.DefineMethod(
+             "UpdateList",
+             typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType))),
+             new[] { typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), typeof(bool) },
+             (ilg, localBuilder) =>
+            {
+                // Convert modelVMList to List
+                ilg.Emit(OpCodes.Ldarg_1);
+                var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)
+                    .MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType));
+                ilg.Emit(OpCodes.Call, toListMethod);
+
+                // Store the list in a local variable
+                var listLocal = ilg.DeclareLocal(typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)));
+                ilg.Emit(OpCodes.Stloc, listLocal);
+
+                // If isAdding, remove 'this' from the list
+                var addLabel = ilg.DefineLabel();
+                ilg.Emit(OpCodes.Ldarg_2);  // Load isAdding argument
+                ilg.Emit(OpCodes.Brtrue_S, addLabel); // If true, jump to adding logic
+
+                // Remove 'this' from the list
+                ilg.Emit(OpCodes.Ldloc, listLocal);
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                var removeMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)).GetMethod("Remove");
+                ilg.Emit(OpCodes.Callvirt, removeMethod);
+
+                // Assign list back to modelVMList (mimics modelVMList = list)
+                ilg.MarkLabel(addLabel); // Add logic starts here
+                ilg.Emit(OpCodes.Ldloc, listLocal); // Load the modified list
+                ilg.Emit(OpCodes.Starg_S, 1); // Store it back to the modelVMList argument
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            modelVMClassBuilder.DefineMethod(
+            "DeleteItemFromList",
+            typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType))),
+            new[] { typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) },
+            (ilg, localBuilder) =>
+            {
+                // Load the modelVMList argument
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Convert to list
+                var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)
+                    .MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType));
+                ilg.Emit(OpCodes.Call, toListMethod);
+
+                // Remove 'this' from the list
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ldarg_0);
+                var removeMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)).GetMethod("Remove");
+                ilg.Emit(OpCodes.Callvirt, removeMethod);
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
             // Create an instance of the dynamic TModelVM class
             _modelVMInstance = modelVMClassBuilder.CreateInstance();
 
@@ -161,10 +598,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             _modelType = _modelInstance?.GetType() ?? default!;
             _modelVMType = _modelVMInstance?.GetType() ?? default!;
             _interfaceType = typeof(IModelExtendedProperties);
-            var modelExtendedProperties = new ModelExtendedProperties();    
+            var modelExtendedProperties = new ModelExtendedProperties();
             var excludedColumns = modelExtendedProperties.GetPropertyNames();
             // TableColumnDefinition should be based on model type, e.g.: Employee class and not EmployeeVM
-            var props = _modelType.GetProperties(); 
+            var props = _modelType.GetProperties();
             if (props != null)
             {
                 _selectedTableVM.AddPropertiesFromPropertyInfoList(props);
@@ -184,7 +621,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                         };
 
                         _columnDefinitions.Add(tableColumnDefinition);
-                    }    
+                    }
                 }
             }
 
@@ -211,7 +648,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 throw new InvalidOperationException("The ConvertDataTableToObjects method was not found.");
             }
-            
+
             //_sessionItems = new List<SessionItem>
             //{
             //    new SessionItem()

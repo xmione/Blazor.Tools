@@ -76,8 +76,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     return IsSelectedValue(optionID, Value);
                 });
 
+                var propVal = selectedItem?.GetProperty(OptionValueFieldName) ?? Value?.ToString();
                 builder.OpenElement(seq++, "label");
-                builder.AddContent(seq++, selectedItem?.GetProperty(OptionValueFieldName) ?? Value?.ToString());
+                builder.AddContent(seq++, propVal);
                 builder.CloseElement();
             }
 

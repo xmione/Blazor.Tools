@@ -124,8 +124,18 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             _countryVM = new CountryVM(new ContextProvider());
             _employees = new List<EmployeeVM>();
             _countries = new List<CountryVM>();
+            
             _employeeDataTable = new DataTable("Employee");
+            _employeeDataTable.Columns.Add("ID", typeof(int));
+            _employeeDataTable.Columns.Add("FirstName", typeof(string));
+            _employeeDataTable.Columns.Add("MiddleName", typeof(string));
+            _employeeDataTable.Columns.Add("LastName", typeof(string));
+            _employeeDataTable.Columns.Add("CountryID", typeof(int));
+
             _countryDataTable = new DataTable("Country");
+            _countryDataTable.Columns.Add("ID", typeof(int));
+            _countryDataTable.Columns.Add("Name", typeof(string));
+
             _hiddenEmployeeColumns = new List<string>();
             _hiddenCountryColumns = new List<string>();
             _employeeHeaderNames = default!;
@@ -187,7 +197,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
                     OptionValueFieldName="Name",
                     ColumnType = typeof(IEnumerable<CountryVM>),
                     CellClicked = async (columnName, vm, rowIndex) => await HandleCellClickAsync(columnName, (EmployeeVM)vm, rowIndex),
-                    ValueChanged = new Action<object, EmployeeVM>(OnIDValueChanged)
+                    ValueChanged = new Action<object, EmployeeVM>(OnDropdownValueChanged)
                 }
 
             };
@@ -213,6 +223,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             {
                 var employee = employeeFaker.Generate();
                 _employees.Add(employee);
+                _employeeDataTable.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
             }
 
             // Initialize and generate country data
@@ -220,14 +231,13 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             {
                 var country = countryFaker.Generate();
                 _countries.Add(country);
+                _employeeDataTable.Rows.Add(i + 1, country.Name);
             }
 
             DataSources.Add("EmployeeDS", _employees);
             DataSources.Add("CountryDS", _countries);
 
             _employees = Items.Cast<EmployeeVM>().ToList();
-            _employeeDataTable = _employees.ToDataTable();
-            _countryDataTable = _countries.ToDataTable();
 
             _hiddenEmployeeColumns.Add("ID");
             _hiddenCountryColumns.Add("ID");
@@ -248,16 +258,16 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             };
         }
 
-        public void OnDropdownValueChanged(object newValue, EmployeeVM employeeVM)
+        public void OnIDValueChanged(object newValue, EmployeeVM employeeVM)
         {
-            employeeVM.CountryID = Convert.ToInt32(newValue);
+            employeeVM.ID = int.Parse(newValue?.ToString() ?? "0");
             // Update employee list
 
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.CountryID = employeeVM.CountryID;
+                foundEmployee.ID = employeeVM.ID;
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method
@@ -328,16 +338,16 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             //StateHasChanged(); this should be triggered on the calling program after calling this method
         }
 
-        public void OnIDValueChanged(object newValue, EmployeeVM employeeVM)
+        public void OnDropdownValueChanged(object newValue, EmployeeVM employeeVM)
         {
-            employeeVM.ID = int.Parse(newValue?.ToString() ?? "0");
+            employeeVM.CountryID = Convert.ToInt32(newValue);
             // Update employee list
 
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.ID = employeeVM.ID;
+                foundEmployee.CountryID = employeeVM.CountryID;
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {
 
-    public class CountryVM : Country, IModelExtendedProperties, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties, CountryVM>
+    public class CountryVM : Country, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties>
     {
         private List<CountryVM> _countries = new List<CountryVM>(); // Initialize the list
         public int RowID { get; set; } // Integer property to indicate row ID
@@ -63,7 +63,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             _countries = items;
         }
 
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             // Ensure _clientVMEntryList is set before calling Validate
             if (_countries == null)
@@ -92,7 +92,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 
             return alreadyExists;
         }
-        public async Task<CountryVM> FromModel(Country model)
+        public async Task<IViewModel<Country, IModelExtendedProperties>> FromModel(Country model)
         {
             try
             {
@@ -137,33 +137,33 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             };
         }
 
-        public async Task<CountryVM> SetEditMode(CountryVM modelVM, bool isEditMode)
+        public async Task<IViewModel<Country, IModelExtendedProperties>> SetEditMode(bool isEditMode)
         {
-            modelVM.IsEditMode = isEditMode;
+            IsEditMode = isEditMode;
             await Task.CompletedTask;
-            return modelVM;
+            return this;
         }
 
-        public async Task<CountryVM> SaveModelVM(CountryVM modelVM)
+        public async Task<IViewModel<Country, IModelExtendedProperties>> SaveModelVM()
         {
-            modelVM.IsEditMode = false;
+            IsEditMode = false;
             await Task.CompletedTask;
 
-            return modelVM;
+            return this;
         }
 
-        public async Task<CountryVM> SaveModelVMToNewModelVM(CountryVM modelVM)
+        public async Task<IViewModel<Country, IModelExtendedProperties>> SaveModelVMToNewModelVM()
         {
             var newModelVM = new CountryVM(_contextProvider)
             {
-                IsEditMode = modelVM.IsEditMode,
-                IsVisible = modelVM.IsVisible,
-                IsFirstCellClicked = modelVM.IsFirstCellClicked,
-                StartCell = modelVM.StartCell,
-                EndCell = modelVM.EndCell,
-                RowID = modelVM.RowID,
-                ID = modelVM.ID,
-                Name = modelVM.Name,
+                IsEditMode = IsEditMode,
+                IsVisible = IsVisible,
+                IsFirstCellClicked = IsFirstCellClicked,
+                StartCell = StartCell,
+                EndCell = EndCell,
+                RowID = RowID,
+                ID = ID,
+                Name = Name,
             };
 
             await Task.CompletedTask;
@@ -171,52 +171,54 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             return newModelVM;
         }
 
-        public async Task<IEnumerable<CountryVM>> AddItemToList(IEnumerable<CountryVM> modelVMList, CountryVM newModelVM)
+        public async Task<IEnumerable<IViewModel<Country, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<Country, IModelExtendedProperties>> modelVMList)
         {
             var list = modelVMList.ToList();
 
             int listCount = list.Count();
             RowID = listCount + 1;
-            newModelVM.RowID = RowID;
             if (listCount > 0)
             {
                 var firstItem = list.First();
-                newModelVM.IsFirstCellClicked = firstItem.IsFirstCellClicked;
-                newModelVM.StartCell = firstItem.StartCell;
-                newModelVM.EndCell = firstItem.EndCell;
+                IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                StartCell = firstItem.StartCell;
+                EndCell = firstItem.EndCell;
             }
 
-            list.Add(newModelVM);
+            list.Add(this);
 
             await Task.CompletedTask;
 
             return list;
         }
 
-        public async Task<IEnumerable<CountryVM>> UpdateList(IEnumerable<CountryVM> modelVMList, CountryVM updatedModelVM, bool isAdding)
+        public async Task<IEnumerable<IViewModel<Country, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<Country, IModelExtendedProperties>> modelVMList, bool isAdding)
         {
             CountryVM? modelVM = null;
 
             if (isAdding)
             {
                 var list = modelVMList.ToList();
-                list.Remove(updatedModelVM);
+                list.Remove(this);
                 modelVMList = list;
             }
             else
             {
-                modelVM = modelVMList.FirstOrDefault(e => e.ID == updatedModelVM.ID);
+
+                var foundModel = modelVMList.FirstOrDefault(e => e.RowID == RowID);
+
+                modelVM = foundModel == null? default: (CountryVM)foundModel;
 
                 if (modelVM != null)
                 {
-                    modelVM.IsEditMode = updatedModelVM.IsEditMode;
-                    modelVM.IsVisible = updatedModelVM.IsVisible;
-                    modelVM.IsFirstCellClicked = updatedModelVM.IsFirstCellClicked;
-                    modelVM.StartCell = updatedModelVM.StartCell;
-                    modelVM.EndCell = updatedModelVM.EndCell;
-                    modelVM.RowID = updatedModelVM.RowID;
-                    modelVM.ID = updatedModelVM.ID;
-                    modelVM.Name = updatedModelVM.Name;
+                    modelVM.IsEditMode = IsEditMode;
+                    modelVM.IsVisible = IsVisible;
+                    modelVM.IsFirstCellClicked = IsFirstCellClicked;
+                    modelVM.StartCell = StartCell;
+                    modelVM.EndCell = EndCell;
+                    modelVM.RowID = RowID;
+                    modelVM.ID = ID;
+                    modelVM.Name = Name;
                 }
 
             }
@@ -226,11 +228,11 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             return modelVMList;
         }
 
-        public async Task<IEnumerable<CountryVM>> DeleteItemFromList(IEnumerable<CountryVM> modelVMList, CountryVM deletedModelVM)
+        public async Task<IEnumerable<IViewModel<Country, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<Country, IModelExtendedProperties>> modelVMList)
         {
             var list = modelVMList.ToList();
 
-            var isDeleted = list.Remove(deletedModelVM);
+            var isDeleted = list.Remove(this);
 
             //TODO: sol: Add logic here for deleted and not deleted conditions
             if (isDeleted) { }
