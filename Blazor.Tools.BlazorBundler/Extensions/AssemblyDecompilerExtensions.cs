@@ -23,20 +23,23 @@ namespace Blazor.Tools.BlazorBundler.Extensions
     {
         public static string DecompileType(this string assemblyPath, string typeName)
         {
-            using var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read);
-            var module = new PEFile("Assembly", stream);
+            var decompiledType = string.Empty;
+            var decompiler = new AssemblyDecompiler(assemblyPath);
 
-            var assemblyResolver = new AssemblyResolver();
-            var typeSystem = new DecompilerTypeSystem(module, assemblyResolver);
-            var decompiler = new CSharpDecompiler(typeSystem, new DecompilerSettings());
+            decompiledType = decompiler.DecompileType(typeName);
 
-            var type = typeSystem.MainModule.TypeDefinitions
-                .FirstOrDefault(t => t.FullName == typeName);
+            return decompiledType;
+        }
 
-            if (type == null)
-                throw new ArgumentException($"Type {typeName} not found in assembly.");
+        public static string DecompileMethod(this string assemblyPath, string typeName, string methodName)
+        {
+            var decompiledMethod = string.Empty;
 
-            return decompiler.DecompileTypeAsString(type.FullTypeName);
+            var decompiler = new AssemblyDecompiler(assemblyPath);
+
+            decompiledMethod = decompiler.DecompileMethod(typeName, methodName);
+
+            return decompiledMethod;
         }
     }
 

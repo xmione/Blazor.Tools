@@ -38,8 +38,9 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
                 Console.WriteLine("[10] - Train sample Language Data");
                 Console.WriteLine("[11] - Decompile IL code");
-                Console.WriteLine("[12] - Decompile");
-                Console.WriteLine("[13] - Exit");
+                Console.WriteLine("[12] - Decompile EmployeeVM");
+                Console.WriteLine("[13] - Decompile EmployeeVM SetEditMode");
+                Console.WriteLine("[14] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -133,23 +134,17 @@ namespace Blazor.Tools.ConsoleApp
                         break; 
                     case "11":
 
-                        var convertIL = new ILToSourceCodeConverter();
+                        DecompileILCode();
                         break;
                     case "12":
 
-                        string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
-                        string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
-
-                        // Using AssemblyDecompiler class
-                        var decompiler = new AssemblyDecompiler(assemblyPath);
-                        string decompiledCode = decompiler.DecompileType(typeName);
-                        Console.WriteLine(decompiledCode);
-
-                        // Using extension method
-                        string decompiledCodeFromExtension = assemblyPath.DecompileType(typeName);
-                        Console.WriteLine(decompiledCodeFromExtension);
+                        DecompileEmployeeVM();
                         break;
                     case "13":
+
+                        DecompileEmployeeVMSetEditModeMethod();
+                        break;
+                    case "14":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -271,6 +266,33 @@ namespace Blazor.Tools.ConsoleApp
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
             return doc.DocumentNode.InnerText;
+        }
+
+        private static void DecompileILCode()
+        {
+            var convertIL = new ILToSourceCodeConverter();
+        }
+
+        private static void DecompileEmployeeVM()
+        {
+            string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
+            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
+
+            string decompiledCode = assemblyPath.DecompileType(typeName);
+            
+            Console.WriteLine(decompiledCode);
+
+        }
+
+        private static void DecompileEmployeeVMSetEditModeMethod()
+        {
+            string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
+            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
+            string methodName = "SetEditMode";
+
+            // Using extension method
+            string decompiledCodeFromExtension = assemblyPath.DecompileMethod(typeName, methodName);
+            Console.WriteLine(decompiledCodeFromExtension);
         }
     }
 }
