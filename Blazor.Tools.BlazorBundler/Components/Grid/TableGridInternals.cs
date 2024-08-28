@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using System.Data;
 using Microsoft.JSInterop;
+using Blazor.Tools.BlazorBundler.Extensions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -476,14 +477,47 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             if (_items != null && modelVM != null && ModelVM != null)
             {
                 _isEditing = true;
-                
-                var item = await modelVM.SetEditMode(_isEditing);
-                _editedRow = item;
-                _editedRowSaved = await item.SaveModelVMToNewModelVM();
+                var methodILContents = modelVM.GetType().GetILCode("SetEditMode");
+                //var methodContents = modelVM.GetType().GetMethodCode("SetEditMode");
+                //Console.WriteLine("SetEditMode Contents: \r\n\t{0}", methodContents);
+                var setEditModeMethod = modelVM.GetType().GetMethod("SetEditMode");
+                if (setEditModeMethod == null)
+                {
+                    throw new InvalidOperationException("SetEditMode method is missing.");
+                }
+
+                var isEditModeProperty = modelVM.GetType().GetProperty("IsEditMode");
+                if (isEditModeProperty == null)
+                {
+                    throw new InvalidOperationException("IsEditMode property is missing.");
+                }
+
+                // Print the current value before changing
+                var currentValue = isEditModeProperty.GetValue(modelVM);
+                Console.WriteLine($"Before changing IsEditMode value: {currentValue}");
+
+                // Invoke SetEditMode
+                var result = setEditModeMethod.Invoke(modelVM, new object[] { _isEditing });
+                if (result is Task<IViewModel<TModel, IModelExtendedProperties>> task)
+                {
+                    var item = await task;
+                    _editedRow = item;
+
+                    // Print the value after changing
+                    currentValue = isEditModeProperty.GetValue(modelVM);
+                    Console.WriteLine($"After changing IsEditMode value: {currentValue}");
+
+                    _editedRowSaved = await item.SaveModelVMToNewModelVM();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unexpected result type from SetEditMode.");
+                }
 
                 StateHasChanged();
             }
         }
+
 
         private async Task DeleteRowAsync(IViewModel<TModel, IModelExtendedProperties>? modelVM)
         {

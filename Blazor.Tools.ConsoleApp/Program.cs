@@ -2,6 +2,8 @@
 using Microsoft.ML;
 using System.Diagnostics;
 using HtmlAgilityPack;
+using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.Extensions;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -35,7 +37,9 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[8] - Parse Json File and Save to database");
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
                 Console.WriteLine("[10] - Train sample Language Data");
-                Console.WriteLine("[11] - Exit");
+                Console.WriteLine("[11] - Decompile IL code");
+                Console.WriteLine("[12] - Decompile");
+                Console.WriteLine("[13] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -128,6 +132,24 @@ namespace Blazor.Tools.ConsoleApp
                         TrainQuestionAnswers(mlFolder, fileName);
                         break; 
                     case "11":
+
+                        var convertIL = new ILToSourceCodeConverter();
+                        break;
+                    case "12":
+
+                        string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
+                        string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
+
+                        // Using AssemblyDecompiler class
+                        var decompiler = new AssemblyDecompiler(assemblyPath);
+                        string decompiledCode = decompiler.DecompileType(typeName);
+                        Console.WriteLine(decompiledCode);
+
+                        // Using extension method
+                        string decompiledCodeFromExtension = assemblyPath.DecompileType(typeName);
+                        Console.WriteLine(decompiledCodeFromExtension);
+                        break;
+                    case "13":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");

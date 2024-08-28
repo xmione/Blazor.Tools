@@ -185,24 +185,19 @@ namespace Blazor.Tools.BlazorBundler.Entities
                                 if (!_addedMethods.Contains(getMethodName)) // Check if method already added
                                 {
                                     // Define a default getter method
-                                    DefineMethod(getMethodName, property.PropertyType, Type.EmptyTypes, (ilg, _) =>
+                                    DefineMethod(getMethodName, property.PropertyType, Type.EmptyTypes, Array.Empty<string>(), (ilg, _) =>
                                     {
-                                        // Implement the getter logic
-                                        // For example, return a default value or throw an exception
-                                        // In this case, we don't need to return a default value
-                                        // as the property will have its default value (0)
-                                        ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                                        ilg.Emit(OpCodes.Ldarg_0);
                                         ilg.Emit(OpCodes.Ldfld, _typeBuilder.DefineField($"_{property.Name.ToLower()}", property.PropertyType, FieldAttributes.Private));
                                         ilg.Emit(OpCodes.Ret);
                                     });
 
                                     string setMethodName = $"set_{property.Name}";
                                     // Define setter method (optional, if needed)
-                                    DefineMethod(setMethodName, null, new[] { property.PropertyType }, (ilg, _) =>
+                                    DefineMethod(setMethodName, null, new[] { property.PropertyType }, new[] { "value" }, (ilg, _) =>
                                     {
-                                        // Implement logic to set the property value in the private field
-                                        ilg.Emit(OpCodes.Ldarg_0);  // Load 'this'
-                                        ilg.Emit(OpCodes.Ldarg_1);  // Load the value to set
+                                        ilg.Emit(OpCodes.Ldarg_0);
+                                        ilg.Emit(OpCodes.Ldarg_1);
                                         ilg.Emit(OpCodes.Stfld, _typeBuilder.DefineField($"_{property.Name.ToLower()}", property.PropertyType, FieldAttributes.Private));
                                         ilg.Emit(OpCodes.Ret);
                                     });
@@ -216,7 +211,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
             }
         }
 
-        public void DefineMethod(string methodName, Type returnType, Type[] parameterTypes, Action<ILGenerator, LocalBuilder?> generateMethodBody)
+        public void DefineMethod(string methodName, Type returnType, Type[] parameterTypes, string[]? parameterNames, Action<ILGenerator, LocalBuilder?> generateMethodBody)
         {
             MethodBuilder methodBuilder = _typeBuilder.DefineMethod(
                 methodName,
@@ -225,13 +220,21 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 parameterTypes
             );
 
+            // Define parameter names if provided
+            if (parameterNames != null)
+            {
+                for (int i = 0; i < parameterNames.Length; i++)
+                {
+                    methodBuilder.DefineParameter(i + 1, ParameterAttributes.None, parameterNames[i]);
+                }
+            }
+
             ILGenerator ilg = methodBuilder.GetILGenerator();
 
             generateMethodBody(ilg, null);
 
             if (_hasInterfaces)
             {
-                // If working with interfaces, override the method
                 Type? interfaceType = _typeBuilder.GetInterfaces().FirstOrDefault();
                 if (interfaceType != null)
                 {
@@ -243,6 +246,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 }
             }
         }
+
 
         public ConstructorInfo[] GetConstructors()
         {

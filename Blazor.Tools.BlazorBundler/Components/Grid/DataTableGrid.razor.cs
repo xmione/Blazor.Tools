@@ -143,7 +143,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task InitializeVariables()
         {
-            _tableName = SelectedTable?.TableName ?? _tableName;
+            _tableName = SelectedTable?.TableName ?? _tableName; //Employee
             _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM;
 
             // Create an instance of DynamicClassBuilder for TModel
@@ -325,7 +325,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
 
             // Define methods dynamically
-            vmClassBuilder.DefineMethod("ToNewModel", tModelType, Type.EmptyTypes, (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("ToNewModel", tModelType, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
             {
                 // Check for parameterless constructor
                 ConstructorInfo constructor = tModelType.GetConstructor(Type.EmptyTypes)
@@ -336,7 +336,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ret);
             });
 
-            vmClassBuilder.DefineMethod("ToNewIModel", tiModelType, Type.EmptyTypes, (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("ToNewIModel", tiModelType, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
             {
                 // Get the constructor of tModelType
                 ConstructorInfo? constructor = tModelType.GetConstructor(Type.EmptyTypes);
@@ -377,7 +377,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             });
 
             // Define the method in the dynamic class builder
-            vmClassBuilder.DefineMethod("FromModel", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { tModelType }, (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("FromModel", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { tModelType }, Array.Empty<string>(), (ilg, localBuilder) =>
             {
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -404,7 +404,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ret);
             });
 
-            vmClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, new[] { "isEditMode" },  (ilg, localBuilder) =>
             {
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -433,7 +433,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ret);
             });
 
-            vmClassBuilder.DefineMethod("SaveModelVM", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), Type.EmptyTypes, (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("SaveModelVM", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
             {
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -460,7 +460,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ret);
             });
 
-            vmClassBuilder.DefineMethod("SaveModelVMToNewModelVM", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), Type.EmptyTypes, (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("SaveModelVMToNewModelVM", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
             {
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -525,6 +525,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             vmClassBuilder.DefineMethod("AddItemToList",
              typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType))),
              new[] { typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) },
+             new[] { "modelVMList" },
              (ilg, localBuilder) =>
              {
                  // Load the modelVMList argument
@@ -557,6 +558,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
              "UpdateList",
              typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType))),
              new[] { typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), typeof(bool) },
+             new[] { "modelVMList", "isAdding" },
              (ilg, localBuilder) =>
              {
                  // Convert modelVMList to List
@@ -600,6 +602,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             "DeleteItemFromList",
             typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType))),
             new[] { typeof(IEnumerable<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) },
+            new[] { "modelVMList" },
             (ilg, localBuilder) =>
             {
                 // Load the modelVMList argument

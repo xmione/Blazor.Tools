@@ -36,6 +36,11 @@
       "path": "htmlagilitypack.1.11.61.nupkg"
     },
     {
+      "version": "8.2.0.7535",
+      "id": "icsharpcode.decompiler",
+      "path": "icsharpcode.decompiler.8.2.0.7535.nupkg"
+    },
+    {
       "version": "6.0.26",
       "id": "microsoft.aspnetcore.components",
       "path": "microsoft.aspnetcore.components.6.0.26.nupkg"
@@ -114,6 +119,11 @@
       "version": "1.21.0",
       "id": "microsoft.visualstudio.azure.containers.tools.targets",
       "path": "microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg"
+    },
+    {
+      "version": "0.11.5",
+      "id": "mono.cecil",
+      "path": "mono.cecil.0.11.5.nupkg"
     },
     {
       "version": "13.0",

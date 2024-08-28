@@ -1,4 +1,18 @@
-﻿using System.Reflection;
+﻿using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.TypeSystem;
+using ICSharpCode.Decompiler;
+using System.Reflection;
+using System.Text;
+using MethodBody = System.Reflection.MethodBody;
+using System.Reflection.Emit;
+using System.Reflection.Metadata;
+using ICSharpCode.Decompiler.Metadata;
+using Mono.Cecil;
+using AssemblyDefinition = Mono.Cecil.AssemblyDefinition;
+using MethodDefinition = Mono.Cecil.MethodDefinition;
+using ClosedXML;
+using ModuleDefinition = Mono.Cecil.ModuleDefinition;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 
 namespace Blazor.Tools.BlazorBundler.Extensions
 {
@@ -170,5 +184,145 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 
             return interfaceNames;
         }
+
+        public static string GetILCode(this Type type, string methodName)
+        {
+            MethodInfo methodInfo = type.GetMethod(methodName)
+                ?? throw new ArgumentException("Method not found.", nameof(methodName));
+
+            MethodBody methodBody = methodInfo.GetMethodBody()
+                ?? throw new InvalidOperationException("Method body is not available.");
+
+            byte[] ilCode = methodBody.GetILAsByteArray()
+                ?? throw new InvalidOperationException("IL code is not available.");
+
+            string ilCodeString = string.Join(" ", ilCode.Select(b => $"{b:X2}"));
+
+            // Get the return type and format it correctly using alias
+            string returnType = FormatType(methodInfo.ReturnType);
+
+            // Format method parameters using alias
+            var parameters = methodInfo.GetParameters();
+            string parametersString = string.Join(", ", parameters
+                .Select(p => $"{FormatType(p.ParameterType)} {p.Name}"));
+
+            // Return the formatted IL code with method signature
+            StringBuilder formattedILCode = new StringBuilder();
+            formattedILCode.AppendLine($"public {returnType} {methodInfo.Name}({parametersString})");
+            formattedILCode.AppendLine("{");
+            formattedILCode.AppendLine($"    // IL code");
+            formattedILCode.AppendLine($"    {ilCodeString}");
+            formattedILCode.AppendLine("}");
+
+            return formattedILCode.ToString();
+        }
+
+
+        private static string FormatType(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+                var genericArguments = type.GetGenericArguments();
+                var genericArgumentsStr = string.Join(", ", genericArguments.Select(FormatType));
+                return $"{genericTypeDefinition.Name.Split('`')[0]}<{genericArgumentsStr}>";
+            }
+
+            var typeName = type.ToAliasType();
+            return typeName;
+        }
+
+        //public static string GetMethodCode(this Type type, string methodName)
+        //{
+        //    if (type == null) throw new ArgumentNullException(nameof(type));
+        //    if (string.IsNullOrWhiteSpace(methodName)) throw new ArgumentException("Method name cannot be null or empty.", nameof(methodName));
+
+        //    var assembly = Assembly.GetAssembly(type);
+        //    if (assembly == null) throw new InvalidOperationException("Unable to get assembly.");
+
+        //    // Create a temporary assembly file to handle dynamically created assembly
+        //    var assemblyBytes = GetAssemblyBytes(assembly);
+        //    if (assemblyBytes == null || assemblyBytes.Length == 0) return null;
+
+        //    using var assemblyStream = new MemoryStream(assemblyBytes);
+        //    var module = ModuleDefinition.ReadModule(assemblyStream);
+
+        //    // Use Mono.Cecil to analyze the module
+        //    var methodDefinition = module.Types
+        //        .SelectMany(t => t.Methods)
+        //        .FirstOrDefault(m => m.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase));
+
+        //    if (methodDefinition == null) return null;
+
+        //    // Use a decompiler to get the method code
+        //    var decompiler = new CSharpDecompiler(module.FileName, new DecompilerSettings());
+        //    var decompiledCode = decompiler.DecompileWholeModuleAsString();
+
+        //    // Find and return the method code
+        //    var methodStartIndex = decompiledCode.IndexOf($"public {methodName}", StringComparison.OrdinalIgnoreCase);
+        //    if (methodStartIndex == -1) return null;
+
+        //    var methodCode = decompiledCode.Substring(methodStartIndex);
+        //    var methodEndIndex = methodCode.IndexOf('}', methodStartIndex);
+        //    if (methodEndIndex == -1) return null;
+
+        //    return methodCode.Substring(0, methodEndIndex + 1);
+        //}
+
+        //public static byte[] GetAssemblyBytes(this Assembly assembly)
+        //{
+        //    if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+
+        //    if (assembly is AssemblyBuilder assemblyBuilder)
+        //    {
+        //        // Handle dynamically created assembly
+        //        string tempFilePath = Path.GetTempFileName() + ".dll";
+        //        try
+        //        {
+        //            // Save the dynamically created assembly to a temporary file
+        //            assemblyBuilder.Save(tempFilePath);
+
+        //            // Read and return the bytes from the temporary file
+        //            return File.ReadAllBytes(tempFilePath);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            throw new InvalidOperationException("Failed to get assembly bytes.", ex);
+        //        }
+        //        finally
+        //        {
+        //            // Clean up the temporary file
+        //            if (File.Exists(tempFilePath))
+        //            {
+        //                File.Delete(tempFilePath);
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // Handle statically loaded assemblies
+        //        try
+        //        {
+        //            // Get the assembly bytes directly from the module
+        //            using (var stream = new MemoryStream())
+        //            {
+        //                // Get the raw assembly bytes from the loaded assembly
+        //                foreach (var module in assembly.GetModules())
+        //                {
+        //                    using (var moduleStream = module.ModuleHandle.GetStream())
+        //                    {
+        //                        moduleStream.CopyTo(stream);
+        //                    }
+        //                }
+
+        //                return stream.ToArray();
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            throw new InvalidOperationException("Failed to get assembly bytes.", ex);
+        //        }
+        //    }
+        //}
     }
 }
