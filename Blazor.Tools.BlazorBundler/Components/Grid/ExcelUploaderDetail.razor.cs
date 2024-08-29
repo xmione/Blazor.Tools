@@ -55,7 +55,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 else
                 {
-                    modelsAssembly = ReflectionExtensions.LoadAssemblyFromDLLFile(ModelsAssemblyPath);
+                    modelsAssembly = ModelsAssemblyPath.LoadAssemblyFromDLLFile();
                 }
 
                 if (ServicesAssemblyPath == null)
@@ -64,7 +64,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 else
                 {
-                    servicesAssembly = ReflectionExtensions.LoadAssemblyFromDLLFile(ServicesAssemblyPath);
+                    servicesAssembly = ModelsAssemblyPath.LoadAssemblyFromDLLFile();
                 }
 
             }
@@ -76,7 +76,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 else
                 {
-                    modelsAssembly = ReflectionExtensions.LoadAssemblyFromName(ModelsAssemblyName);
+                    modelsAssembly = ModelsAssemblyName.LoadAssemblyFromName();
                 }
 
                 if (ServicesAssemblyName == null)
@@ -85,7 +85,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 else
                 {
-                    servicesAssembly = ReflectionExtensions.LoadAssemblyFromName(ServicesAssemblyName);
+                    servicesAssembly = ServicesAssemblyName.LoadAssemblyFromName();
                 }
             }
 

@@ -1,18 +1,6 @@
-﻿using ICSharpCode.Decompiler.CSharp;
-using ICSharpCode.Decompiler.TypeSystem;
-using ICSharpCode.Decompiler;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
 using MethodBody = System.Reflection.MethodBody;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
-using ICSharpCode.Decompiler.Metadata;
-using Mono.Cecil;
-using AssemblyDefinition = Mono.Cecil.AssemblyDefinition;
-using MethodDefinition = Mono.Cecil.MethodDefinition;
-using ClosedXML;
-using ModuleDefinition = Mono.Cecil.ModuleDefinition;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 
 namespace Blazor.Tools.BlazorBundler.Extensions
 {
@@ -26,7 +14,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// Example: "C:\repo\AccSol\AccSol.Interfaces\bin\Release\AccSol.Interfaces.dll".</param>
         /// <exception cref="ArgumentException"></exception>
         /// <returns>Assembly</returns>
-        public static Assembly LoadAssemblyFromDLLFile(string assemblyPath)
+        public static Assembly LoadAssemblyFromDLLFile(this string assemblyPath)
         {
             // Load the assembly
             Assembly assembly = Assembly.LoadFrom(assemblyPath);
@@ -45,7 +33,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// The assembly (e.g: "AccSol.Interfaces") is assumed already added as project or dll reference.</param>
         /// <exception cref="ArgumentException"></exception>
         /// <returns>Assembly</returns>
-        public static Assembly LoadAssemblyFromName(string assemblyName)
+        public static Assembly LoadAssemblyFromName(this string assemblyName)
         {
             // Load the assembly
             Assembly assembly = Assembly.Load(assemblyName);
@@ -55,6 +43,26 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
             
             return assembly;
+        }
+
+        /// <summary>
+        /// This extension method invokes the specified method.
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="typeName"></param>
+        /// <param name="methodName"></param>
+        public static void InvokeMethod(this Assembly assembly, string typeName, string methodName)
+        {
+            // Get the type and method info
+            Type type = assembly?.GetType(typeName) ?? default!;
+            if (type != null)
+            {
+                MethodInfo method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static) ?? default!;
+
+                // Invoke the method
+                method.Invoke(null, null);
+            }
+            
         }
 
         /// <summary>
@@ -132,7 +140,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// If value is false, gets the properties from a class. Default value is false.</param>
         /// <returns>IEnumerable<string> that contains all the object's property names.</returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IEnumerable<string> GetProperties(Assembly assembly, string typeName, bool isInterface = false)
+        public static IEnumerable<string> GetProperties(this Assembly assembly, string typeName, bool isInterface = false)
         {
             var fullTypeName = string.Join(".", assembly.FullName, typeName);
             // Find the type (class or interface)
@@ -217,6 +225,28 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return formattedILCode.ToString();
         }
 
+        public static byte[] GetAssemblyBytes(this Assembly assembly)
+        {
+            byte[] bytes = null!;
+            try 
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    var module = assembly.GetModules()[0];
+                    var moduleName = module.FullyQualifiedName;
+                    var moduleData = File.ReadAllBytes(moduleName);
+                    memoryStream.Write(moduleData, 0, moduleData.Length);
+                    return memoryStream.ToArray();
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return bytes;
+            
+        }
 
         private static string FormatType(Type type)
         {
@@ -231,6 +261,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             var typeName = type.ToAliasType();
             return typeName;
         }
+
 
         //public static string GetMethodCode(this Type type, string methodName)
         //{

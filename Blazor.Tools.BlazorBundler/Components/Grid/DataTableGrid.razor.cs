@@ -184,7 +184,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await DefineConstructors(modelVMClassBuilder);
             await DefineMethods(modelVMClassBuilder, tModelType, tiModelType);
             await DefineTableColumns(modelVMClassBuilder);
-           
+
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            var modelTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}.dll");
+            var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}VM.dll");
+
+            // Save the assemblies to the Temp folder
+            modelClassBuilder.SaveAssembly(modelTempDllPath);
+            modelVMClassBuilder.SaveAssembly(modelVMTempDllPath);
+
 
             //_sessionItems = new List<SessionItem>
             //{

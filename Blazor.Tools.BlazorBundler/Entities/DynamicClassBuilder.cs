@@ -35,6 +35,7 @@
         Console.WriteLine($"Id: {idValue}, Name: {nameValue}, Age: {ageValue}");
 
   ====================================================================================================*/
+using Blazor.Tools.BlazorBundler.Extensions;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -53,6 +54,8 @@ namespace Blazor.Tools.BlazorBundler.Entities
         private readonly List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> _constructors = default!;
         private List<string> _addedProperties = default!;
         private List<string> _addedMethods = default!;
+        private string? _assemblyFilePath;
+
         public Type DynamicType
         {
             get { return _dynamicType; }
@@ -247,7 +250,6 @@ namespace Blazor.Tools.BlazorBundler.Entities
             }
         }
 
-
         public ConstructorInfo[] GetConstructors()
         {
             Type dynamicType = CreateType();
@@ -258,6 +260,30 @@ namespace Blazor.Tools.BlazorBundler.Entities
 
             return dynamicType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         }
+
+        public void SaveAssembly(string assemblyFilePath)
+        {
+            _assemblyFilePath = assemblyFilePath;
+            // Create an assembly in memory
+            var assembly = _moduleBuilder.Assembly;
+
+            // Save the assembly to disk
+            using (var fileStream = new FileStream(assemblyFilePath, FileMode.Create, FileAccess.Write))
+            {
+                //var assemblyBytes = ; //get assemblyBytes here and do not create any additional methods for this
+                //fileStream.Write(assemblyBytes, 0, assemblyBytes.Length);
+            }
+        }
+
+        public void DeleteAssembly()
+        {
+            if (!string.IsNullOrEmpty(_assemblyFilePath) && File.Exists(_assemblyFilePath))
+            {
+                File.Delete(_assemblyFilePath);
+            }
+        }
+
+
 
     }
 }

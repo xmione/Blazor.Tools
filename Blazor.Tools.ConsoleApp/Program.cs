@@ -2,8 +2,11 @@
 using Microsoft.ML;
 using System.Diagnostics;
 using HtmlAgilityPack;
-using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Extensions;
+using System.Reflection.Emit;
+using Mono.Cecil;
+using TypeAttributes = Mono.Cecil.TypeAttributes;
+using MethodAttributes = Mono.Cecil.MethodAttributes;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -40,7 +43,9 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[11] - Decompile IL code");
                 Console.WriteLine("[12] - Decompile EmployeeVM");
                 Console.WriteLine("[13] - Decompile EmployeeVM SetEditMode");
-                Console.WriteLine("[14] - Exit");
+                Console.WriteLine("[14] - Save Dynamically Created Assembly to .dll file");
+                Console.WriteLine("[15] - Run .dll file method");
+                Console.WriteLine("[16] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -145,6 +150,14 @@ namespace Blazor.Tools.ConsoleApp
                         DecompileEmployeeVMSetEditModeMethod();
                         break;
                     case "14":
+
+                        SaveDynamicallyCreatedAssembly();
+                        break;
+                    case "15":
+
+                        RunDLLFile();
+                        break;
+                    case "16":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -293,6 +306,79 @@ namespace Blazor.Tools.ConsoleApp
             // Using extension method
             string decompiledCodeFromExtension = assemblyPath.DecompileMethod(typeName, methodName);
             Console.WriteLine(decompiledCodeFromExtension);
+        }
+
+        private static void SaveDynamicallyCreatedAssembly()
+        {
+            // Create a new assembly definition
+            var assemblyName = new AssemblyNameDefinition("DynamicAssembly", new Version("1.0.0"));
+            var assemblyDefinition = AssemblyDefinition.CreateAssembly(
+                assemblyName,
+                "MainModule",
+                ModuleKind.Dll);
+
+            var moduleDefinition = assemblyDefinition.MainModule;
+
+            // Define a new type
+            var typeDefinition = new TypeDefinition(
+                "Namespace",
+                "DynamicType",
+                TypeAttributes.Public | TypeAttributes.Class,
+                moduleDefinition.TypeSystem.Object);
+
+            moduleDefinition.Types.Add(typeDefinition);
+
+            // Define a method
+            var methodDefinition = new MethodDefinition(
+                "HelloWorld",
+                (MethodAttributes.Public | MethodAttributes.Static),
+                moduleDefinition.TypeSystem.Void);
+
+            typeDefinition.Methods.Add(methodDefinition);
+
+            var ilProcessor = methodDefinition.Body.GetILProcessor();
+            // Create instructions using Mono.Cecil.Cil.OpCodes
+            var ldstrInstruction = ilProcessor.Create(Mono.Cecil.Cil.OpCodes.Ldstr, "Hello, World!");
+            ilProcessor.Append(ldstrInstruction);
+
+            var consoleWriteLineMethod = moduleDefinition.ImportReference(
+                typeof(Console).GetMethod("WriteLine", new[] { typeof(string) }));
+            var callInstruction = ilProcessor.Create(Mono.Cecil.Cil.OpCodes.Call, consoleWriteLineMethod);
+            ilProcessor.Append(callInstruction);
+
+            ilProcessor.Append(ilProcessor.Create(Mono.Cecil.Cil.OpCodes.Ret));
+
+            // Save the assembly to disk
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
+
+            assemblyDefinition.Write(modelTempDllPath);
+
+            Console.WriteLine("Assembly created and saved as {0}", modelTempDllPath);
+        }
+
+        private static void RunDLLFile()
+        {
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
+            var assembly = modelTempDllPath.LoadAssemblyFromDLLFile();
+            string methodName = "HelloWorld";
+            string typeName = "Namespace.DynamicType";
+
+            assembly.InvokeMethod(typeName, methodName);
+        }
+
+        public static void DecompileDLLFile()
+        {
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
+
+            //var assembly = modelTempDllPath.LoadAssemblyFromDLLFile();
+
+
         }
     }
 }

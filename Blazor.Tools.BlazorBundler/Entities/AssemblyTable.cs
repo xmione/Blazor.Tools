@@ -22,14 +22,14 @@ namespace Blazor.Tools.BlazorBundler.Entities
             
             if (LoadAssemblyFromDLLFile)
             {
-                assembly = ReflectionExtensions.LoadAssemblyFromDLLFile(AssemblyPath);
+                assembly = AssemblyPath.LoadAssemblyFromDLLFile();
             }
             else 
             {
-                assembly = ReflectionExtensions.LoadAssemblyFromName(AssemblyName);
+                assembly = AssemblyName.LoadAssemblyFromName();
             }
             
-            var properties = ReflectionExtensions.GetProperties(assembly, typeName, IsInterface);
+            var properties = assembly.GetProperties(typeName, IsInterface);
 
             return properties;
         }
