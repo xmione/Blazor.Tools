@@ -45,7 +45,8 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[13] - Decompile EmployeeVM SetEditMode");
                 Console.WriteLine("[14] - Save Dynamically Created Assembly to .dll file");
                 Console.WriteLine("[15] - Run .dll file method");
-                Console.WriteLine("[16] - Exit");
+                Console.WriteLine("[16] - Decompile .dll to class (.cs) file");
+                Console.WriteLine("[17] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -158,6 +159,10 @@ namespace Blazor.Tools.ConsoleApp
                         RunDLLFile();
                         break;
                     case "16":
+
+                        DecompileDLLFile();
+                        break;
+                    case "17":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -375,9 +380,9 @@ namespace Blazor.Tools.ConsoleApp
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
             var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
+            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
 
-            //var assembly = modelTempDllPath.LoadAssemblyFromDLLFile();
-
+            modelTempDllPath.DecompileWholeModuleToClass(outputPath);
 
         }
     }

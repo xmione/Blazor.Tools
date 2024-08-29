@@ -4,18 +4,10 @@
     Created On  : August 28, 2024
     Purpose     : To help in decompiling assemblies in assembly paths.
   ====================================================================================================*/
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using ICSharpCode.Decompiler.Metadata;
-using ICSharpCode.Decompiler.TypeSystem;
-using Mono.Cecil;
 using Blazor.Tools.BlazorBundler.Entities;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Blazor.Tools.BlazorBundler.Extensions
 {
@@ -40,6 +32,20 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             decompiledMethod = decompiler.DecompileMethod(typeName, methodName);
 
             return decompiledMethod;
+        }
+
+        public static void DecompileWholeModuleToClass(this string assemblyPath, string outputPath)
+        {
+            //string assemblyPath = "DynamicAssembly.dll";
+            //string outputPath = "DecompiledCode.cs";
+
+            var assemblyDecompiler = new AssemblyDecompiler(assemblyPath);
+            var decompiledCode = assemblyDecompiler.DecompileWholeAssembly();
+
+            // Write the decompiled code to a file
+            File.WriteAllText(outputPath, decompiledCode);
+
+            Console.WriteLine($"Decompiled code written to {outputPath}");
         }
     }
 

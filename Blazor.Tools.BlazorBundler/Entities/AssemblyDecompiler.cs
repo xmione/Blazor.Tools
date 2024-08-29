@@ -21,6 +21,28 @@ namespace Blazor.Tools.BlazorBundler.Entities
             _assemblyPath = assemblyPath;
         }
 
+        public string DecompileWholeAssembly()
+        {
+            var decompiledCode = string.Empty;
+            using (var stream = new FileStream(_assemblyPath, FileMode.Open, FileAccess.Read))
+            {
+                var module = new PEFile("Assembly", stream);
+
+                // Use a no-op assembly resolver
+                var assemblyResolver = new AssemblyResolver();
+                var typeSystem = new DecompilerTypeSystem(module, assemblyResolver);
+
+                var decompilerSettings = GetDecompilerSettings();
+
+                var decompiler = new CSharpDecompiler(typeSystem, decompilerSettings);
+
+                // Decompile the entire assembly to C#
+                decompiledCode = decompiler.DecompileWholeModuleAsString();
+            }
+
+            return decompiledCode;
+        }
+
         public string DecompileType(string typeName)
         {
             var decompiledCode = string.Empty;
@@ -32,12 +54,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 var assemblyResolver = new AssemblyResolver();
                 var typeSystem = new DecompilerTypeSystem(module, assemblyResolver);
 
-                var decompilerSettings = new DecompilerSettings
-                {
-                    ShowDebugInfo = false,
-                    ShowXmlDocumentation = false,
-                    UseDebugSymbols = false,
-                };
+                var decompilerSettings = GetDecompilerSettings();
 
                 var decompiler = new CSharpDecompiler(typeSystem, decompilerSettings);
 
@@ -146,6 +163,121 @@ namespace Blazor.Tools.BlazorBundler.Entities
             return cleanedCode;
         }
 
+        public static DecompilerSettings GetDecompilerSettings()
+        {
+            var decompilerSettings = new DecompilerSettings
+            {
+                AggressiveInlining = false,
+                AggressiveScalarReplacementOfAggregates = false,
+                AlwaysCastTargetsOfExplicitInterfaceImplementationCalls = false,
+                AlwaysQualifyMemberReferences = false,
+                AlwaysShowEnumMemberValues = false,
+                AlwaysUseBraces = true,
+                AlwaysUseGlobal = false,
+                AnonymousMethods = true,
+                AnonymousTypes = true,
+                ApplyWindowsRuntimeProjections = true,
+                ArrayInitializers = true,
+                AssumeArrayLengthFitsIntoInt32 = true,
+                AsyncAwait = true,
+                AsyncEnumerator = true,
+                AsyncUsingAndForEachStatement = true,
+                AutomaticEvents = true,
+                AutomaticProperties = true,
+                AwaitInCatchFinally = true,
+                CheckedOperators = true,
+                CovariantReturns = true,
+                DecimalConstants = true,
+                DecompileMemberBodies = true,
+                Deconstruction = true,
+                DictionaryInitializers = true,
+                Discards = true,
+                DoWhileStatement = true,
+                Dynamic = true,
+                ExpandMemberDefinitions = false,
+                ExpandUsingDeclarations = false,
+                ExpressionTrees = true,
+                ExtensionMethods = true,
+                ExtensionMethodsInCollectionInitializers = true,
+                FileScopedNamespaces = true,
+                FixedBuffers = true,
+                FoldBraces = false,
+                ForEachStatement = true,
+                ForEachWithGetEnumeratorExtension = true,
+                ForStatement = true,
+                FunctionPointers = true,
+                GetterOnlyAutomaticProperties = true,
+                InitAccessors = true,
+                IntroduceIncrementAndDecrement = true,
+                IntroduceReadonlyAndInModifiers = true,
+                IntroduceRefModifiersOnStructs = true,
+                IntroduceUnmanagedConstraint = true,
+                LifetimeAnnotations = true,
+                LiftNullables = true,
+                LoadInMemory = false,
+                LocalFunctions = true,
+                LockStatement = true,
+                MakeAssignmentExpressions = true,
+                NamedArguments = true,
+                NativeIntegers = true,
+                NonTrailingNamedArguments = true,
+                NullPropagation = true,
+                NullableReferenceTypes = true,
+                NumericIntPtr = true,
+                ObjectOrCollectionInitializers = true,
+                OptionalArguments = true,
+                OutVariables = true,
+                PatternBasedFixedStatement = true,
+                PatternCombinators = true,
+                PatternMatching = true,
+                QueryExpressions = true,
+                Ranges = true,
+                ReadOnlyMethods = true,
+                RecordClasses = true,
+                RecordStructs = true,
+                RecursivePatternMatching = true,
+                RefExtensionMethods = true,
+                RelationalPatterns = true,
+                RemoveDeadCode = false,
+                RemoveDeadStores = false,
+                RequiredMembers = true,
+                ScopedRef = true,
+                SeparateLocalVariableDeclarations = false,
+                ShowDebugInfo = false,
+                ShowXmlDocumentation = true,
+                SparseIntegerSwitch = true,
+                StackAllocInitializers = true,
+                StaticLocalFunctions = true,
+                StringConcat = true,
+                StringInterpolation = true,
+                SwitchExpressions = true,
+                SwitchOnReadOnlySpanChar = true,
+                SwitchStatementOnString = true,
+                ThrowExpressions = true,
+                ThrowOnAssemblyResolveErrors = true,
+                TupleComparisons = true,
+                TupleConversions = true,
+                TupleTypes = true,
+                UnsignedRightShift = true,
+                UseDebugSymbols = true,
+                UseEnhancedUsing = true,
+                UseExpressionBodyForCalculatedGetterOnlyProperties = true,
+                UseImplicitMethodGroupConversion = true,
+                UseLambdaSyntax = true,
+                UseNestedDirectoriesForNamespaces = false,
+                UsePrimaryConstructorSyntax = true,
+                UseRefLocalsForAccurateOrderOfEvaluation = true,
+                UseSdkStyleProjectFormat = true,
+                UsingDeclarations = true,
+                UsingStatement = true,
+                Utf8StringLiterals = true,
+                WithExpressions = true,
+                YieldReturn = true
+            };
+
+
+            return decompilerSettings;
+        }
     }
 
     // Built-in implementation for AssemblyResolver
