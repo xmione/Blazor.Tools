@@ -1,4 +1,10 @@
-﻿using System.Reflection;
+﻿/*====================================================================================================
+    Class Name  : AssemblyDecompiler
+    Created By  : Solomio S. Sisante
+    Created On  : July 24, 2024
+    Purpose     : To provide extension methods for classes that use System.Reflection.
+  ====================================================================================================*/
+using System.Reflection;
 using System.Text;
 using MethodBody = System.Reflection.MethodBody;
 
@@ -51,19 +57,37 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// <param name="assembly"></param>
         /// <param name="typeName"></param>
         /// <param name="methodName"></param>
-        public static void InvokeMethod(this Assembly assembly, string typeName, string methodName)
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static async Task InvokeMethodAsync(this Assembly assembly, string typeName, string methodName, params object[] parameters)
         {
             // Get the type and method info
-            Type type = assembly?.GetType(typeName) ?? default!;
-            if (type != null)
-            {
-                MethodInfo method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static) ?? default!;
+            Type type = assembly?.GetType(typeName) ?? throw new ArgumentException($"Type '{typeName}' not found in assembly.");
 
-                // Invoke the method
-                method.Invoke(null, null);
+            MethodInfo method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+                ?? throw new ArgumentException($"Method '{methodName}' not found on type '{typeName}'.");
+
+            // Check if the method is async
+            if (method.ReturnType == typeof(Task))
+            {
+                // Async method with no result
+                await (Task)method.Invoke(null, parameters);
             }
-            
+            else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                // Async method with a result
+                var task = (Task)method.Invoke(null, parameters);
+                // Await the task but don't capture the result
+                await task;
+            }
+            else
+            {
+                // Sync method
+                method.Invoke(null, parameters);
+            }
         }
+
 
         /// <summary>
         /// Gets the PropertyInfo of an object.

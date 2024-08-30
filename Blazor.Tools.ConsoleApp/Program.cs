@@ -3,10 +3,14 @@ using Microsoft.ML;
 using System.Diagnostics;
 using HtmlAgilityPack;
 using Blazor.Tools.BlazorBundler.Extensions;
-using System.Reflection.Emit;
 using Mono.Cecil;
 using TypeAttributes = Mono.Cecil.TypeAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
+using Blazor.Tools.BlazorBundler.Interfaces;
+using Mono.Cecil.Rocks;
+using System.ComponentModel.DataAnnotations;
+using Blazor.Tools.BlazorBundler.Entities;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -156,7 +160,7 @@ namespace Blazor.Tools.ConsoleApp
                         break;
                     case "15":
 
-                        RunDLLFile();
+                        RunDLLFileAsync().Wait();
                         break;
                     case "16":
 
@@ -313,76 +317,126 @@ namespace Blazor.Tools.ConsoleApp
             Console.WriteLine(decompiledCodeFromExtension);
         }
 
-        private static void SaveDynamicallyCreatedAssembly()
+        public static void SaveDynamicallyCreatedAssembly()
         {
-            // Create a new assembly definition
-            var assemblyName = new AssemblyNameDefinition("DynamicAssembly", new Version("1.0.0"));
-            var assemblyDefinition = AssemblyDefinition.CreateAssembly(
-                assemblyName,
-                "MainModule",
-                ModuleKind.Dll);
-
-            var moduleDefinition = assemblyDefinition.MainModule;
-
-            // Define a new type
-            var typeDefinition = new TypeDefinition(
-                "Namespace",
-                "DynamicType",
-                TypeAttributes.Public | TypeAttributes.Class,
-                moduleDefinition.TypeSystem.Object);
-
-            moduleDefinition.Types.Add(typeDefinition);
-
-            // Define a method
-            var methodDefinition = new MethodDefinition(
-                "HelloWorld",
-                (MethodAttributes.Public | MethodAttributes.Static),
-                moduleDefinition.TypeSystem.Void);
-
-            typeDefinition.Methods.Add(methodDefinition);
-
-            var ilProcessor = methodDefinition.Body.GetILProcessor();
-            // Create instructions using Mono.Cecil.Cil.OpCodes
-            var ldstrInstruction = ilProcessor.Create(Mono.Cecil.Cil.OpCodes.Ldstr, "Hello, World!");
-            ilProcessor.Append(ldstrInstruction);
-
-            var consoleWriteLineMethod = moduleDefinition.ImportReference(
-                typeof(Console).GetMethod("WriteLine", new[] { typeof(string) }));
-            var callInstruction = ilProcessor.Create(Mono.Cecil.Cil.OpCodes.Call, consoleWriteLineMethod);
-            ilProcessor.Append(callInstruction);
-
-            ilProcessor.Append(ilProcessor.Create(Mono.Cecil.Cil.OpCodes.Ret));
-
-            // Save the assembly to disk
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
+            string assemblyName = "Blazor.Tools.BlazorBundler.Entities";
+            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+            string className = "EmployeeVM";
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
 
-            assemblyDefinition.Write(modelTempDllPath);
-
-            Console.WriteLine("Assembly created and saved as {0}", modelTempDllPath);
+            // Create and save the dynamic assembly
+            //assemblyName.CreateAndSaveDynamicAssembly(nameSpace, className, dllPath);
+            CreateAndSaveDynamicAssembly(assemblyName, nameSpace, className, dllPath);
+             
         }
 
-        private static void RunDLLFile()
+        public static void CreateAndSaveDynamicAssembly(string assemblyName, string nameSpace, string className, string dllPath)
+        {
+            // Create assembly and module
+            var assemblyDefinition = assemblyName.CreateAssemblyDefinition();
+            var moduleDefinition = assemblyDefinition.MainModule;
+
+            // Import necessary references
+            var baseTypeRef = moduleDefinition.ImportReference(typeof(Employee));
+            var typeDefinition = nameSpace.CreateTypeDefinition(className, baseTypeRef);
+
+            // Implement interfaces
+            var iViewModelRef = moduleDefinition.ImportReference(typeof(IViewModel<,>));
+            var iValidatableObjectRef = moduleDefinition.ImportReference(typeof(IValidatableObject));
+            var iCloneableRef = moduleDefinition.ImportReference(typeof(ICloneable<>));
+
+            var iViewModelGeneric = new GenericInstanceType(iViewModelRef);
+            iViewModelGeneric.GenericArguments.Add(baseTypeRef);
+            iViewModelGeneric.GenericArguments.Add(moduleDefinition.ImportReference(typeof(IModelExtendedProperties)));
+
+            typeDefinition.DeriveFromInterfaces(
+                iValidatableObjectRef,
+                iCloneableRef.MakeGenericInstanceType(typeDefinition),
+                iViewModelGeneric);
+
+            // Add fields
+            var type = typeof(List<EmployeeVM>);
+            var listType = moduleDefinition.ImportReference(type);
+            typeDefinition.AddFieldWithInitializer("_employees", type, listType, moduleDefinition);
+
+            type = typeof(IContextProvider);
+            var iContextProviderType = moduleDefinition.ImportReference(type);
+
+            type = typeof(ContextProvider);
+            var contextProviderImplementationType = moduleDefinition.ImportReference(type);  
+            typeDefinition.AddFieldWithInitializer("_contextProvider", type, iContextProviderType, moduleDefinition, isReadOnly: true);
+
+            foreach (var t in moduleDefinition.Types)
+            {
+                Console.WriteLine($"Available Type: {t.Name}");
+            }
+
+            // Get the assembly from which the type was imported
+            var externalAssembly = moduleDefinition.AssemblyResolver.Resolve((AssemblyNameReference)iContextProviderType.Scope);
+
+            // Check the module types
+            var contextProviderType = externalAssembly.MainModule.Types.FirstOrDefault(t => t.Name == "ContextProvider");
+            if (contextProviderType != null)
+            {
+                Console.WriteLine("Found the ContextProvider type in the external assembly.");
+            }
+            else
+            {
+                Console.WriteLine("ContextProvider type was not found in the external assembly.");
+            }
+
+
+            // Add properties
+            typeDefinition.AddProperty(moduleDefinition, "RowID", moduleDefinition.TypeSystem.Int32);
+            typeDefinition.AddProperty(moduleDefinition, "IsEditMode", moduleDefinition.TypeSystem.Boolean);
+            typeDefinition.AddProperty(moduleDefinition, "IsVisible", moduleDefinition.TypeSystem.Boolean);
+            typeDefinition.AddProperty(moduleDefinition, "StartCell", moduleDefinition.TypeSystem.Int32);
+            typeDefinition.AddProperty(moduleDefinition, "EndCell", moduleDefinition.TypeSystem.Int32);
+            typeDefinition.AddProperty(moduleDefinition, "IsFirstCellClicked", moduleDefinition.TypeSystem.Boolean);
+
+            // Add the constructor with field initialization
+            typeDefinition.AddConstructor(moduleDefinition);
+
+            // Add type definition to module
+            moduleDefinition.Types.Add(typeDefinition);
+
+            // Save the assembly to disk
+            assemblyDefinition.Write(dllPath);
+
+            Console.WriteLine("Assembly created and saved as {0}", dllPath);
+        }
+
+        private static async Task RunDLLFileAsync()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
-            var assembly = modelTempDllPath.LoadAssemblyFromDLLFile();
-            string methodName = "HelloWorld";
-            string typeName = "Namespace.DynamicType";
+            string assemblyName = "Blazor.Tools.BlazorBundler.Entities";
+            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
 
-            assembly.InvokeMethod(typeName, methodName);
+            // Load the assembly
+            var assembly = dllPath.LoadAssemblyFromDLLFile();
+
+            // Define method and type names
+            string methodName = "SetEditMode";
+            string typeName = $"{nameSpace}.EmployeeVM";
+
+            // Invoke the method asynchronously
+            await assembly.InvokeMethodAsync(typeName, methodName, true); // Pass parameters as needed
+            
         }
 
         public static void DecompileDLLFile()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            var modelTempDllPath = Path.Combine(tempFolderPath, "DynamicAssembly.dll");
+            string assemblyName = "Blazor.Tools.BlazorBundler.Entities";
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
             var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
 
-            modelTempDllPath.DecompileWholeModuleToClass(outputPath);
+            dllPath.DecompileWholeModuleToClass(outputPath);
 
         }
     }

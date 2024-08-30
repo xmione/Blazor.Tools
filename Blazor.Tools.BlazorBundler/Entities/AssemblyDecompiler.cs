@@ -38,6 +38,8 @@ namespace Blazor.Tools.BlazorBundler.Entities
 
                 // Decompile the entire assembly to C#
                 decompiledCode = decompiler.DecompileWholeModuleAsString();
+
+                decompiledCode = CleanUpDecompiledCode(decompiledCode);
             }
 
             return decompiledCode;
@@ -212,7 +214,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 IntroduceReadonlyAndInModifiers = true,
                 IntroduceRefModifiersOnStructs = true,
                 IntroduceUnmanagedConstraint = true,
-                LifetimeAnnotations = true,
+                LifetimeAnnotations = false,
                 LiftNullables = true,
                 LoadInMemory = false,
                 LocalFunctions = true,
@@ -241,7 +243,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 RemoveDeadCode = false,
                 RemoveDeadStores = false,
                 RequiredMembers = true,
-                ScopedRef = true,
+                ScopedRef = false,
                 SeparateLocalVariableDeclarations = false,
                 ShowDebugInfo = false,
                 ShowXmlDocumentation = true,
