@@ -1,10 +1,8 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
-using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
+﻿using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 
 namespace Blazor.Tools.BlazorBundler.Extensions
@@ -341,6 +339,34 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                             ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
                             ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, moduleDefinition.ImportReference(parameterlessConstructorDefinition)));
                             ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store in field
+
+                            //var fieldName = field.Name.Replace("_", "");
+                            //fieldName = fieldName.ToPascalCase();
+
+                            //AssemblyDefinition? externalAssembly = null;
+
+                            //// Get the assembly from which the type was imported
+                            //externalAssembly = moduleDefinition.AssemblyResolver.Resolve((AssemblyNameReference)fieldType.Scope);
+                            //var typeNameList = externalAssembly?.MainModule.Types
+                            //                                    .Select(type => type.Name)
+                            //                                    .OrderBy(name => name) // Sort the type names alphabetically
+                            //                                    .ToList();
+                            //// Check the module types
+                            //var employeeListType = externalAssembly?.MainModule.Types.FirstOrDefault(t => t.Name == fieldName);
+
+                            //// Create a new List<Employee>
+                            //var listCtor = moduleDefinition.ImportReference(employeeListType?.Resolve().GetConstructors().First(c => c.Parameters.Count == 0));
+
+
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, listCtor));
+
+                            //// Store the new List<Employee> into the _employees field
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field));
+
+                            //// Finish the constructor
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Ret));
+
+
                         }
                         else
                         {
@@ -366,17 +392,16 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                         {
                             var fieldName = field.Name.Replace("_", "");
                             fieldName = fieldName.ToPascalCase();
-                            //var contextProviderType = moduleDefinition.Types.FirstOrDefault(t => t.Name == fieldName);
 
                             AssemblyDefinition? externalAssembly = null;
-                            
+
                             // Get the assembly from which the type was imported
                             externalAssembly = moduleDefinition.AssemblyResolver.Resolve((AssemblyNameReference)fieldType.Scope);
 
                             // Check the module types
                             var contextProviderType = externalAssembly?.MainModule.Types.FirstOrDefault(t => t.Name == fieldName);
-                            
-                            if (contextProviderType!= null)
+
+                            if (contextProviderType != null)
                             {
                                 // For interface types or other non-instantiable types, initialize with null
                                 var constructors = contextProviderType.Methods.Where(m => m.IsConstructor).ToList();
@@ -396,14 +421,14 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                                         ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, typeDefinition.Fields.First(f => f.Name == field.Name)));  // Store instance
                                     }
 
-                                    
+
                                 }
                                 else
                                 {
                                     Console.WriteLine("No constructors found for this type.");
                                 }
                             }
-                            
+
                         }
                     }
                 }

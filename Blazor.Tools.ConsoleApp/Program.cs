@@ -11,6 +11,7 @@ using Blazor.Tools.BlazorBundler.Interfaces;
 using Mono.Cecil.Rocks;
 using System.ComponentModel.DataAnnotations;
 using Blazor.Tools.BlazorBundler.Entities;
+using System.Reflection.Metadata;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -357,36 +358,9 @@ namespace Blazor.Tools.ConsoleApp
                 iViewModelGeneric);
 
             // Add fields
-            var type = typeof(List<EmployeeVM>);
-            var listType = moduleDefinition.ImportReference(type);
-            typeDefinition.AddFieldWithInitializer("_employees", type, listType, moduleDefinition);
 
-            type = typeof(IContextProvider);
-            var iContextProviderType = moduleDefinition.ImportReference(type);
-
-            type = typeof(ContextProvider);
-            var contextProviderImplementationType = moduleDefinition.ImportReference(type);  
-            typeDefinition.AddFieldWithInitializer("_contextProvider", type, iContextProviderType, moduleDefinition, isReadOnly: true);
-
-            foreach (var t in moduleDefinition.Types)
-            {
-                Console.WriteLine($"Available Type: {t.Name}");
-            }
-
-            // Get the assembly from which the type was imported
-            var externalAssembly = moduleDefinition.AssemblyResolver.Resolve((AssemblyNameReference)iContextProviderType.Scope);
-
-            // Check the module types
-            var contextProviderType = externalAssembly.MainModule.Types.FirstOrDefault(t => t.Name == "ContextProvider");
-            if (contextProviderType != null)
-            {
-                Console.WriteLine("Found the ContextProvider type in the external assembly.");
-            }
-            else
-            {
-                Console.WriteLine("ContextProvider type was not found in the external assembly.");
-            }
-
+            CreateType(type: typeof(List<EmployeeVM>), moduleDefinition: moduleDefinition, typeDefinition: typeDefinition, fieldName: "_employees");
+            CreateType(iType: typeof(IContextProvider), type: typeof(List<EmployeeVM>), moduleDefinition: moduleDefinition, typeDefinition: typeDefinition, fieldName: "_contextProvider", isReadOnly: true);
 
             // Add properties
             typeDefinition.AddProperty(moduleDefinition, "RowID", moduleDefinition.TypeSystem.Int32);
@@ -406,6 +380,57 @@ namespace Blazor.Tools.ConsoleApp
             assemblyDefinition.Write(dllPath);
 
             Console.WriteLine("Assembly created and saved as {0}", dllPath);
+        }
+
+        private static void CreateType(
+                                        Type? iType = null,
+                                        Type? type = null,
+                                        Mono.Cecil.ModuleDefinition? moduleDefinition = null,
+                                        Mono.Cecil.TypeDefinition? typeDefinition = null,
+                                        string? fieldName = null,
+                                        bool isReadOnly = false)
+        {
+            if (moduleDefinition == null || typeDefinition == null || fieldName == null || type == null)
+            {
+                return; // Exit early if essential parameters are missing
+            }
+
+            var typeRef = moduleDefinition.ImportReference(type);
+
+            if (iType != null)
+            {
+                var iTypeRef = moduleDefinition.ImportReference(iType);
+                typeDefinition.AddFieldWithInitializer(fieldName, type, iTypeRef, moduleDefinition, isReadOnly);
+            }
+            else
+            {
+                typeDefinition.AddFieldWithInitializer(fieldName, type, typeRef, moduleDefinition, isReadOnly);
+            }
+
+            // Print available types
+            foreach (var t in moduleDefinition.Types)
+            {
+                Console.WriteLine($"Available Type: {t.Name}");
+            }
+
+            // Get the assembly and types from it
+            var typeToCheck = iType != null ? moduleDefinition.ImportReference(iType) : typeRef;
+            var assemblyReference = (AssemblyNameReference)typeToCheck.Scope;
+            var externalAssembly = moduleDefinition.AssemblyResolver.Resolve(assemblyReference);
+
+            if (externalAssembly == null)
+            {
+                Console.WriteLine("External assembly not found.");
+                return;
+            }
+
+            var concreteFieldName = fieldName.Replace("_", "").ToPascalCase();
+            var contextProviderType = externalAssembly.MainModule.Types
+                .FirstOrDefault(t => t.Name == concreteFieldName);
+
+            Console.WriteLine(contextProviderType != null
+                ? $"Found the {concreteFieldName} type in the external assembly."
+                : $"{concreteFieldName} type was not found in the external assembly.");
         }
 
         private static async Task RunDLLFileAsync()
