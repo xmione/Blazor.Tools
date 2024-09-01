@@ -57,10 +57,11 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         /// <param name="assembly"></param>
         /// <param name="typeName"></param>
         /// <param name="methodName"></param>
+        /// <param name="instance"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static async Task InvokeMethodAsync(this Assembly assembly, string typeName, string methodName, params object[] parameters)
+        public static async Task InvokeMethodAsync(this Assembly assembly, string typeName, string methodName, object instance, params object[] parameters)
         {
             // Get the type and method info
             Type type = assembly?.GetType(typeName) ?? throw new ArgumentException($"Type '{typeName}' not found in assembly.");
@@ -72,22 +73,21 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             if (method.ReturnType == typeof(Task))
             {
                 // Async method with no result
-                await (Task)method.Invoke(null, parameters);
+                await (Task)method.Invoke(instance, parameters);
             }
             else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
             {
                 // Async method with a result
-                var task = (Task)method.Invoke(null, parameters);
-                // Await the task but don't capture the result
+                var task = (Task)method.Invoke(instance, parameters);
+                // Await the task but capture the result if needed
                 await task;
             }
             else
             {
                 // Sync method
-                method.Invoke(null, parameters);
+                method.Invoke(instance, parameters);
             }
         }
-
 
         /// <summary>
         /// Gets the PropertyInfo of an object.

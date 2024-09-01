@@ -1,22 +1,120 @@
-﻿using Blazor.Tools.BlazorBundler.Interfaces;
+﻿/*====================================================================================================
+    Class Name  : EmployeeVM.cs
+    Created By  : Solomio S. Sisante
+    Created On  : August 15, 2024
+    Purpose     : To provide a view model class for the Employee class.
+  ====================================================================================================*/
+
+using Blazor.Tools.BlazorBundler.Interfaces;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 {
     public class EmployeeVM : Employee, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IModelExtendedProperties>
     {
-        private List<EmployeeVM> _employees = new List<EmployeeVM>(); // Initialize the list
-        public int RowID { get; set; } // Integer property to indicate row ID
-        public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
-        public bool IsVisible { get; set; } // Boolean property to indicate if visible
-        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
-        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
-        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
+        private List<EmployeeVM> _employees;
+
         private readonly IContextProvider _contextProvider;
+
+        public int _rowID;
+
+        public bool _isEditMode;
+
+        public bool _isVisible;
+
+        public int _startCell;
+
+        public int _endCell;
+
+        public bool _isFirstCellClicked;
+
+        public int RowID
+        {
+            get
+            {
+                return _rowID;
+            }
+            set
+            {
+                _rowID = value;
+            }
+        }
+
+        public bool IsEditMode
+        {
+            get
+            {
+                return _isEditMode;
+            }
+            set
+            {
+                _isEditMode = value;
+            }
+        }
+
+        public bool IsVisible
+        {
+            get
+            {
+                return _isVisible;
+            }
+            set
+            {
+                _isVisible = value;
+            }
+        }
+
+        public int StartCell
+        {
+            get
+            {
+                return _startCell;
+            }
+            set
+            {
+                _startCell = value;
+            }
+        }
+
+        public int EndCell
+        {
+            get
+            {
+                return _endCell;
+            }
+            set
+            {
+                _endCell = value;
+            }
+        }
+
+        public bool IsFirstCellClicked
+        {
+            get
+            {
+                return _isFirstCellClicked;
+            }
+            set
+            {
+                _isFirstCellClicked = value;
+            }
+        }
 
         public EmployeeVM()
         {
+            _employees = new List<EmployeeVM>();
             _contextProvider = new ContextProvider();
+            _rowID = 0;
+            _isEditMode = false;
+            _isVisible = false;
+            _startCell = 0;
+            _endCell = 0;
+            _isFirstCellClicked = false;
         }
         public EmployeeVM(IContextProvider contextProvider)
         {

@@ -298,7 +298,8 @@ namespace Blazor.Tools.ConsoleApp
 
         private static void DecompileEmployeeVM()
         {
-            string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
+            //string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
+            string assemblyPath = Path.Combine(Path.GetTempPath(), "Blazor.Tools.BlazorBundler.dll");
             string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
 
             string decompiledCode = assemblyPath.DecompileType(typeName);
@@ -322,15 +323,81 @@ namespace Blazor.Tools.ConsoleApp
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler.Entities";
+            string assemblyName = "Blazor.Tools.BlazorBundler";
             string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
             string className = "EmployeeVM";
             string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
 
+            // Read the code for all relevant classes and interfaces
+            string employeeVMClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Entities\SampleObjects\EmployeeVM.cs";
+            //string employeeClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Entities\SampleObjects\Employee.cs";
+            //string iCloneableFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Interfaces\ICloneable.cs";
+            //string iViewModelFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Interfaces\IViewModel.cs";
+            //string iModelExtendedPropertiesFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Interfaces\IModelExtendedProperties.cs";
+
+            string employeeVMClassCode = employeeVMClassFilePath.ReadFileContents();
+            //string employeeClassCode = employeeClassFilePath.ReadFileContents();
+            //string iCloneableCode = iCloneableFilePath.ReadFileContents();
+            //string iViewModelCode = iViewModelFilePath.ReadFileContents();
+            //string iModelExtendedPropertiesCode = iModelExtendedPropertiesFilePath.ReadFileContents();
+
+           
+
+            // Combine all source codes
+            //string combinedCode = $"{iCloneableCode}\n{iViewModelCode}\n{iModelExtendedPropertiesCode}\n{employeeClassCode}\n{employeeVMClassCode}";
+
+            var employeeVMClassGenerator = new ClassGenerator();
+
+            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
+            var systemRuntimeFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Runtime.dll";
+            var systemCollectionsFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Collections.dll";
+            var systemConsoleFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Console.dll";
+            var systemLinqFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Linq.dll";
+            var systemThreadingTasksFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Threading.Tasks.dll";
+            var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
+
+            var systemLocation = Path.Combine(programFilesPath, systemFilePath);
+            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath);
+            var systemCollectionsLocation = Path.Combine(programFilesPath, systemCollectionsFilePath);
+            var systemConsoleLocation = Path.Combine(programFilesPath, systemConsoleFilePath);
+            var systemLinqLocation = Path.Combine(programFilesPath, systemLinqFilePath);
+            var systemThreadingTasksLocation = Path.Combine(programFilesPath, systemThreadingTasksFilePath);
+            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath);
+
+            // Add references to existing assemblies that contain types used in the dynamic class
+            employeeVMClassGenerator.AddReference(systemLocation);  // System.dll
+            employeeVMClassGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
+            employeeVMClassGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
+            employeeVMClassGenerator.AddReference(systemCollectionsLocation);  // System.Collections.dll
+            employeeVMClassGenerator.AddReference(systemConsoleLocation);  // System.Console.dll
+            employeeVMClassGenerator.AddReference(systemLinqLocation);  // System.Collections.dll
+            employeeVMClassGenerator.AddReference(systemThreadingTasksLocation);  // System.Threading.Tasks.dll
+
+            // Add references to assemblies containing other required types
+            employeeVMClassGenerator.AddReference(typeof(Employee).Assembly.Location);
+            employeeVMClassGenerator.AddReference(typeof(IValidatableObject).Assembly.Location);
+            employeeVMClassGenerator.AddReference(typeof(ICloneable<>).Assembly.Location);
+            employeeVMClassGenerator.AddReference(typeof(IViewModel<,>).Assembly.Location);
+
+            Console.WriteLine("//EmployeeVM.cs: \r\n{0}", employeeVMClassCode);
+            //employeeVMClassGenerator.CreateType(combinedCode, className);
+            // Create the type and compile the assembly
+            employeeVMClassGenerator.CreateType(employeeVMClassCode, nameSpace, className);
+
+
+            //employeeVMClassGenerator.AddBaseClass(typeof(Employee));
+            //employeeVMClassGenerator.DeriveFromInterface(typeof(IValidatableObject));
+            //employeeVMClassGenerator.DeriveFromInterface(typeof(ICloneable<EmployeeVM>));
+            //employeeVMClassGenerator.DeriveFromInterface(typeof(IViewModel<Employee, IModelExtendedProperties>));
+
+            // Save the compiled assembly to the Temp folder
+            employeeVMClassGenerator.SaveAssemblyToTempFolder(dllPath);
+
             // Create and save the dynamic assembly
             //assemblyName.CreateAndSaveDynamicAssembly(nameSpace, className, dllPath);
-            CreateAndSaveDynamicAssembly(assemblyName, nameSpace, className, dllPath);
-             
+            //CreateAndSaveDynamicAssembly(assemblyName, nameSpace, className, dllPath);
+            //ClassGenerator.GenerateEmployeeVM(dllPath, nameSpace);
         }
 
         public static void CreateAndSaveDynamicAssembly(string assemblyName, string nameSpace, string className, string dllPath)
@@ -383,19 +450,38 @@ namespace Blazor.Tools.ConsoleApp
         }
 
         private static void CreateType(
-                                        Type? iType = null,
-                                        Type? type = null,
-                                        Mono.Cecil.ModuleDefinition? moduleDefinition = null,
-                                        Mono.Cecil.TypeDefinition? typeDefinition = null,
-                                        string? fieldName = null,
-                                        bool isReadOnly = false)
+                                Type? iType = null,
+                                Type? type = null,
+                                Mono.Cecil.ModuleDefinition? moduleDefinition = null,
+                                Mono.Cecil.TypeDefinition? typeDefinition = null,
+                                string? fieldName = null,
+                                bool isReadOnly = false)
         {
             if (moduleDefinition == null || typeDefinition == null || fieldName == null || type == null)
             {
                 return; // Exit early if essential parameters are missing
             }
 
-            var typeRef = moduleDefinition.ImportReference(type);
+            Mono.Cecil.TypeReference typeRef;
+            if (type.IsGenericType)
+            {
+                // Handle generic types like List<Employee>
+                var genericTypeDef = type.GetGenericTypeDefinition(); // e.g., List`1
+                var genericTypeRef = moduleDefinition.ImportReference(genericTypeDef); // Import the generic type definition
+
+                var genericInstanceType = new GenericInstanceType(genericTypeRef); // Create an instance of the generic type
+
+                foreach (var arg in type.GetGenericArguments())
+                {
+                    genericInstanceType.GenericArguments.Add(moduleDefinition.ImportReference(arg)); // Import and add the type argument (e.g., Employee)
+                }
+
+                typeRef = genericInstanceType; // Assign the generic instance type as the reference
+            }
+            else
+            {
+                typeRef = moduleDefinition.ImportReference(type); // Handle non-generic types
+            }
 
             if (iType != null)
             {
@@ -414,30 +500,83 @@ namespace Blazor.Tools.ConsoleApp
             }
 
             // Get the assembly and types from it
-            var typeToCheck = iType != null ? moduleDefinition.ImportReference(iType) : typeRef;
-            var assemblyReference = (AssemblyNameReference)typeToCheck.Scope;
+            var assemblyReference = (AssemblyNameReference)typeRef.Scope;
             var externalAssembly = moduleDefinition.AssemblyResolver.Resolve(assemblyReference);
 
+            // YOU CAN COMMENT IT OUT BUT DO NOT REMOVE: THIS IS FOR TESTING
+            //var list = externalAssembly?.MainModule.Types
+            //                .Select(type => type.Name)
+            //                .OrderBy(name => name)
+            //                .ToList();
+
+            // After getting the externalAssembly
             if (externalAssembly == null)
             {
                 Console.WriteLine("External assembly not found.");
                 return;
             }
 
-            var concreteFieldName = fieldName.Replace("_", "").ToPascalCase();
-            var contextProviderType = externalAssembly.MainModule.Types
-                .FirstOrDefault(t => t.Name == concreteFieldName);
+            // Handling generic type names
+            if (type.IsGenericType)
+            {
+                // Get the generic type definition name (e.g., List`1)
+                var genericTypeName = type.GetGenericTypeDefinition().Name;
 
-            Console.WriteLine(contextProviderType != null
-                ? $"Found the {concreteFieldName} type in the external assembly."
-                : $"{concreteFieldName} type was not found in the external assembly.");
+                // Search for the generic type definition in the external assembly
+                var genericTypeDefinition = externalAssembly.MainModule.Types
+                    .FirstOrDefault(t => t.Name == genericTypeName);
+
+                if (genericTypeDefinition != null)
+                {
+                    // Resolve the actual types of the generic arguments in the context of the module
+                    var resolvedGenericArguments = type.GetGenericArguments()
+                        .Select(arg => moduleDefinition.ImportReference(arg).Resolve())
+                        .ToList();
+
+                    // Compare the resolved types with the generic parameters of the found type definition
+                    bool matchFound = true;
+                    for (int i = 0; i < resolvedGenericArguments.Count; i++)
+                    {
+                        var genericArgument = resolvedGenericArguments[i];
+                        var expectedType = moduleDefinition.ImportReference(type.GetGenericArguments()[i]).Resolve();
+
+                        // Compare the resolved types instead of just names
+                        if (genericArgument.FullName != expectedType.FullName)
+                        {
+                            matchFound = false;
+                            break;
+                        }
+                    }
+
+                    Console.WriteLine(matchFound
+                        ? $"Found the {type.Name} type (generic) in the external assembly."
+                        : $"{type.Name} type (generic) was not found with matching generic arguments.");
+                }
+                else
+                {
+                    Console.WriteLine($"{genericTypeName} type definition was not found in the external assembly.");
+                }
+            }
+            else
+            {
+                // Handling non-generic types
+                var concreteFieldName = fieldName.Replace("_", "").ToPascalCase();
+                var contextProviderType = externalAssembly.MainModule.Types
+                    .FirstOrDefault(t => t.Name == concreteFieldName);
+
+                Console.WriteLine(contextProviderType != null
+                    ? $"Found the {concreteFieldName} type in the external assembly."
+                    : $"{concreteFieldName} type was not found in the external assembly.");
+            }
+
+
         }
 
         private static async Task RunDLLFileAsync()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler.Entities";
+            string assemblyName = "Blazor.Tools.BlazorBundler";
             string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
             string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
 
@@ -448,16 +587,23 @@ namespace Blazor.Tools.ConsoleApp
             string methodName = "SetEditMode";
             string typeName = $"{nameSpace}.EmployeeVM";
 
+            // Create an instance of the type
+            Type type = assembly.GetType(typeName);
+            object instance = Activator.CreateInstance(type)
+                              ?? throw new InvalidOperationException($"Cannot create an instance of type '{typeName}'.");
+
             // Invoke the method asynchronously
-            await assembly.InvokeMethodAsync(typeName, methodName, true); // Pass parameters as needed
-            
+            await assembly.InvokeMethodAsync(typeName, methodName, instance, false); // Pass parameters as needed
+
+            object isEditModeValue = instance.GetProperty("IsEditMode");
+            Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
         }
 
         public static void DecompileDLLFile()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler.Entities";
+            string assemblyName = "Blazor.Tools.BlazorBundler";
             string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
             var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
 

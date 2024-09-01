@@ -336,9 +336,96 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                         else if (parameterlessConstructorDefinition != null)
                         {
                             // Handle reference types with parameterless constructors
-                            ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
-                            ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, moduleDefinition.ImportReference(parameterlessConstructorDefinition)));
-                            ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store in field
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, moduleDefinition.ImportReference(parameterlessConstructorDefinition)));
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store in field
+
+                            //if (type.IsGenericType)
+                            //{
+                            //    // Get the generic type definition name (e.g., List`1)
+                            //    var genericTypeName = type.GetGenericTypeDefinition().Name;
+
+                            //    // Search for the generic type definition in the external assembly
+                            //    var genericTypeDefinition = externalAssembly.MainModule.Types
+                            //        .FirstOrDefault(t => t.Name == genericTypeName);
+
+                            //    if (genericTypeDefinition != null)
+                            //    {
+                            //        // Resolve the actual types of the generic arguments in the context of the module
+                            //        var resolvedGenericArguments = type.GetGenericArguments()
+                            //            .Select(arg => moduleDefinition.ImportReference(arg).Resolve())
+                            //            .ToList();
+
+                            //        // Compare the resolved types with the generic parameters of the found type definition
+                            //        bool matchFound = true;
+                            //        for (int i = 0; i < resolvedGenericArguments.Count; i++)
+                            //        {
+                            //            var genericArgument = resolvedGenericArguments[i];
+                            //            var expectedType = moduleDefinition.ImportReference(type.GetGenericArguments()[i]).Resolve();
+
+                            //            // Compare the resolved types instead of just names
+                            //            if (genericArgument.FullName != expectedType.FullName)
+                            //            {
+                            //                matchFound = false;
+                            //                break;
+                            //            }
+                            //        }
+
+                            //        Console.WriteLine(matchFound
+                            //            ? $"Found the {type.Name} type (generic) in the external assembly."
+                            //            : $"{type.Name} type (generic) was not found with matching generic arguments.");
+                            //    }
+                            //    else
+                            //    {
+                            //        Console.WriteLine($"{genericTypeName} type definition was not found in the external assembly.");
+                            //    }
+                            //}
+                            if (fieldType.IsGenericInstance)
+                            {
+                                // Resolve the generic instance type (e.g., List<EmployeeVM>)
+                                var genericInstanceType = (GenericInstanceType)fieldType;
+
+                                // Resolve the generic type definition (e.g., List<T>)
+                                var genericTypeDef = genericInstanceType.ElementType.Resolve();
+
+                                // Import the generic type with the specific argument (e.g., List<EmployeeVM>)
+                                var listTypeRef = moduleDefinition.ImportReference(genericInstanceType);
+
+                                // Get the constructor of List<T> (the parameterless constructor)
+                                var listCtor = genericTypeDef.Methods.FirstOrDefault(m => m.IsConstructor && !m.HasParameters);
+
+                                if (listCtor != null)
+                                {
+                                    // Import the constructor reference to the module
+                                    var listCtorRef = moduleDefinition.ImportReference(listCtor);
+
+                                    // Create a new instance of List<EmployeeVM>
+                                    var newListInstance = new GenericInstanceType(genericTypeDef);
+                                    newListInstance.GenericArguments.Add(genericInstanceType.GenericArguments[0]);
+
+                                    var newListCtor = moduleDefinition.ImportReference(newListInstance.Resolve().GetConstructors().First(c => c.Parameters.Count == 0));
+
+                                    ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
+                                    ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, newListCtor)); // Call the constructor for List<EmployeeVM>
+
+                                    // Store the newly created instance in the field
+                                    ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store in field
+                                }
+                                else
+                                {
+                                    // Handle cases where no constructor is found (e.g., abstract or interface types)
+                                    ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
+                                    ilProcessor.Append(ilProcessor.Create(OpCodes.Ldnull)); // Load null
+                                    ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store null in field
+                                }
+                            }
+                            else
+                            {
+                                // Handle non-generic types (similar to the existing logic)
+                                ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
+                                ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, moduleDefinition.ImportReference(parameterlessConstructorDefinition))); // Create new instance
+                                ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store in field
+                            }
 
                             //var fieldName = field.Name.Replace("_", "");
                             //fieldName = fieldName.ToPascalCase();
@@ -352,18 +439,23 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                             //                                    .OrderBy(name => name) // Sort the type names alphabetically
                             //                                    .ToList();
                             //// Check the module types
-                            //var employeeListType = externalAssembly?.MainModule.Types.FirstOrDefault(t => t.Name == fieldName);
+                            //var fieldTypeName = ((TypeSpecification)fieldType).Name;
+
+                            //var employeeListType = externalAssembly?.MainModule.Types.FirstOrDefault(t => t.Name == fieldTypeName);
 
                             //// Create a new List<Employee>
                             //var listCtor = moduleDefinition.ImportReference(employeeListType?.Resolve().GetConstructors().First(c => c.Parameters.Count == 0));
 
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg_0)); // Load 'this'
+                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, moduleDefinition.ImportReference(parameterlessConstructorDefinition)));
+                            ////ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field)); // Store in field
 
-                            //ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, listCtor));
+                            ////ilProcessor.Append(ilProcessor.Create(OpCodes.Newobj, listCtor));
 
                             //// Store the new List<Employee> into the _employees field
                             //ilProcessor.Append(ilProcessor.Create(OpCodes.Stfld, field));
 
-                            //// Finish the constructor
+                            // Finish the constructor
                             //ilProcessor.Append(ilProcessor.Create(OpCodes.Ret));
 
 
@@ -443,5 +535,19 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             typeDefinition.Methods.Add(parameterlessConstructor);
         }
 
+        public static string  GetAssemblyLocation(this Type type)
+        {
+            string location = string.Empty;
+
+            if (type != null)
+            {
+                //var assembly = type.Assembly;
+                var assembly = System.Reflection.Assembly.GetAssembly(type);
+                location = assembly.Location;
+            }
+
+
+            return location;
+        }
     }
 }
