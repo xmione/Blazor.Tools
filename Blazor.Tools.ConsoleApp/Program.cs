@@ -4,14 +4,11 @@ using System.Diagnostics;
 using HtmlAgilityPack;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Mono.Cecil;
-using TypeAttributes = Mono.Cecil.TypeAttributes;
-using MethodAttributes = Mono.Cecil.MethodAttributes;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Mono.Cecil.Rocks;
 using System.ComponentModel.DataAnnotations;
 using Blazor.Tools.BlazorBundler.Entities;
-using System.Reflection.Metadata;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -46,7 +43,7 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
                 Console.WriteLine("[10] - Train sample Language Data");
                 Console.WriteLine("[11] - Decompile IL code");
-                Console.WriteLine("[12] - Decompile EmployeeVM");
+                Console.WriteLine("[12] - Decompile EmployeeVM.dll");
                 Console.WriteLine("[13] - Decompile EmployeeVM SetEditMode");
                 Console.WriteLine("[14] - Save Dynamically Created Assembly to .dll file");
                 Console.WriteLine("[15] - Run .dll file method");
@@ -298,14 +295,63 @@ namespace Blazor.Tools.ConsoleApp
 
         private static void DecompileEmployeeVM()
         {
-            //string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
-            string assemblyPath = Path.Combine(Path.GetTempPath(), "Blazor.Tools.BlazorBundler.dll");
-            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
+            string blazorBundlerPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\";
+            string blazorBundlerFile = "Blazor.Tools.BlazorBundler.dll";
+            string defaultTempFolder = Path.GetTempPath();
 
-            string decompiledCode = assemblyPath.DecompileType(typeName);
+            string tempFolder = string.Empty;
+            string dllFileName = string.Empty;
+            string? assemblyPath = null;
+
+            bool continueLoop = true;
+            while (continueLoop)
+            {
+                Console.WriteLine("DLL Folder Path (default){0}: ", defaultTempFolder);
+                Console.WriteLine("Please choose an option:");
+                Console.WriteLine("[0] - Default Folder [{0}]", defaultTempFolder);
+                Console.WriteLine("[1] - Blazor Bundler DLL Folder [{0}]", blazorBundlerPath);
+                var folderChoice = Console.ReadLine();
+                
+                switch (folderChoice)
+                {
+                    case "":
+                    case "0":
+                        tempFolder = defaultTempFolder; // sets the default if you did not specify a dll file name.
+                        dllFileName = "EmployeeVM.dll";
+                        assemblyPath = Path.Combine(tempFolder, dllFileName);
+                        
+                        break;
+                    case "1":
+                        tempFolder = blazorBundlerPath; // sets the default if you did not specify a dll file name.
+                        dllFileName = blazorBundlerFile;
+                        assemblyPath = Path.Combine(tempFolder, dllFileName);
+                         
+                        break;
+                    default:
+                        Console.Write("DLL File Name (default)EmployeeVM.dll: ");
+                        assemblyPath = Console.ReadLine();
+                         
+                        break;
+                }
+
+                if (File.Exists(assemblyPath))
+                {
+                    continueLoop = false;
+                }
+                else
+                {
+                    Console.WriteLine("Assembly File does not exist: {0}", assemblyPath);
+                }
+            }
             
-            Console.WriteLine(decompiledCode);
+            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";
+            if (assemblyPath != null)
+            {
+                Console.WriteLine("Decompiling {0} [{1}]", assemblyPath, typeName);
+                string decompiledCode = assemblyPath.DecompileType(typeName);
 
+                Console.WriteLine(decompiledCode);
+            }
         }
 
         private static void DecompileEmployeeVMSetEditModeMethod()
