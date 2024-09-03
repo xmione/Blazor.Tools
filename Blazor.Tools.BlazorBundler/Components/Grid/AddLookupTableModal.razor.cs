@@ -16,7 +16,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //    [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
     //    private SessionManager _sessionManager = SessionManager.Instance;
-    //    private string _tableName = string.Empty;
+    //    private string _baseClassName = string.Empty;
     //    private int _targetTableID = default!;
     //    private string _targetTableValue = default!;
     //    private string? _targetFieldValue = default!;
@@ -41,10 +41,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //    private async Task InitializeVariables()
     //    {
 
-    //        _tableName = _searchFieldsTable?.TableName ?? "LookupTable";
+    //        _baseClassName = _searchFieldsTable?.TableName ?? "LookupTable";
     //        _targetTableID = 1;
     //        _targetFieldMatchConditionID = 1;
-    //        _title = $"{Tag}-{_tableName}";
+    //        _title = $"{Tag}-{_baseClassName}";
     //        _dataSource = $"{_title}DS";
 
     //        _matchConditionsTable = new DataTable("MatchConditionTable");
@@ -80,7 +80,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //        },
     //        new SessionItem()
     //        {
-    //            Key = $"{Tag}_tableName", Value = _tableName, Type = typeof(string), Serialize = false
+    //            Key = $"{Tag}_baseClassName", Value = _baseClassName, Type = typeof(string), Serialize = false
     //        },
     //        new SessionItem()
     //        {
@@ -117,7 +117,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //                _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
 
     //                _searchFieldsTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_searchFieldsTable"))?.Value ?? _searchFieldsTable;
-    //                _tableName = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_tableName"))?.Value?.ToString() ?? string.Empty;
+    //                _baseClassName = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_baseClassName"))?.Value?.ToString() ?? string.Empty;
     //                _targetTableID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetTableID"))?.Value?.ToString(), out int selectedTableIDResult) ? selectedTableIDResult : 1;
     //                _targetTableValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetTableValue"))?.Value?.ToString() ?? string.Empty;
     //                _targetFieldValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetFieldValue"))?.Value?.ToString() ?? string.Empty;
@@ -126,12 +126,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
     //                if (_searchFieldsTable != null)
     //                {
-    //                    _searchFieldsTable.TableName = _tableName;
+    //                    _searchFieldsTable.TableName = _baseClassName;
     //                }
 
     //                _targetTableID = _targetTableID == 0 ? 1 : _targetTableID;
     //                _targetFieldMatchConditionID = _targetFieldMatchConditionID == 0 ? 1 : _targetFieldMatchConditionID;
-    //                _title = $"{Tag}-{_tableName}";
+    //                _title = $"{Tag}-{_baseClassName}";
     //                _dataSource = $"{_title}DS";
     //                _isRetrieved = true;
     //                GetMatchCondition();
@@ -218,7 +218,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //    {
     //        if (_searchFieldsTable == null)
     //        {
-    //            _searchFieldsTable = new DataTable(_tableName);
+    //            _searchFieldsTable = new DataTable(_baseClassName);
     //            _searchFieldsTable.Columns.Add("TableName");
     //            _searchFieldsTable.Columns.Add("FieldName");
     //            _searchFieldsTable.Columns.Add("MatchCondition", typeof(int));

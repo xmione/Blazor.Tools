@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿/*====================================================================================================
+    Class Name  : TypeExtensions
+    Created By  : Solomio S. Sisante
+    Created On  : September 2, 2024
+    Purpose     : To provide a helper class for type extenstions.
+  ====================================================================================================*/
 namespace Blazor.Tools.BlazorBundler.Extensions
 {
     public static class TypeExtensions
@@ -60,6 +60,51 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         {
             return types.Select(type => type.ToDotNetType()).ToArray();
         }
+
+        // Method to generate default value for a specified type
+        public static object GenerateDefaultValue(this Type type)
+        {
+            // Special case for bool type to return lowercase false
+            if (type == typeof(bool))
+            {
+                return false;
+            }
+
+            // Handle nullable bool types (e.g., bool?)
+            if (Nullable.GetUnderlyingType(type) == typeof(bool))
+            {
+                return (bool?)false;
+            }
+
+            // Handle value types (including structs and enums)
+            if (type.IsValueType)
+            {
+                return Activator.CreateInstance(type);
+            }
+
+            // Handle nullable types by getting the underlying type and returning its default value
+            if (Nullable.GetUnderlyingType(type) != null)
+            {
+                return null;
+            }
+
+            // Handle special cases for common types
+            if (type == typeof(string))
+            {
+                return string.Empty;
+            }
+
+            // If it's a reference type, the default value is null
+            return null;
+        }
+
+        public static string GenerateDefaultValueAsString(this Type type)
+        {
+            object defaultValue = type.GenerateDefaultValue();
+            return defaultValue is bool boolValue ? boolValue.ToString().ToLower() : defaultValue?.ToString() ?? "null";
+        }
+
+
     }
 
 }

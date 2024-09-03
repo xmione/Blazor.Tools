@@ -145,7 +145,6 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             FirstName = modelVM.FirstName;
             MiddleName = modelVM.MiddleName;
             LastName = modelVM.LastName;
-            FirstName = modelVM.FirstName;
             DateOfBirth = modelVM.DateOfBirth;
             CountryID = modelVM.CountryID;
         }
@@ -289,7 +288,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
                 ID = ID,
                 FirstName = FirstName,
                 MiddleName = MiddleName,
-                LastName = LastName,           
+                LastName = LastName,
                 DateOfBirth = DateOfBirth,
                 CountryID = CountryID
             };
@@ -330,7 +329,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             {
 
                 var foundModel = modelVMList.FirstOrDefault(e => e.RowID == RowID);
-                var modelVM = foundModel == null? default : (EmployeeVM)foundModel;
+                var modelVM = foundModel == null ? default : (EmployeeVM)foundModel;
 
                 if (modelVM != null)
                 {
@@ -371,3 +370,4 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
 
     }
 }
+

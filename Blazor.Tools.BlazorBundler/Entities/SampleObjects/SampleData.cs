@@ -130,6 +130,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             _employeeDataTable.Columns.Add("FirstName", typeof(string));
             _employeeDataTable.Columns.Add("MiddleName", typeof(string));
             _employeeDataTable.Columns.Add("LastName", typeof(string));
+            _employeeDataTable.Columns.Add("DateOfBirth", typeof(DateOnly));
             _employeeDataTable.Columns.Add("CountryID", typeof(int));
 
             _countryDataTable = new DataTable("Country");
@@ -223,7 +224,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects
             {
                 var employee = employeeFaker.Generate();
                 _employees.Add(employee);
-                _employeeDataTable.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.CountryID);
+                _employeeDataTable.Rows.Add(i + 1, employee.FirstName, employee.MiddleName, employee.LastName, employee.DateOfBirth, employee.CountryID);
             }
 
             // Initialize and generate country data

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.ComponentModel.DataAnnotations;
 using OutputKind = Microsoft.CodeAnalysis.OutputKind;
 using Assembly = System.Reflection.Assembly;
-using static Microsoft.ML.Transforms.OneHotEncodingEstimator;
 namespace Blazor.Tools.BlazorBundler.Entities
 {
     public class ClassGenerator

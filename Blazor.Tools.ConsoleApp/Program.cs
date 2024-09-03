@@ -9,6 +9,7 @@ using Blazor.Tools.BlazorBundler.Interfaces;
 using Mono.Cecil.Rocks;
 using System.ComponentModel.DataAnnotations;
 using Blazor.Tools.BlazorBundler.Entities;
+using System.Reflection;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -46,9 +47,11 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[12] - Decompile EmployeeVM.dll");
                 Console.WriteLine("[13] - Decompile EmployeeVM SetEditMode");
                 Console.WriteLine("[14] - Save Dynamically Created Assembly to .dll file");
-                Console.WriteLine("[15] - Run .dll file method");
-                Console.WriteLine("[16] - Decompile .dll to class (.cs) file");
-                Console.WriteLine("[17] - Exit");
+                Console.WriteLine("[15] - Run SetEditMethod of EmployeeVM from Blazor.Tools.BlazorBundler.dll ");
+                Console.WriteLine("[16] - Decompile .dll to class (.cs) file to Temp folder");
+                Console.WriteLine("[17] - Create Blazor.Tools.BlazorBundler.dll to Temp folder");
+                Console.WriteLine("[18] - Run .dll file method from Temp folder");
+                Console.WriteLine("[19] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -158,13 +161,21 @@ namespace Blazor.Tools.ConsoleApp
                         break;
                     case "15":
 
-                        RunDLLFileAsync().Wait();
+                        RunSetEditMethodOfEmployeeVMFromBundlerDLLFileAsync().Wait();
                         break;
                     case "16":
 
                         DecompileDLLFile();
                         break;
                     case "17":
+
+                        CreateBundlerDLL();
+                        break;
+                    case "18":
+
+                        RunDLLFileAsync().Wait(); 
+                        break;
+                    case "19":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -376,22 +387,14 @@ namespace Blazor.Tools.ConsoleApp
 
             // Read the code for all relevant classes and interfaces
             string employeeVMClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Entities\SampleObjects\EmployeeVM.cs";
-            //string employeeClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Entities\SampleObjects\Employee.cs";
-            //string iCloneableFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Interfaces\ICloneable.cs";
-            //string iViewModelFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Interfaces\IViewModel.cs";
-            //string iModelExtendedPropertiesFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Interfaces\IModelExtendedProperties.cs";
-
+             
             string employeeVMClassCode = employeeVMClassFilePath.ReadFileContents();
-            //string employeeClassCode = employeeClassFilePath.ReadFileContents();
-            //string iCloneableCode = iCloneableFilePath.ReadFileContents();
-            //string iViewModelCode = iViewModelFilePath.ReadFileContents();
-            //string iModelExtendedPropertiesCode = iModelExtendedPropertiesFilePath.ReadFileContents();
+            
+            Save(employeeVMClassCode, nameSpace, className, dllPath, typeof(Employee));
+        }
 
-           
-
-            // Combine all source codes
-            //string combinedCode = $"{iCloneableCode}\n{iViewModelCode}\n{iModelExtendedPropertiesCode}\n{employeeClassCode}\n{employeeVMClassCode}";
-
+        private static void Save(string classCode, string nameSpace, string className, string dllPath, Type baseClassType)
+        {
             var employeeVMClassGenerator = new ClassGenerator();
 
             var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
@@ -421,29 +424,18 @@ namespace Blazor.Tools.ConsoleApp
             employeeVMClassGenerator.AddReference(systemThreadingTasksLocation);  // System.Threading.Tasks.dll
 
             // Add references to assemblies containing other required types
-            employeeVMClassGenerator.AddReference(typeof(Employee).Assembly.Location);
+            employeeVMClassGenerator.AddReference(baseClassType.Assembly.Location);
             employeeVMClassGenerator.AddReference(typeof(IValidatableObject).Assembly.Location);
             employeeVMClassGenerator.AddReference(typeof(ICloneable<>).Assembly.Location);
             employeeVMClassGenerator.AddReference(typeof(IViewModel<,>).Assembly.Location);
 
-            Console.WriteLine("//EmployeeVM.cs: \r\n{0}", employeeVMClassCode);
-            //employeeVMClassGenerator.CreateType(combinedCode, className);
-            // Create the type and compile the assembly
-            employeeVMClassGenerator.CreateType(employeeVMClassCode, nameSpace, className);
-
-
-            //employeeVMClassGenerator.AddBaseClass(typeof(Employee));
-            //employeeVMClassGenerator.DeriveFromInterface(typeof(IValidatableObject));
-            //employeeVMClassGenerator.DeriveFromInterface(typeof(ICloneable<EmployeeVM>));
-            //employeeVMClassGenerator.DeriveFromInterface(typeof(IViewModel<Employee, IModelExtendedProperties>));
-
+            Console.WriteLine("//Class Code: \r\n{0}", classCode);
+             
+            employeeVMClassGenerator.CreateType(classCode, nameSpace, className);
+             
             // Save the compiled assembly to the Temp folder
             employeeVMClassGenerator.SaveAssemblyToTempFolder(dllPath);
-
-            // Create and save the dynamic assembly
-            //assemblyName.CreateAndSaveDynamicAssembly(nameSpace, className, dllPath);
-            //CreateAndSaveDynamicAssembly(assemblyName, nameSpace, className, dllPath);
-            //ClassGenerator.GenerateEmployeeVM(dllPath, nameSpace);
+             
         }
 
         public static void CreateAndSaveDynamicAssembly(string assemblyName, string nameSpace, string className, string dllPath)
@@ -618,6 +610,76 @@ namespace Blazor.Tools.ConsoleApp
 
         }
 
+
+        public static async Task RunSetEditMethodOfEmployeeVMFromBundlerDLLFileAsync()
+        {
+            // Define the paths in the Temp folder
+            string bundlerDLLPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\";
+            string assemblyName = "Blazor.Tools.BlazorBundler";
+            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+            string dllPath = Path.Combine(bundlerDLLPath, $"{assemblyName}.dll");
+
+            // Load the assembly
+            var assembly = dllPath.LoadAssemblyFromDLLFile();
+
+            // Define method and type names
+            string methodName = "SetEditMode";
+            string typeName = $"{nameSpace}.EmployeeVM";
+
+            // Create an instance of the type
+            Type type = assembly.GetType(typeName);
+            object instance = Activator.CreateInstance(type)
+                              ?? throw new InvalidOperationException($"Cannot create an instance of type '{typeName}'.");
+
+            // Invoke the method asynchronously
+            Console.WriteLine("Trying to set IsEditMode to false");
+            await assembly.InvokeMethodAsync(typeName, methodName, instance, false); // Pass parameters as needed
+
+            object isEditModeValue = instance.GetProperty("IsEditMode");
+            Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
+
+            Console.WriteLine("Trying to set IsEditMode to true");
+            await assembly.InvokeMethodAsync(typeName, methodName, instance, true); // Pass parameters as needed
+
+            isEditModeValue = instance.GetProperty("IsEditMode");
+            Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
+
+        }
+
+        public static void DecompileDLLFile()
+        {
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            string assemblyName = "Blazor.Tools.BlazorBundler";
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
+            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
+
+            dllPath.DecompileWholeModuleToClass(outputPath);
+
+        }
+
+        public static void CreateBundlerDLL()
+        {
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            string assemblyName = "Blazor.Tools.BlazorBundler";
+            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
+            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
+
+            var sampleData = new SampleData();
+
+            var selectedTable = sampleData.EmployeeDataTable;
+            var tableName = selectedTable.TableName;
+            var className = $"{tableName}VM";
+            var viewModel = new ViewModelClassGenerator(nameSpace);
+            viewModel.CreateFromDataTable(selectedTable);
+            var classCode = viewModel.ToString();
+
+            Save(classCode, nameSpace, className, dllPath, typeof(Employee));
+
+        }
+
         private static async Task RunDLLFileAsync()
         {
             // Define the paths in the Temp folder
@@ -639,22 +701,18 @@ namespace Blazor.Tools.ConsoleApp
                               ?? throw new InvalidOperationException($"Cannot create an instance of type '{typeName}'.");
 
             // Invoke the method asynchronously
+            Console.WriteLine("Trying to set IsEditMode to false");
             await assembly.InvokeMethodAsync(typeName, methodName, instance, false); // Pass parameters as needed
 
             object isEditModeValue = instance.GetProperty("IsEditMode");
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
+
+            Console.WriteLine("Trying to set IsEditMode to true");
+            await assembly.InvokeMethodAsync(typeName, methodName, instance, true); // Pass parameters as needed
+
+            isEditModeValue = instance.GetProperty("IsEditMode");
+            Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
         }
 
-        public static void DecompileDLLFile()
-        {
-            // Define the paths in the Temp folder
-            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler";
-            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
-            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
-
-            dllPath.DecompileWholeModuleToClass(outputPath);
-
-        }
     }
 }
