@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class EntityClassDynamicBuilder
+    public class EntityClassDynamicBuilder : IDisposable
     {
         private string _nameSpace;
         private DataTable _dataTable;
@@ -21,6 +21,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         private DataColumnCollection _columns;
         private StringBuilder _sb;
         private Type? _classType;
+        private bool _disposed;
+
         public Type? ClassType
         {
             get { return _classType; }
@@ -104,7 +106,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
             var classGenerator = new ClassGenerator(assemblyName);
 
-
             var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
             var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
@@ -118,17 +119,65 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
             classGenerator.AddReference(systemLocation);  // System.dll
             classGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
-
+             
             _classType = classGenerator.CreateType(classCode, nameSpace, className); // type created from memory stream does not have assembly location.
-
+             
             // Save the compiled assembly to the Temp folder
             classGenerator.SaveAssemblyToTempFolder(dllPath);
+
+            while (dllPath.IsFileInUse())
+            {
+                Console.WriteLine("EntityClassDynamicBuilder.Save()-Before LoadFile");
+                //vmDllPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
 
             using (var assembly = DisposableAssembly.LoadFile(dllPath))
             {
                 _classType = assembly.GetType($"{nameSpace}.{className}"); // type created from loading an assembly file has an assembly location.
             }
+
+            while (dllPath.IsFileInUse())
+            {
+                Console.WriteLine("EntityClassDynamicBuilder.Save()-After LoadFile");
+                //vmDllPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
+
         }
 
+        // Implement IDisposable to clean up resources
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Protected method for cleanup logic
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Perform any necessary cleanup here
+                    _nameSpace = null;
+                    _dataTable = null;
+                    _usingStatements = null;
+                    _className = null;
+                    _columns = null;
+                    _sb = null;
+                    _classType = null;
+                }
+
+                _disposed = true;
+            }
+        }
+
+        // Destructor to ensure resources are cleaned up
+        ~EntityClassDynamicBuilder()
+        {
+            Dispose(false);
+        }
     }
 }

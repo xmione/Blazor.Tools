@@ -15,19 +15,19 @@ using Blazor.Tools.BlazorBundler.Extensions;
 using System.Reflection;
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class ClassGenerator
+    public class ClassGenerator : IDisposable
     {
         private CSharpCompilation _compilation;
+        private string _assemblyName;
+        private OutputKind _outputKind;
+        private bool _disposed = false;
 
         public CSharpCompilation Compilation
         {
             get { return _compilation; }
             set { _compilation = value; }
         }
-
-        private string _assemblyName;
-        private OutputKind _outputKind;
-
+        
         public OutputKind OutputKind
         {
             get { return _outputKind; }
@@ -85,7 +85,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
 
             ms.Seek(0, SeekOrigin.Begin);
-            var assembly = Assembly.Load(ms.ToArray());
+            byte[] rawAssembly = ms.ToArray();
+            var assembly = Assembly.Load(rawAssembly);
             
             try
             {
@@ -127,11 +128,15 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             {
                 try
                 {
-                    
-                    int msLength = Convert.ToInt32(ms.Length);
                     using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
                     {
-                        fs.Write(ms.ToArray(), 0, msLength);
+                        ms.WriteTo(fs); // Write the MemoryStream contents directly to the FileStream
+                        fs.Flush(true);  // Ensure all data is written and buffers are cleared
+                    }
+
+                    while (fileName.IsFileInUse()) // Ensure no processes are locking the file
+                    {
+                        Thread.Sleep(1000);
                     }
 
                     success = true;
@@ -139,7 +144,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32) // HResult 0x20 (ERROR_SHARING_VIOLATION)
                 {
                     Console.WriteLine(ex.Message);
-                    while (fileName.IsFileInUse())
+                    while (fileName.IsFileInUse()) // Ensure no processes are locking the file
                     {
                         fileName.KillLockingProcesses();
                         Thread.Sleep(1000);
@@ -157,6 +162,34 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             Console.WriteLine("Successfully compiled and saved to {0}", fileName);
         }
-         
+
+        // Implement IDisposable to clean up resources
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Protected method for cleanup logic
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Perform any necessary cleanup here
+                    _compilation = null;
+                    _assemblyName = null;
+                }
+
+                _disposed = true;
+            }
+        }
+
+        // Destructor to ensure resources are cleaned up
+        ~ClassGenerator()
+        {
+            Dispose(false);
+        }
     }
 }

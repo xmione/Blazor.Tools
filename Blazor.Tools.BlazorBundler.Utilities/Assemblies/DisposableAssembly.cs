@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using System;
+using System.Runtime.Loader;
+using DocumentFormat.OpenXml;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
@@ -7,11 +9,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
     {
         private Assembly _assembly;
         private bool _disposed = false;
+        private AssemblyLoadContext _context;
 
-        // Constructor to initialize with an Assembly
-        public DisposableAssembly(Assembly assembly)
+        // Constructor to initialize with an Assembly and LoadContext
+        public DisposableAssembly(Assembly assembly, AssemblyLoadContext context)
         {
             _assembly = assembly;
+            _context = context;
         }
 
         // Public property to access the underlying Assembly
@@ -20,8 +24,19 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         // Static method to load an assembly from a file and return a DisposableAssembly
         public static DisposableAssembly LoadFile(string path)
         {
-            Assembly assembly = Assembly.LoadFile(path);
-            return new DisposableAssembly(assembly);
+            // Read the DLL file into a byte array
+            byte[] assemblyBytes = File.ReadAllBytes(path);
+
+            // Create a new AssemblyLoadContext to manage the assembly
+            var context = new AssemblyLoadContext(null, true);
+
+            // Load the assembly from dll file
+            // Assembly assembly = Assembly.LoadFile(path);
+            
+            // Load the assembly from the byte array
+            Assembly assembly = context.LoadFromStream(new MemoryStream(assemblyBytes));
+
+            return new DisposableAssembly(assembly, context);
         }
 
         // Instance method to get a Type from the loaded assembly
@@ -51,6 +66,9 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 {
                     // Perform any necessary cleanup here
                     _assembly = null;
+
+                    // Unload the assembly
+                    _context.Unload();
                 }
                 _disposed = true;
             }
@@ -62,4 +80,5 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             Dispose(false);
         }
     }
+
 }

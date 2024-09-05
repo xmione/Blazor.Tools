@@ -12,6 +12,7 @@ using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -754,19 +755,11 @@ namespace Blazor.Tools.ConsoleApp
             string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             
-            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
-
             var sampleData = new SampleData();
 
             var selectedTable = sampleData.EmployeeDataTable;
             var tableName = selectedTable.TableName;
             string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
-
-            while (baseDLLPath.IsFileInUse())
-            {
-                baseDLLPath.KillLockingProcesses();
-                Thread.Sleep(1000);
-            }
 
             var usingStatements = new List<string>
             {
@@ -774,26 +767,40 @@ namespace Blazor.Tools.ConsoleApp
             };
 
             string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements);
-            var baseClassCode = baseClassGenerator.ToString();
-            baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, tableName, baseDLLPath);
-            Type baseClassType = baseClassGenerator.ClassType ?? default!;
+            Type baseClassType = default!;
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements))
+            {
+                var baseClassCode = baseClassGenerator.ToString();
+                baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, tableName, baseDLLPath);
+                baseClassType = baseClassGenerator.ClassType ?? default!;
+            }
 
             string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
 
-            while (vmDllPath.IsFileInUse())
+            var vmClassName = $"{tableName}VM";
+            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
             {
-                vmDllPath.KillLockingProcesses();
+                viewModelClassGenerator.CreateFromDataTable(selectedTable);
+                var vmClassCode = viewModelClassGenerator.ToString();
+                viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
+            }
+
+            baseClassType = null;
+            while (baseDLLPath.IsFileInUse())
+            {
+                //baseDLLPath.KillLockingProcesses();
+                
                 Thread.Sleep(1000);
             }
 
-            var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace);
-            viewModelClassGenerator.CreateFromDataTable(selectedTable);
-            var vmClassCode = viewModelClassGenerator.ToString();
-            var vmClassName = $"{tableName}VM";
-            viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType);
+            while (vmDllPath.IsFileInUse())
+            {
+                //vmDllPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
 
+            await Task.CompletedTask;
         }
 
         private static async Task RunDLLFileAsync()

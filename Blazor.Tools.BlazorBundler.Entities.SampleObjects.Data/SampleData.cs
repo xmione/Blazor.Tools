@@ -3,8 +3,9 @@ using Microsoft.JSInterop;
 using Bogus;
 using System.Data;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 
-namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models
+namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 {
     public class SampleData : ATableGridData
     {

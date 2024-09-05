@@ -8,6 +8,7 @@ using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Humanizer;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Reflection;
@@ -15,7 +16,7 @@ using System.Text;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class ViewModelClassGenerator
+    public class ViewModelClassGenerator : IDisposable
     {
         private DataTable? _sourceTable;
         private string _baseClassName;
@@ -31,6 +32,14 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         private string _nameSpace;
         private PropertyInfo[] _iModelExtendedPropertiesProperties;
+
+        private Type? _classType;
+        private bool _disposed;
+
+        public Type? ClassType
+        {
+            get { return _classType; }
+        }
 
         public string NameSpace
         {
@@ -65,7 +74,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return _sb.ToString();
         }
 
-        public void Save(string assemblyName, string classCode, string nameSpace, string className, string dllPath, Type baseClassType)
+        public void Save(string assemblyName, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassTypeLocation)
         {
 
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
@@ -99,18 +108,28 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(systemThreadingTasksLocation);  // System.Threading.Tasks.dll
 
             // Add references to assemblies containing other required types
-            classGenerator.AddReference(baseClassType.Assembly.Location);
+            classGenerator.AddReference(baseClassTypeLocation);
             classGenerator.AddReference(typeof(IValidatableObject).Assembly.Location);
             classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location);
             classGenerator.AddReference(typeof(IViewModel<,>).Assembly.Location);
             classGenerator.AddReference(typeof(IContextProvider).Assembly.Location);
             classGenerator.AddReference(typeof(ContextProvider).Assembly.Location);
 
-            classGenerator.CreateType(classCode, nameSpace, className);
+            _classType = classGenerator.CreateType(classCode, nameSpace, className);
 
             // Save the compiled assembly to the Temp folder
             classGenerator.SaveAssemblyToTempFolder(dllPath);
 
+            using (var assembly = DisposableAssembly.LoadFile(dllPath)) // type created from memory stream does not have assembly location.
+            {
+                _classType = assembly.GetType($"{nameSpace}.{className}"); // type created from loading an assembly file has an assembly location.
+            }
+
+            while (dllPath.IsFileInUse())
+            {
+                //vmDllPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
         }
 
         private void AddUsings()
@@ -897,6 +916,36 @@ using System.Threading.Tasks;";
 
             _sb.AppendLine();
         }
+        // Implement IDisposable to clean up resources
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        // Protected method for cleanup logic
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Perform any necessary cleanup here
+                    _sourceTable = null;
+                    _baseClassName = null;
+                    _vmClassName = null;
+                    _columns = null;
+                    _sb = null;
+                }
+
+                _disposed = true;
+            }
+        }
+
+        // Destructor to ensure resources are cleaned up
+        ~ViewModelClassGenerator()
+        {
+            Dispose(false);
+        }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
-using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using BlazorBootstrap;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -146,10 +146,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task InitializeVariables()
         {
+            _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM; // use this variable and do not change the paramter variable SelectedTable
             _tableName = SelectedTable?.TableName ?? _tableName; //Employee
 
+            await CreateBundlerDLL();
+            await DefineTableColumns();
 
-            //_selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM;
+            
 
             //// Create an instance of DynamicClassBuilder for TModel
             //var modelClassBuilder = new DynamicClassBuilder(_tableName);
@@ -185,7 +188,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             //// Create the TModelVM class from the DataTable
             //modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
-            
+
             //await DefineConstructors(modelVMClassBuilder);
             //await DefineMethods(modelVMClassBuilder, tModelType, tiModelType);
             //await DefineTableColumns(modelVMClassBuilder);
@@ -219,6 +222,59 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //        Key = $"{Title}_showSetTargetTableModal", Value = _showSetTargetTableModal, Type = typeof(bool), Serialize = true
             //    }
             //};
+
+            await Task.CompletedTask;
+        }
+
+        public async Task CreateBundlerDLL()
+        {
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+
+            var sampleData = new SampleData();
+
+            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
+
+            var usingStatements = new List<string>
+            {
+                "System"
+            };
+
+            string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            Type baseClassType = default!;
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, _selectedTableVM, usingStatements))
+            {
+                var baseClassCode = baseClassGenerator.ToString();
+                baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, _tableName, baseDLLPath);
+                baseClassType = baseClassGenerator.ClassType ?? default!;
+            }
+
+            string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
+
+            var vmClassName = $"{_tableName}VM";
+            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
+            {
+                viewModelClassGenerator.CreateFromDataTable(_selectedTableVM);
+                var vmClassCode = viewModelClassGenerator.ToString();
+                viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
+            }
+
+            baseClassType = null;
+            while (baseDLLPath.IsFileInUse())
+            {
+                //baseDLLPath.KillLockingProcesses();
+
+                Thread.Sleep(1000);
+            }
+
+            while (vmDllPath.IsFileInUse())
+            {
+                //vmDllPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
 
             await Task.CompletedTask;
         }
@@ -648,12 +704,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
         
-        private async Task DefineTableColumns(DynamicClassBuilder vmClassBuilder)
+        private async Task DefineTableColumns()
         {
-
-            // Create an instance of the dynamic TModelVM class
-            _modelVMInstance = vmClassBuilder.CreateInstance();
-
             // Get the type of the dynamic TModel and TModelVM classes
             _modelType = _modelInstance?.GetType() ?? default!;
             _modelVMType = _modelVMInstance?.GetType() ?? default!;

@@ -55,7 +55,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 
             if (fileInfo.IsFileInUse())
             {
-                Console.WriteLine("File is in use by the following processes:");
+                Console.WriteLine("File {0} is in use by the following processes:", filePath);
 
                 LockingProcesses = fileInfo.GetProcessesUsingFile();
                 foreach (var process in LockingProcesses)
@@ -67,7 +67,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
             else
             {
-                Console.WriteLine("File is not in use.");
+                Console.WriteLine("File {0} is not in use.", filePath);
             }
 
             return isInUse;
