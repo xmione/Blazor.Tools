@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.8" />
+    <PackageReference Include="Microsoft.JSInterop" Version="8.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Extensions\Blazor.Tools.BlazorBundler.Extensions.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

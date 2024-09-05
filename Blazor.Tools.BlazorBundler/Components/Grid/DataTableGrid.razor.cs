@@ -1,7 +1,10 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using BlazorBootstrap;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Components;
@@ -144,55 +147,57 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private async Task InitializeVariables()
         {
             _tableName = SelectedTable?.TableName ?? _tableName; //Employee
-            _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM;
 
-            // Create an instance of DynamicClassBuilder for TModel
-            var modelClassBuilder = new DynamicClassBuilder(_tableName);
 
-            // Create the TModel class from the DataTable
-            if (SelectedTable != null)
-            {
-                modelClassBuilder.CreateClassFromDataTable(SelectedTable);
-            }
+            //_selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM;
 
-            // Create an instance of the dynamic TModel class
-            _modelInstance = modelClassBuilder.CreateInstance();
-            if (_modelInstance == null)
-            {
-                throw new InvalidOperationException("Failed to create an instance of TModel.");
-            }
+            //// Create an instance of DynamicClassBuilder for TModel
+            //var modelClassBuilder = new DynamicClassBuilder(_tableName);
 
-            // Retrieve type from the model instance
-            var tModelType = _modelInstance.GetType();
-            if (tModelType == null)
-            {
-                throw new InvalidOperationException("Failed to retrieve the type from the model instance.");
-            }
+            //// Create the TModel class from the DataTable
+            //if (SelectedTable != null)
+            //{
+            //    modelClassBuilder.CreateClassFromDataTable(SelectedTable);
+            //}
 
-            // Define and create an instance of DynamicClassBuilder for TModelVM
-            var tiModelType = typeof(IModelExtendedProperties);
-            var iViewModel = new Type[] { typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType), tiModelType };
-            var modelVMClassBuilder = new DynamicClassBuilder(
-                _tableName +"VM",
-                tModelType, // base class e.g.: Employee
-                iViewModel
-            );
+            //// Create an instance of the dynamic TModel class
+            //_modelInstance = modelClassBuilder.CreateInstance();
+            //if (_modelInstance == null)
+            //{
+            //    throw new InvalidOperationException("Failed to create an instance of TModel.");
+            //}
 
-            // Create the TModelVM class from the DataTable
-            modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
+            //// Retrieve type from the model instance
+            //var tModelType = _modelInstance.GetType();
+            //if (tModelType == null)
+            //{
+            //    throw new InvalidOperationException("Failed to retrieve the type from the model instance.");
+            //}
+
+            //// Define and create an instance of DynamicClassBuilder for TModelVM
+            //var tiModelType = typeof(IModelExtendedProperties);
+            //var iViewModel = new Type[] { typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType), tiModelType };
+            //var modelVMClassBuilder = new DynamicClassBuilder(
+            //    _tableName +"VM",
+            //    tModelType, // base class e.g.: Employee
+            //    iViewModel
+            //);
+
+            //// Create the TModelVM class from the DataTable
+            //modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
             
-            await DefineConstructors(modelVMClassBuilder);
-            await DefineMethods(modelVMClassBuilder, tModelType, tiModelType);
-            await DefineTableColumns(modelVMClassBuilder);
+            //await DefineConstructors(modelVMClassBuilder);
+            //await DefineMethods(modelVMClassBuilder, tModelType, tiModelType);
+            //await DefineTableColumns(modelVMClassBuilder);
 
-            // Define the paths in the Temp folder
-            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            var modelTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}.dll");
-            var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}VM.dll");
+            //// Define the paths in the Temp folder
+            //var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            //var modelTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}.dll");
+            //var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}VM.dll");
 
-            // Save the assemblies to the Temp folder
-            modelClassBuilder.SaveAssembly(modelTempDllPath);
-            modelVMClassBuilder.SaveAssembly(modelVMTempDllPath);
+            //// Save the assemblies to the Temp folder
+            //modelClassBuilder.SaveAssembly(modelTempDllPath);
+            //modelVMClassBuilder.SaveAssembly(modelVMTempDllPath);
 
 
             //_sessionItems = new List<SessionItem>

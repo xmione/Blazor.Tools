@@ -36,6 +36,11 @@
       "path": "htmlagilitypack.1.11.61.nupkg"
     },
     {
+      "version": "2.14.1",
+      "id": "humanizer",
+      "path": "humanizer.2.14.1.nupkg"
+    },
+    {
       "version": "8.2.0.7535",
       "id": "icsharpcode.decompiler",
       "path": "icsharpcode.decompiler.8.2.0.7535.nupkg"

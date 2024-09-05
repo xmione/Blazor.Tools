@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using System.Data;
 using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.SessionManagement;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {

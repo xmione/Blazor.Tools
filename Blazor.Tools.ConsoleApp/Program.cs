@@ -4,12 +4,14 @@ using System.Diagnostics;
 using HtmlAgilityPack;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Mono.Cecil;
-using Blazor.Tools.BlazorBundler.Entities.SampleObjects;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Mono.Cecil.Rocks;
 using System.ComponentModel.DataAnnotations;
-using Blazor.Tools.BlazorBundler.Entities;
 using System.Reflection;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
+using Blazor.Tools.BlazorBundler.Entities;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -44,11 +46,11 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
                 Console.WriteLine("[10] - Train sample Language Data");
                 Console.WriteLine("[11] - Decompile IL code");
-                Console.WriteLine("[12] - Decompile EmployeeVM.dll");
-                Console.WriteLine("[13] - Decompile EmployeeVM SetEditMode");
-                Console.WriteLine("[14] - Save Dynamically Created Assembly to .dll file");
+                Console.WriteLine("[12] - Save Dynamically Created Assembly to .dll file");
+                Console.WriteLine("[13] - Decompile ViewModels dll");
+                Console.WriteLine("[14] - Decompile ViewModels dll and Invoke EmployeeVM SetEditMode");
                 Console.WriteLine("[15] - Run SetEditMethod of EmployeeVM from Blazor.Tools.BlazorBundler.dll ");
-                Console.WriteLine("[16] - Decompile .dll to class (.cs) file to Temp folder");
+                Console.WriteLine("[16] - Decompile .dll to Temp folder class (.cs) file");
                 Console.WriteLine("[17] - Create Blazor.Tools.BlazorBundler.dll to Temp folder");
                 Console.WriteLine("[18] - Run .dll file method from Temp folder");
                 Console.WriteLine("[19] - Exit");
@@ -149,15 +151,15 @@ namespace Blazor.Tools.ConsoleApp
                         break;
                     case "12":
 
-                        DecompileEmployeeVM();
+                        SaveDynamicallyCreatedAssembly(); 
                         break;
                     case "13":
 
-                        DecompileEmployeeVMSetEditModeMethod();
+                        DecompileEmployeeVM(); 
                         break;
                     case "14":
 
-                        SaveDynamicallyCreatedAssembly();
+                        DecompileEmployeeVMSetEditModeMethod();
                         break;
                     case "15":
 
@@ -181,6 +183,8 @@ namespace Blazor.Tools.ConsoleApp
                         Console.WriteLine("Invalid choice. Please try again.");
                         break;
                 }
+
+                Console.WriteLine("Your last choice was: {0}", choice);
             }
         }
 
@@ -301,17 +305,20 @@ namespace Blazor.Tools.ConsoleApp
 
         private static void DecompileILCode()
         {
-            var convertIL = new ILToSourceCodeConverter();
+            string ilCodeString = "02 03 6F 2A 00 00 0A 28 2B 00 00 0A 02 2A";
+
+            var ilDecoder = new ILDecoder();
+            byte[] ilCode = ilDecoder.ConvertHexStringToByteArray(ilCodeString);
+            ilDecoder.DecodeIL(ilCode);
         }
 
         private static void DecompileEmployeeVM()
         {
-            string blazorBundlerPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\";
-            string blazorBundlerFile = "Blazor.Tools.BlazorBundler.dll";
+            string blazorBundlerPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\";
+            string viewModelsDLLFileName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll";
             string defaultTempFolder = Path.GetTempPath();
 
             string tempFolder = string.Empty;
-            string dllFileName = string.Empty;
             string? assemblyPath = null;
 
             bool continueLoop = true;
@@ -327,15 +334,11 @@ namespace Blazor.Tools.ConsoleApp
                 {
                     case "":
                     case "0":
-                        tempFolder = defaultTempFolder; // sets the default if you did not specify a dll file name.
-                        dllFileName = "EmployeeVM.dll";
-                        assemblyPath = Path.Combine(tempFolder, dllFileName);
+                        assemblyPath = Path.Combine(defaultTempFolder, viewModelsDLLFileName);
                         
                         break;
                     case "1":
-                        tempFolder = blazorBundlerPath; // sets the default if you did not specify a dll file name.
-                        dllFileName = blazorBundlerFile;
-                        assemblyPath = Path.Combine(tempFolder, dllFileName);
+                        assemblyPath = Path.Combine(blazorBundlerPath, viewModelsDLLFileName);
                          
                         break;
                     default:
@@ -355,7 +358,7 @@ namespace Blazor.Tools.ConsoleApp
                 }
             }
             
-            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";
+            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.EmployeeVM";
             if (assemblyPath != null)
             {
                 Console.WriteLine("Decompiling {0} [{1}]", assemblyPath, typeName);
@@ -363,39 +366,104 @@ namespace Blazor.Tools.ConsoleApp
 
                 Console.WriteLine(decompiledCode);
             }
+
+            Console.WriteLine("You have just decompiled {0}", assemblyPath);
         }
 
         private static void DecompileEmployeeVMSetEditModeMethod()
         {
-            string assemblyPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\Blazor.Tools.BlazorBundler.dll";
-            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.EmployeeVM";  // Change to your desired type
+            string vmDllFileName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll";
+            string tempPath = Path.Combine(Path.GetTempPath(), vmDllFileName);
+            string bundlerPath = Path.Combine(@"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\", vmDllFileName);
+            string assemblyPath = string.Empty;
+
+            bool continueLoop = true;
+            while (continueLoop)
+            {
+                Console.WriteLine("Please choose a file to decompile:");
+                Console.WriteLine("[0] = (Default) {0}", tempPath);
+                Console.WriteLine("[1] = {0}", bundlerPath);
+                
+                var choice = Console.ReadLine();
+                switch (choice)
+                {
+                    case "":
+                    case "0":
+                        assemblyPath = tempPath;
+                        continueLoop = false;
+                        break;
+                    case "1":
+                        assemblyPath = bundlerPath;
+                        continueLoop = false;
+                        break;
+                }
+            }
+
+            string typeName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.EmployeeVM";  // Change to your desired type
             string methodName = "SetEditMode";
 
             // Using extension method
             string decompiledCodeFromExtension = assemblyPath.DecompileMethod(typeName, methodName);
             Console.WriteLine(decompiledCodeFromExtension);
+            Console.WriteLine("Decompiled assembly: {0}", assemblyPath);
+
         }
 
         public static void SaveDynamicallyCreatedAssembly()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler";
-            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
-            string className = "EmployeeVM";
-            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
+            string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string vmAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            string vmNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            
+            string baseClassName = "Employee";
+            string baseClassDllPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
+            
+            string vmClassName = "EmployeeVM";
+            string vmDllPath = Path.Combine(tempFolderPath, $"{vmAssemblyName}.dll");
 
             // Read the code for all relevant classes and interfaces
-            string employeeVMClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\Entities\SampleObjects\EmployeeVM.cs";
-             
+            string employeeClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Employee.cs";
+            string employeeClassCode = employeeClassFilePath.ReadFileContents();
+            SaveBaseClass(baseClassAssemblyName, employeeClassCode, baseClassNameSpace, baseClassName, baseClassDllPath);
+
+            string employeeVMClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\EmployeeVM.cs";
             string employeeVMClassCode = employeeVMClassFilePath.ReadFileContents();
-            
-            Save(employeeVMClassCode, nameSpace, className, dllPath, typeof(Employee));
+            SaveVM(vmAssemblyName, employeeVMClassCode, vmNameSpace, vmClassName, vmDllPath, typeof(Employee));
         }
 
-        private static void Save(string classCode, string nameSpace, string className, string dllPath, Type baseClassType)
+        private static void SaveBaseClass(string assemblyName, string classCode, string nameSpace, string className, string dllPath)
         {
-            var employeeVMClassGenerator = new ClassGenerator();
+            var employeeVMClassGenerator = new ClassGenerator(assemblyName);
+
+            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
+            var systemRuntimeFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Runtime.dll";
+            var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
+
+            var systemLocation = Path.Combine(programFilesPath, systemFilePath);
+            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath);
+            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath);
+
+            // Add references to existing assemblies that contain types used in the dynamic class
+            employeeVMClassGenerator.AddReference(systemLocation);  // System.dll
+            employeeVMClassGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
+            employeeVMClassGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
+
+            Console.WriteLine("//Class Code: \r\n{0}", classCode);
+             
+            employeeVMClassGenerator.CreateType(classCode, nameSpace, className);
+             
+            // Save the compiled assembly to the Temp folder
+            employeeVMClassGenerator.SaveAssemblyToTempFolder(dllPath);
+             
+        }
+        
+        private static void SaveVM(string assemblyName, string classCode, string nameSpace, string className, string dllPath, Type baseClassType)
+        {
+            var employeeVMClassGenerator = new ClassGenerator(assemblyName);
 
             var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
@@ -428,6 +496,7 @@ namespace Blazor.Tools.ConsoleApp
             employeeVMClassGenerator.AddReference(typeof(IValidatableObject).Assembly.Location);
             employeeVMClassGenerator.AddReference(typeof(ICloneable<>).Assembly.Location);
             employeeVMClassGenerator.AddReference(typeof(IViewModel<,>).Assembly.Location);
+            employeeVMClassGenerator.AddReference(typeof(ContextProvider).Assembly.Location);
 
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
              
@@ -614,9 +683,9 @@ namespace Blazor.Tools.ConsoleApp
         public static async Task RunSetEditMethodOfEmployeeVMFromBundlerDLLFileAsync()
         {
             // Define the paths in the Temp folder
-            string bundlerDLLPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\bin\Debug\net8.0\";
-            string assemblyName = "Blazor.Tools.BlazorBundler";
-            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+            string bundlerDLLPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\";
+            string assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string dllPath = Path.Combine(bundlerDLLPath, $"{assemblyName}.dll");
 
             // Load the assembly
@@ -649,8 +718,28 @@ namespace Blazor.Tools.ConsoleApp
         public static void DecompileDLLFile()
         {
             // Define the paths in the Temp folder
-            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler";
+            var tempFolderPath = Path.GetTempPath(); 
+            string assemblyName = string.Empty;
+            Console.WriteLine("This will decompile the selected dll file from the temp folder: \r\n\t{0}", tempFolderPath);
+            Console.WriteLine("Please select an option: Default option when is [0]");
+            Console.WriteLine("[0] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll");
+            Console.WriteLine("[1] - Blazor.Tools.BlazorBundler.dll");
+            Console.WriteLine("[2] - Employee.dll");
+
+            string choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "":
+                case "0":
+                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+                    break;
+                case "1":
+                    assemblyName = "Blazor.Tools.BlazorBundler";
+                    break;
+                case "2":
+                    assemblyName = "Employee";
+                    break;
+            }
             string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
             var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
 
@@ -658,25 +747,52 @@ namespace Blazor.Tools.ConsoleApp
 
         }
 
-        public static void CreateBundlerDLL()
+        public static async Task CreateBundlerDLL()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler";
-            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
-            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
+            string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            
             var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
 
             var sampleData = new SampleData();
 
             var selectedTable = sampleData.EmployeeDataTable;
             var tableName = selectedTable.TableName;
-            var className = $"{tableName}VM";
-            var viewModel = new ViewModelClassGenerator(nameSpace);
-            viewModel.CreateFromDataTable(selectedTable);
-            var classCode = viewModel.ToString();
+            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
 
-            Save(classCode, nameSpace, className, dllPath, typeof(Employee));
+            while (baseDLLPath.IsFileInUse())
+            {
+                baseDLLPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
+
+            var usingStatements = new List<string>
+            {
+                "System"
+            };
+
+            string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements);
+            var baseClassCode = baseClassGenerator.ToString();
+            baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, tableName, baseDLLPath);
+            Type baseClassType = baseClassGenerator.ClassType ?? default!;
+
+            string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
+
+            while (vmDllPath.IsFileInUse())
+            {
+                vmDllPath.KillLockingProcesses();
+                Thread.Sleep(1000);
+            }
+
+            var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace);
+            viewModelClassGenerator.CreateFromDataTable(selectedTable);
+            var vmClassCode = viewModelClassGenerator.ToString();
+            var vmClassName = $"{tableName}VM";
+            viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType);
 
         }
 
@@ -684,8 +800,8 @@ namespace Blazor.Tools.ConsoleApp
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string assemblyName = "Blazor.Tools.BlazorBundler";
-            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+            string assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
 
             // Load the assembly

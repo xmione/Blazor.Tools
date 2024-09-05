@@ -1,4 +1,5 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.SessionManagement;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;

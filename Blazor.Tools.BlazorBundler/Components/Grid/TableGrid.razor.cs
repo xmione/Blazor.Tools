@@ -7,6 +7,7 @@ using Blazor.Tools.BlazorBundler.Extensions;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Text.Json;
 using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.Factories;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {

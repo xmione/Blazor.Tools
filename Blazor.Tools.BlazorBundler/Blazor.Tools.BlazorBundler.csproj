@@ -148,13 +148,13 @@
     <PackageReference Include="Bogus" Version="35.6.0" />
     <PackageReference Include="ClosedXML" Version="0.102.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
     <PackageReference Include="Humanizer" Version="2.14.1" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.26" />
-    <PackageReference Include="Microsoft.Build" Version="17.10.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.8" />
+    <PackageReference Include="Microsoft.Build" Version="17.11.4" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
@@ -164,119 +164,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Entities\AIDataAccess.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\AssemblyTable.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\BBBrowserFile.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\BBBrowserFileJsonConverter.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\BrowserFileConverter.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\DataRowViewModel.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\DataTableJsonConverter.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\ExcelProcessor.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\LanguageData.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\LanguagePrediction.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\LookupFieldConditionEnum.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\Message.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\ProcessManager.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\RenderState.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SearchField.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SentimentAnalysisBuilder.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SentimentData.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SentimentPrediction.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SessionManager.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\SessionTable.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\TableEnum.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\TargetTable.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\TargetTableColumn.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\TargetTableColumnConverter.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\VisualStudioAutomation.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Entities\WebScraper.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\DataTableExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\DateTimeExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\JsonExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\LinqExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\ReflectionExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\RenderFragmentExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Extensions\SerializationExtensions.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Interfaces\ICommonService.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Interfaces\IReportItem.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Interfaces\ISessionTable.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Interfaces\ITargetTable.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-    <Compile Update="Interfaces\ITargetTableColumn.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Factories\Blazor.Tools.BlazorBundler.Factories.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.SessionManagement\Blazor.Tools.BlazorBundler.SessionManagement.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
   </ItemGroup>
 </Project>

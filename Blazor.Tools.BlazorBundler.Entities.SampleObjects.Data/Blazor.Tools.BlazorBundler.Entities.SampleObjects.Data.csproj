@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+  </ItemGroup>
+
+</Project>

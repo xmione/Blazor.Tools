@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
@@ -18,6 +18,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Extensions\Blazor.Tools.BlazorBundler.Extensions.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.SessionManagement\Blazor.Tools.BlazorBundler.SessionManagement.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>
