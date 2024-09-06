@@ -109,11 +109,9 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             // Add references to assemblies containing other required types
             classGenerator.AddReference(baseClassTypeLocation);
-            classGenerator.AddReference(typeof(IValidatableObject).Assembly.Location);
-            classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location);
-            classGenerator.AddReference(typeof(IViewModel<,>).Assembly.Location);
-            classGenerator.AddReference(typeof(IContextProvider).Assembly.Location);
-            classGenerator.AddReference(typeof(ContextProvider).Assembly.Location);
+            classGenerator.AddReference(typeof(IValidatableObject).Assembly.Location); // System.ComponentModel.DataAnnotations.dll
+            classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location); // Blazor.Tools.BlazorBundler.Interfaces, same with ICloneable, IViewModel and IContextProvider
+            classGenerator.AddReference(typeof(ContextProvider).Assembly.Location); // Blazor.Tools.BlazorBundler.Entities
 
             _classType = classGenerator.CreateType(classCode, nameSpace, className);
 

@@ -8,6 +8,8 @@ using System.Data;
 using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.SessionManagement;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Reflection;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -478,9 +480,20 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             if (_items != null && modelVM != null && ModelVM != null)
             {
                 _isEditing = true;
-                var methodILContents = modelVM.GetType().GetILCode("SetEditMode");
+                var vmType = modelVM.GetType();
+                //var dllPath = vmType.Assembly.Location;
+                //var vmCodePath = Path.Combine(Path.GetTempPath(), "DecompiledCode.cs");
+                //dllPath.DecompileWholeModuleToClass(vmCodePath);
+
+                var typeName = vmType.FullName;
+                var methodName = "HelloWorld";
+                var instance = Activator.CreateInstance(vmType);
+                await vmType.Assembly.InvokeMethodAsync(typeName, methodName, instance, "Sol"); // Pass parameters as needed
+
+                //var methodILContents = modelVM.GetType().GetILCode("SetEditMode");
                 //var methodContents = modelVM.GetType().GetMethodCode("SetEditMode");
                 //Console.WriteLine("SetEditMode Contents: \r\n\t{0}", methodContents);
+
                 var setEditModeMethod = modelVM.GetType().GetMethod("SetEditMode");
                 if (setEditModeMethod == null)
                 {

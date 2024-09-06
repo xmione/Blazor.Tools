@@ -35,6 +35,7 @@
         Console.WriteLine($"Id: {idValue}, Name: {nameValue}, Age: {ageValue}");
 
   ====================================================================================================*/
+using Blazor.Tools.BlazorBundler.Extensions;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -61,19 +62,20 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             set { _dynamicType = value; }
         }
 
-        public DynamicClassBuilder(string className, Type? baseType = null, Type[]? interfaces = null)
+        public DynamicClassBuilder(string assemblyName, string className, Type? baseType = null, Type[]? interfaces = null)
         {
-            _assemblyName = new AssemblyName("DynamicAssembly");
+            var fullyQualifiedClassName = $"{assemblyName}.{className}";
+            _assemblyName = new AssemblyName(assemblyName);
             _assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.Run);
-            _moduleBuilder = _assemblyBuilder.DefineDynamicModule("MainModule");
-
+            _moduleBuilder = _assemblyBuilder.DefineDynamicModule(assemblyName);
+            
             _hasInterfaces = interfaces != null && interfaces.Length > 0;
             _interfaces = interfaces;
             _constructors = new List<(ConstructorBuilder, Type[])>();
             _addedProperties = new List<string>();
             _addedMethods = new List<string>();
             _typeBuilder = _moduleBuilder.DefineType(
-                className,
+                fullyQualifiedClassName,
                 TypeAttributes.Public | TypeAttributes.Class,
                 baseType,
                 interfaces
@@ -265,12 +267,12 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _assemblyFilePath = assemblyFilePath;
             // Create an assembly in memory
             var assembly = _moduleBuilder.Assembly;
-
+            
             // Save the assembly to disk
             using (var fileStream = new FileStream(assemblyFilePath, FileMode.Create, FileAccess.Write))
             {
-                //var assemblyBytes = ; //get assemblyBytes here and do not create any additional methods for this
-                //fileStream.Write(assemblyBytes, 0, assemblyBytes.Length);
+                var assemblyBytes = assembly.GetAssemblyBytesFromDynamicAssembly(); //get assemblyBytes here and do not create any additional methods for this
+                fileStream.Write(assemblyBytes, 0, assemblyBytes.Length);
             }
         }
 
@@ -281,8 +283,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 File.Delete(_assemblyFilePath);
             }
         }
-
-
 
     }
 }

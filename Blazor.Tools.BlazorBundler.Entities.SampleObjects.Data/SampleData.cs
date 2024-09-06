@@ -112,6 +112,22 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             set { _countryHeaderNames = value; }
         }
 
+        private string _modelsAssemblyName;
+
+        public string ModelsAssemblyName
+        {
+            get { return _modelsAssemblyName; }
+            set { _modelsAssemblyName = value; }
+        }
+        
+        private string _viewModelsAssemblyName;
+
+        public string ViewModelsAssemblyName
+        {
+            get { return _viewModelsAssemblyName; }
+            set { _viewModelsAssemblyName = value; }
+        }
+
         public SampleData()
         {
             Title = "Employee List";
@@ -142,6 +158,8 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             _hiddenCountryColumns = new List<string>();
             _employeeHeaderNames = default!;
             _countryHeaderNames = default!;
+            _modelsAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            _viewModelsAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
 
             CreateTableColumnDefinitions();
             CreateDummyData();

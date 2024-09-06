@@ -23,6 +23,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string TableID { get; set; } = default!;
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public DataTable SelectedTable { get; set; } = default!;
+        [Parameter] public string ModelsAssemblyName { get; set; } = default!;
+        [Parameter] public string ViewModelsAssemblyName { get; set; } = default!;
         [Parameter] public bool AllowCellRangeSelection { get; set; } = false;
         [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
         [Parameter] public List<string> HiddenColumnNames { get; set; } = default!;
@@ -146,62 +148,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task InitializeVariables()
         {
-            _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM; // use this variable and do not change the paramter variable SelectedTable
+            _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM; // use this variable and do not change the parameter variable SelectedTable
             _tableName = SelectedTable?.TableName ?? _tableName; //Employee
 
-            await CreateBundlerDLL();
-            await DefineTableColumns();
-
-            
-
-            //// Create an instance of DynamicClassBuilder for TModel
-            //var modelClassBuilder = new DynamicClassBuilder(_tableName);
-
-            //// Create the TModel class from the DataTable
-            //if (SelectedTable != null)
-            //{
-            //    modelClassBuilder.CreateClassFromDataTable(SelectedTable);
-            //}
-
-            //// Create an instance of the dynamic TModel class
-            //_modelInstance = modelClassBuilder.CreateInstance();
-            //if (_modelInstance == null)
-            //{
-            //    throw new InvalidOperationException("Failed to create an instance of TModel.");
-            //}
-
-            //// Retrieve type from the model instance
-            //var tModelType = _modelInstance.GetType();
-            //if (tModelType == null)
-            //{
-            //    throw new InvalidOperationException("Failed to retrieve the type from the model instance.");
-            //}
-
-            //// Define and create an instance of DynamicClassBuilder for TModelVM
-            //var tiModelType = typeof(IModelExtendedProperties);
-            //var iViewModel = new Type[] { typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType), tiModelType };
-            //var modelVMClassBuilder = new DynamicClassBuilder(
-            //    _tableName +"VM",
-            //    tModelType, // base class e.g.: Employee
-            //    iViewModel
-            //);
-
-            //// Create the TModelVM class from the DataTable
-            //modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
-
-            //await DefineConstructors(modelVMClassBuilder);
-            //await DefineMethods(modelVMClassBuilder, tModelType, tiModelType);
-            //await DefineTableColumns(modelVMClassBuilder);
-
-            //// Define the paths in the Temp folder
-            //var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            //var modelTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}.dll");
-            //var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}VM.dll");
-
-            //// Save the assemblies to the Temp folder
-            //modelClassBuilder.SaveAssembly(modelTempDllPath);
-            //modelVMClassBuilder.SaveAssembly(modelVMTempDllPath);
-
+            await CreateDynamicBundlerDLL();
+            //await CreateBundlerDLL();
 
             //_sessionItems = new List<SessionItem>
             //{
@@ -226,14 +177,64 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
+        public async Task CreateDynamicBundlerDLL()
+        {
+            // Create an instance of DynamicClassBuilder for TModel
+            var modelClassBuilder = new DynamicClassBuilder(ModelsAssemblyName, _tableName);
+
+            // Create the TModel class from the DataTable
+            if (SelectedTable != null)
+            {
+                modelClassBuilder.CreateClassFromDataTable(SelectedTable);
+            }
+
+            // Create an instance of the dynamic TModel class
+            _modelInstance = modelClassBuilder.CreateInstance();
+            if (_modelInstance == null)
+            {
+                throw new InvalidOperationException("Failed to create an instance of TModel.");
+            }
+
+            // Retrieve type from the model instance
+            var tModelType = _modelInstance.GetType();
+            if (tModelType == null)
+            {
+                throw new InvalidOperationException("Failed to retrieve the type from the model instance.");
+            }
+
+            // Define and create an instance of DynamicClassBuilder for TModelVM
+            var tiModelType = typeof(IModelExtendedProperties);
+            var iViewModel = new Type[] { typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType), tiModelType };
+            var modelVMClassBuilder = new DynamicClassBuilder(
+                ViewModelsAssemblyName,
+                _tableName + "VM",
+                tModelType, // base class e.g.: Employee
+                iViewModel
+            );
+
+            // Create the TModelVM class from the DataTable
+            modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
+
+            await DefineConstructors(modelVMClassBuilder);
+            await DefineMethods(modelVMClassBuilder, tModelType, tiModelType);
+            await DefineTableColumns(modelVMClassBuilder);
+
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            var modelTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}.dll");
+            var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{_tableName}VM.dll");
+
+            // Save the assemblies to the Temp folder
+            //modelClassBuilder.SaveAssembly(modelTempDllPath);
+            //modelVMClassBuilder.SaveAssembly(modelVMTempDllPath);
+        }
+
         public async Task CreateBundlerDLL()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
             string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-
-            var sampleData = new SampleData();
 
             string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
 
@@ -255,14 +256,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
 
             var vmClassName = $"{_tableName}VM";
+            Type vmClassType = default!;
             using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
             {
                 viewModelClassGenerator.CreateFromDataTable(_selectedTableVM);
                 var vmClassCode = viewModelClassGenerator.ToString();
                 viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
+                vmClassType = viewModelClassGenerator.ClassType ?? default!;
             }
 
-            baseClassType = null;
+            //baseClassType = null;
             while (baseDLLPath.IsFileInUse())
             {
                 //baseDLLPath.KillLockingProcesses();
@@ -276,6 +279,45 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 Thread.Sleep(1000);
             }
 
+            _modelType = baseClassType;
+            _modelVMType = vmClassType;
+
+            _modelInstance = Activator.CreateInstance(_modelType);
+            _modelVMInstance = Activator.CreateInstance(_modelVMType);
+
+            // Use reflection to work with IViewModel
+            
+            var iModelType = typeof(IModelExtendedProperties);
+            var viewModelInterfaceType = typeof(IViewModel<,>).MakeGenericType(_modelType, iModelType);
+
+            var isEqual = _modelType == _modelInstance.GetType();
+            var isEqualVM = _modelVMType == _modelVMInstance.GetType();
+
+            // Load the assembly and get the type
+            Assembly generatedAssembly = Assembly.LoadFrom(vmDllPath);
+            Type viewModelType = generatedAssembly.GetType("Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.EmployeeVM");
+
+            // Ensure that _modelType and iModelType are the types you expect
+            bool implementsViewModelInterface = viewModelInterfaceType.IsAssignableFrom(viewModelType);
+            Console.WriteLine($"Implements IViewModel<,>: {implementsViewModelInterface}");
+
+
+            if (viewModelInterfaceType.IsAssignableFrom(_modelVMType))
+            {
+                // Access the Model property via reflection
+                var modelProperty = viewModelInterfaceType.GetProperty("Model");
+                //var modelInstance = modelProperty.;
+
+                //Console.WriteLine("Model Instance: " + modelInstance?.ToString());
+
+                // Access other properties or methods as needed
+            }
+            else
+            {
+                Console.WriteLine("The generated ViewModel does not implement IViewModel.");
+            }
+
+            await DefineTableColumns();
             await Task.CompletedTask;
         }
 
@@ -473,6 +515,41 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Return the result
                 ilg.Emit(OpCodes.Ret);
             });
+
+            // Define the HelloWorld method
+            vmClassBuilder.DefineMethod(
+                "HelloWorld",
+                typeof(Task<string>), // Return type
+                new[] { typeof(string) }, // Parameter types
+                new[] { "message" }, // Parameter names
+                (ilg, localBuilder) =>
+                {
+                    // Load 'message' (parameter 1) onto the evaluation stack
+                    ilg.Emit(OpCodes.Ldarg_1);
+
+                    // Call Console.WriteLine with the message
+                    var consoleType = typeof(Console);
+                    var writeLineMethod = consoleType.GetMethod("WriteLine", new[] { typeof(string) });
+                    if (writeLineMethod == null)
+                    {
+                        throw new InvalidOperationException("Console.WriteLine method not found.");
+                    }
+                    ilg.Emit(OpCodes.Call, writeLineMethod);
+
+                    // Load 'message' (parameter 1) onto the evaluation stack again
+                    ilg.Emit(OpCodes.Ldarg_1);
+
+                    // Create a Task<string> with the message as a completed result
+                    var fromResultMethod = typeof(Task).GetMethod("FromResult", new[] { typeof(string) });
+                    if (fromResultMethod == null)
+                    {
+                        throw new InvalidOperationException("Task.FromResult method not found.");
+                    }
+                    ilg.Emit(OpCodes.Call, fromResultMethod);
+
+                    // Return the Task<string> from the method
+                    ilg.Emit(OpCodes.Ret);
+                });
 
             vmClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, new[] { "isEditMode" },  (ilg, localBuilder) =>
             {
@@ -703,9 +780,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await Task.CompletedTask;
         }
-        
-        private async Task DefineTableColumns()
+
+        private async Task DefineTableColumns(DynamicClassBuilder vmClassBuilder)
         {
+
+            // Create an instance of the dynamic TModelVM class
+            _modelVMInstance = vmClassBuilder.CreateInstance();
+
             // Get the type of the dynamic TModel and TModelVM classes
             _modelType = _modelInstance?.GetType() ?? default!;
             _modelVMType = _modelVMInstance?.GetType() ?? default!;
@@ -734,7 +815,63 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
 
             _selectedTableVM.AddPropertiesFromPropertyInfoList(excludedColumns);
-            
+
+            // Use reflection to call the ConvertDataTableToObjects method
+            var itemsMethod = typeof(DataTableExtensions).GetMethod(
+                "ConvertDataTableToObjects",
+                BindingFlags.Static | BindingFlags.Public,
+                null,
+                new[] { typeof(DataTable) }, // Specify the parameters here
+                null);
+
+            if (itemsMethod != null)
+            {
+                var genericMethod = itemsMethod.MakeGenericMethod(_modelVMType);
+                var items = genericMethod.Invoke(null, new object[] { _selectedTableVM });
+
+                // Cast items to IEnumerable<object>
+                if (items != null)
+                {
+                    _items = (IEnumerable<object>)items;
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("The ConvertDataTableToObjects method was not found.");
+            }
+
+            await Task.CompletedTask;
+        }
+
+        private async Task DefineTableColumns()
+        {
+            // Get the type of the dynamic TModel and TModelVM classes
+            _interfaceType = typeof(IModelExtendedProperties);
+            var modelExtendedProperties = new ModelExtendedProperties();
+            var excludedColumns = modelExtendedProperties.GetProperties();
+            // TableColumnDefinition should be based on model type, e.g.: Employee class and not EmployeeVM
+            var props = _modelType.GetProperties();
+            if (props != null)
+            {
+                //_selectedTableVM.AddPropertiesFromPropertyInfoList(props);
+                _columnDefinitions = new List<TableColumnDefinition>();
+                foreach (PropertyInfo property in props)
+                {
+                    var tableColumnDefinition = new TableColumnDefinition
+                    {
+                        ColumnName = property.Name,
+                        HeaderText = property.Name,
+                        ColumnType = typeof(string),
+                        CellClicked = async (columnName, vm, rowIndex) => await HandleCellClickAsync(columnName, vm, rowIndex),
+                        ValueChanged = new Action<object, object>((newValue, modelInstance) => OnValueChanged(property.Name, newValue, modelInstance))
+                    };
+
+                    _columnDefinitions.Add(tableColumnDefinition);
+                }
+            }
+
+            _selectedTableVM.AddPropertiesFromPropertyInfoList(excludedColumns);
+
             // Use reflection to call the ConvertDataTableToObjects method
             var itemsMethod = typeof(DataTableExtensions).GetMethod(
                 "ConvertDataTableToObjects",
@@ -846,7 +983,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await Task.CompletedTask;
         }
-
 
         private async Task RetrieveDataFromSessionTableAsync()
         {

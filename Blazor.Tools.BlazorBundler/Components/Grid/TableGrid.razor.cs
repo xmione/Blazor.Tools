@@ -179,7 +179,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     {
                         // Use the factory to create an instance of DropdownList
                         var dropdownList = DropdownListFactory.CreateDropdownList(
-                            typeof(object), // Pass the type of items here
+                            typeof(DropdownList), // Pass the type of items here
                             column.Items,
                             column.ColumnName,
                             column.HeaderText,

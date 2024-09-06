@@ -13,12 +13,16 @@
 <h1>Testing Sample Data Table Grid Component</h1>
 
 <DataTableGrid SelectedTable="@EmployeeDataTable" 
+                ModelsAssemblyName="@ModelsAssemblyName"
+                ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenEmployeeColumns" 
                 DataSources="@DataSources"
                 ItemsChanged="@OnItemsChanged" />
 
-<DataTableGrid SelectedTable="@CountryDataTable" 
+@* <DataTableGrid SelectedTable="@CountryDataTable" 
+                ModelsAssemblyName="@ModelsAssemblyName"
+                ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenCountryColumns"
                 DataSources="@DataSources"
-                ItemsChanged="@OnItemsChanged" />
+                ItemsChanged="@OnItemsChanged" /> *@
   

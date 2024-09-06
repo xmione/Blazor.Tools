@@ -5,6 +5,7 @@
     Purpose     : To provide extension methods for classes that use System.Reflection.
   ====================================================================================================*/
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using MethodBody = System.Reflection.MethodBody;
 
@@ -249,7 +250,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return formattedILCode.ToString();
         }
 
-        public static byte[] GetAssemblyBytes(this Assembly assembly)
+        public static byte[] GetAssemblyBytesFromStaticAssembly(this Assembly assembly)
         {
             byte[] bytes = null!;
             try 
@@ -260,6 +261,31 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                     var moduleName = module.FullyQualifiedName;
                     var moduleData = File.ReadAllBytes(moduleName);
                     memoryStream.Write(moduleData, 0, moduleData.Length);
+                    return memoryStream.ToArray();
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return bytes;
+            
+        }
+        
+        public static byte[] GetAssemblyBytesFromDynamicAssembly(this Assembly assembly)
+        {
+            byte[] bytes = null!;
+            try 
+            {
+                // Create a memory stream to capture the assembly bytes
+                using (var memoryStream = new MemoryStream())
+                {
+                    var peStream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".dll");
+                    if (peStream != null)
+                    {
+                        peStream.CopyTo(memoryStream);
+                    }
                     return memoryStream.ToArray();
                 }
             }

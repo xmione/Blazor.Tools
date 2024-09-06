@@ -5,9 +5,8 @@ namespace Blazor.Tools.BlazorBundler.Factories
 {
     public static class DropdownListFactory
     {
-        public static IDropdownList? CreateDropdownList(Type itemType, IEnumerable<object> items, string columnName, string headerName, object? value, string optionIDFieldName, string optionValueFieldName, bool isEditMode, int rowID, EventCallback<object> valueChanged)
+        public static IDropdownList? CreateDropdownList(Type dropdownType, IEnumerable<object> items, string columnName, string headerName, object? value, string optionIDFieldName, string optionValueFieldName, bool isEditMode, int rowID, EventCallback<object> valueChanged)
         {
-            var dropdownType = typeof(IDropdownList); // Non-generic DropdownList type
             var dropdownList = (IDropdownList?)Activator.CreateInstance(dropdownType);
 
             if (dropdownList != null)

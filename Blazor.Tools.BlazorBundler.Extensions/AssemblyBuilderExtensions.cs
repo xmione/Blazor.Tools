@@ -21,7 +21,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             var assemblyNameDefinition = new AssemblyNameDefinition(assemblyName, new Version("1.0.0"));
             var assemblyDefinition = AssemblyDefinition.CreateAssembly(
                 assemblyNameDefinition,
-                "MainModule",
+                assemblyName,
                 ModuleKind.Dll);
 
             var moduleDefinition = assemblyDefinition.MainModule;

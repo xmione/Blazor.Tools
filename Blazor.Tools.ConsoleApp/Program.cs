@@ -13,6 +13,8 @@ using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
+using System.Reflection.Emit;
+using System.Runtime.Loader;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -54,7 +56,8 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[16] - Decompile .dll to Temp folder class (.cs) file");
                 Console.WriteLine("[17] - Create Blazor.Tools.BlazorBundler.dll to Temp folder");
                 Console.WriteLine("[18] - Run .dll file method from Temp folder");
-                Console.WriteLine("[19] - Exit");
+                Console.WriteLine("[19] - Create dll using DynamicAssemblyCreator");
+                Console.WriteLine("[20] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -172,13 +175,18 @@ namespace Blazor.Tools.ConsoleApp
                         break;
                     case "17":
 
-                        CreateBundlerDLL();
+                        CreateBundlerDLL().Wait();
                         break;
                     case "18":
 
                         RunDLLFileAsync().Wait(); 
                         break;
                     case "19":
+                        var dac = new DynamicAssemblyCreator();
+                        dac.CreateAssembly().Wait();
+
+                        return; 
+                    case "20":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -836,6 +844,6 @@ namespace Blazor.Tools.ConsoleApp
             isEditModeValue = instance.GetProperty("IsEditMode");
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
         }
-
+        
     }
 }
