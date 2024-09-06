@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Version>3.0.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -19,14 +19,12 @@
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.10.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
   <ItemGroup>
     <!-- Content files to be included in the NuGet package -->
     <None Include="icon.png">

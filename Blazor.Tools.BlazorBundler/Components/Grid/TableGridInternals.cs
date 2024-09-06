@@ -485,10 +485,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 //var vmCodePath = Path.Combine(Path.GetTempPath(), "DecompiledCode.cs");
                 //dllPath.DecompileWholeModuleToClass(vmCodePath);
 
-                var typeName = vmType.FullName;
-                var methodName = "HelloWorld";
-                var instance = Activator.CreateInstance(vmType);
-                await vmType.Assembly.InvokeMethodAsync(typeName, methodName, instance, "Sol"); // Pass parameters as needed
+                //var typeName = vmType.FullName;
+                //var methodName = "HelloWorld";
+                //var instance = Activator.CreateInstance(vmType);
+                //await vmType.Assembly.InvokeMethodAsync(typeName, methodName, instance, "Sol"); // Pass parameters as needed
 
                 //var methodILContents = modelVM.GetType().GetILCode("SetEditMode");
                 //var methodContents = modelVM.GetType().GetMethodCode("SetEditMode");
