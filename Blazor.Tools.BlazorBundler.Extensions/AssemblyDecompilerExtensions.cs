@@ -31,7 +31,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return decompiledMethod;
         }
 
-        public static void DecompileWholeModuleToClass(this string assemblyPath, string outputPath)
+        public static string DecompileWholeModuleToClass(this string assemblyPath, string outputPath)
         {
             //string assemblyPath = "DynamicAssembly.dll";
             //string outputPath = "DecompiledCode.cs";
@@ -43,6 +43,8 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             File.WriteAllText(outputPath, decompiledCode);
 
             Console.WriteLine($"Decompiled code written to {outputPath}");
+
+            return decompiledCode;
         }
     }
 

@@ -8,7 +8,7 @@ using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Humanizer;
-using ICSharpCode.Decompiler.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Reflection;
@@ -19,32 +19,48 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
     public class ViewModelClassGenerator : IDisposable
     {
         private DataTable? _sourceTable;
-        private string _baseClassName;
-        private string _vmClassName;
+        private string? _baseClassName;
+        private string? _vmClassName;
         private DataColumnCollection? _columns;
-        private StringBuilder _sb;
+        private PropertyInfo[] _iModelExtendedPropertiesProperties;
+        private bool _disposed;
 
-        public StringBuilder SB
+        private StringBuilder? _sb;
+
+        public StringBuilder? SB
         {
             get { return _sb; }
             set { _sb = value; }
         }
 
-        private string _nameSpace;
-        private PropertyInfo[] _iModelExtendedPropertiesProperties;
+        private CSharpCompilation? _compilation;
+
+        public CSharpCompilation? Compilation
+        {
+            get { return _compilation; }
+        }
 
         private Type? _classType;
-        private bool _disposed;
 
         public Type? ClassType
         {
             get { return _classType; }
         }
 
+        private string _nameSpace;
+
         public string NameSpace
         {
             get { return _nameSpace; }
             set { _nameSpace = value; }
+        }
+
+        private DisposableAssembly? _disposableAssembly;
+
+        public DisposableAssembly? DisposableAssembly
+        {
+            get { return _disposableAssembly; }
+            set { _disposableAssembly = value; }
         }
 
         public ViewModelClassGenerator(string nameSpace)
@@ -64,14 +80,21 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _columns = _sourceTable?.Columns;
 
             AddUsings();
-            _sb.AppendLine();
+            _sb?.AppendLine();
             AddNameSpace();
 
         }
 
         public override string ToString()
         {
-            return _sb.ToString();
+            string stringValue = string.Empty;
+
+            if (_sb != null)
+            {
+                stringValue = _sb.ToString();
+            }
+
+            return stringValue;
         }
 
         public void Save(string assemblyName, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassTypeLocation)
@@ -113,6 +136,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location); // Blazor.Tools.BlazorBundler.Interfaces, same with ICloneable, IViewModel and IContextProvider
             classGenerator.AddReference(typeof(ContextProvider).Assembly.Location); // Blazor.Tools.BlazorBundler.Entities
 
+            _compilation = classGenerator.Compilation;
             _classType = classGenerator.CreateType(classCode, nameSpace, className);
 
             // Save the compiled assembly to the Temp folder
@@ -120,6 +144,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             using (var assembly = DisposableAssembly.LoadFile(dllPath)) // type created from memory stream does not have assembly location.
             {
+                _disposableAssembly = assembly;
                 _classType = assembly.GetType($"{nameSpace}.{className}"); // type created from loading an assembly file has an assembly location.
             }
 
@@ -142,15 +167,15 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;";
 
-            _sb.AppendLine(usingStatements);
+            _sb?.AppendLine(usingStatements);
         }
 
         private void AddNameSpace()
         {
-            _sb.AppendLine($"namespace {_nameSpace}");
-            _sb.AppendLine("{");
+            _sb?.AppendLine($"namespace {_nameSpace}");
+            _sb?.AppendLine("{");
             AddClass();
-            _sb.AppendLine("}");
+            _sb?.AppendLine("}");
         }
 
         private void AddClass()
@@ -162,10 +187,10 @@ using System.Threading.Tasks;";
 
             string classDeclaration = $"\tpublic class {_vmClassName}{(string.IsNullOrEmpty(inheritance) ? "" : $": {inheritance}")}";
 
-            _sb.AppendLine(classDeclaration);
-            _sb.AppendLine("\t{");
+            _sb?.AppendLine(classDeclaration);
+            _sb?.AppendLine("\t{");
             AddFieldsAndProperties();
-            _sb.AppendLine();
+            _sb?.AppendLine();
 
             AddConstructors();
             AddCloneMethod();
@@ -182,7 +207,7 @@ using System.Threading.Tasks;";
             AddUpdateListMethod();
             AddDeleteItemFromListMethod();
 
-            _sb.AppendLine("\t}");
+            _sb?.AppendLine("\t}");
         }
 
         private void AddFieldsAndProperties()
@@ -191,9 +216,9 @@ using System.Threading.Tasks;";
             string items = $"private List<{_vmClassName}> {listVarName};";
             string contextProvider = "private readonly IContextProvider _contextProvider;";
 
-            _sb.AppendLine($"\t\t{items}");
-            _sb.AppendLine($"\t\t{contextProvider}");
-            _sb.AppendLine();
+            _sb?.AppendLine($"\t\t{items}");
+            _sb?.AppendLine($"\t\t{contextProvider}");
+            _sb?.AppendLine();
 
             _iModelExtendedPropertiesProperties = typeof(IModelExtendedProperties).GetProperties();
             foreach (var property in _iModelExtendedPropertiesProperties)
@@ -202,21 +227,21 @@ using System.Threading.Tasks;";
                 string aliasTypeName = property.PropertyType.ToAliasType();
                 string fieldName = $"_{propertyName.ToCamelCase()}";
                 string fieldDeclaration = $"\t\tprivate {aliasTypeName} {fieldName};";
-                _sb.AppendLine(fieldDeclaration);
-                _sb.AppendLine();
+                _sb?.AppendLine(fieldDeclaration);
+                _sb?.AppendLine();
 
-                _sb.AppendLine($"\t\tpublic {aliasTypeName} {propertyName}");
-                _sb.AppendLine("\t\t{");
-                _sb.AppendLine("\t\t\tget");
-                _sb.AppendLine("\t\t\t{");
-                _sb.AppendLine($"\t\t\t\treturn {fieldName};");
-                _sb.AppendLine("\t\t\t}");
-                _sb.AppendLine("\t\t\tset");
-                _sb.AppendLine("\t\t\t{");
-                _sb.AppendLine($"\t\t\t\t{fieldName} = value;");
-                _sb.AppendLine("\t\t\t}");
-                _sb.AppendLine("\t\t}");
-                _sb.AppendLine();
+                _sb?.AppendLine($"\t\tpublic {aliasTypeName} {propertyName}");
+                _sb?.AppendLine("\t\t{");
+                _sb?.AppendLine("\t\t\tget");
+                _sb?.AppendLine("\t\t\t{");
+                _sb?.AppendLine($"\t\t\t\treturn {fieldName};");
+                _sb?.AppendLine("\t\t\t}");
+                _sb?.AppendLine("\t\t\tset");
+                _sb?.AppendLine("\t\t\t{");
+                _sb?.AppendLine($"\t\t\t\t{fieldName} = value;");
+                _sb?.AppendLine("\t\t\t}");
+                _sb?.AppendLine("\t\t}");
+                _sb?.AppendLine();
             }
         }
 
@@ -235,10 +260,10 @@ using System.Threading.Tasks;";
                     _isFirstCellClicked = false;
                 }
              */
-            _sb.AppendLine($"\t\tpublic {_vmClassName}()");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\t_{_baseClassName.ToLower().Pluralize()} = new List<{_vmClassName}>();");
-            _sb.AppendLine($"\t\t\t_contextProvider = new ContextProvider();");
+            _sb?.AppendLine($"\t\tpublic {_vmClassName}()");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\t_{_baseClassName?.ToLower().Pluralize()} = new List<{_vmClassName}>();");
+            _sb?.AppendLine($"\t\t\t_contextProvider = new ContextProvider();");
             foreach (var property in _iModelExtendedPropertiesProperties)
             {
                 string propertyName = property.Name;
@@ -252,16 +277,16 @@ using System.Threading.Tasks;";
                 // Handle special cases for non-string types (e.g., include quotation marks for strings)
                 if (fieldType == typeof(string))
                 {
-                    _sb.AppendLine($"\t\t\t{fieldName} = \"{fieldValueAsString}\";");
+                    _sb?.AppendLine($"\t\t\t{fieldName} = \"{fieldValueAsString}\";");
                 }
                 else
                 {
-                    _sb.AppendLine($"\t\t\t{fieldName} = {fieldValueAsString};");
+                    _sb?.AppendLine($"\t\t\t{fieldName} = {fieldValueAsString};");
                 }
             }
 
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
 
             /*
                 public EmployeeVM(IContextProvider contextProvider)
@@ -269,11 +294,11 @@ using System.Threading.Tasks;";
                     _contextProvider = contextProvider;
                 }             
              */
-            _sb.AppendLine($"\t\tpublic {_vmClassName}(IContextProvider contextProvider)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine("\t\t\t_contextProvider = contextProvider;");
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+            _sb?.AppendLine($"\t\tpublic {_vmClassName}(IContextProvider contextProvider)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine("\t\t\t_contextProvider = contextProvider;");
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
 
             /*
                 public EmployeeVM(IContextProvider contextProvider, Employee model)
@@ -287,23 +312,26 @@ using System.Threading.Tasks;";
                     CountryID = model.CountryID;
                 }             
              */
-            _sb.AppendLine($"\t\tpublic {_vmClassName}(IContextProvider contextProvider, {_baseClassName} model)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine("\t\t\t_contextProvider = contextProvider;");
-            _sb.AppendLine();
-
-            foreach (DataColumn column in _columns)
+            _sb?.AppendLine($"\t\tpublic {_vmClassName}(IContextProvider contextProvider, {_baseClassName} model)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine("\t\t\t_contextProvider = contextProvider;");
+            _sb?.AppendLine();
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t{fieldName} = model.{fieldName};");
+                    _sb?.AppendLine($"\t\t\t{fieldName} = model.{fieldName};");
 
+                }
             }
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
 
             /*
                 public EmployeeVM(IContextProvider contextProvider, EmployeeVM modelVM)
@@ -323,10 +351,10 @@ using System.Threading.Tasks;";
                     CountryID = modelVM.CountryID;
                 }             
              */
-            _sb.AppendLine($"\t\tpublic {_vmClassName}(IContextProvider contextProvider, {_vmClassName} modelVM)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine("\t\t\t_contextProvider = contextProvider;");
-            _sb.AppendLine();
+            _sb?.AppendLine($"\t\tpublic {_vmClassName}(IContextProvider contextProvider, {_vmClassName} modelVM)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine("\t\t\t_contextProvider = contextProvider;");
+            _sb?.AppendLine();
 
             foreach (var property in _iModelExtendedPropertiesProperties)
             {
@@ -334,22 +362,26 @@ using System.Threading.Tasks;";
                 Type fieldType = property.PropertyType;
                 object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t{fieldName} = modelVM.{fieldName};");
+                _sb?.AppendLine($"\t\t\t{fieldName} = modelVM.{fieldName};");
 
             }
 
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t{fieldName} = modelVM.{fieldName};");
+                    _sb?.AppendLine($"\t\t\t{fieldName} = modelVM.{fieldName};");
 
+                }
             }
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
 
         }
 
@@ -376,36 +408,40 @@ using System.Threading.Tasks;";
         private void AddCloneMethod()
         {
 
-            _sb.AppendLine($"\t\tpublic {_vmClassName} Clone()");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\treturn new {_vmClassName}(_contextProvider)");
-            _sb.AppendLine("\t\t\t{");
+            _sb?.AppendLine($"\t\tpublic {_vmClassName} Clone()");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\treturn new {_vmClassName}(_contextProvider)");
+            _sb?.AppendLine("\t\t\t{");
             foreach (var property in _iModelExtendedPropertiesProperties)
             {
                 string fieldName = property.Name;
                 Type fieldType = property.PropertyType;
                 object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName} = {fieldName},");
+                _sb?.AppendLine($"\t\t\t\t{fieldName} = {fieldName},");
 
             }
 
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName} = {fieldName},");
+                    _sb?.AppendLine($"\t\t\t\t{fieldName} = {fieldName},");
+
+                }
 
             }
 
-            _sb.AppendLine("\t\t\t};");
+            _sb?.AppendLine("\t\t\t};");
 
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -417,11 +453,11 @@ using System.Threading.Tasks;";
         private void AddSetListMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic void SetList(List<{_vmClassName}> items)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\t{listVarName} = items;");
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+            _sb?.AppendLine($"\t\tpublic void SetList(List<{_vmClassName}> items)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\t{listVarName} = items;");
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
         }
 
         /*
@@ -444,14 +480,14 @@ using System.Threading.Tasks;";
         private void AddValidateMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic IEnumerable<ValidationResult> Validate(ValidationContext validationContext)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\tif ({listVarName} == null)");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine("\t\t\t\tyield break;");
-            _sb.AppendLine("\t\t\t}");
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+            _sb?.AppendLine($"\t\tpublic IEnumerable<ValidationResult> Validate(ValidationContext validationContext)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\tif ({listVarName} == null)");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine("\t\t\t\tyield break;");
+            _sb?.AppendLine("\t\t\t}");
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
         }
 
         /*private bool AlreadyExists(string name, int currentItemId)
@@ -471,19 +507,19 @@ using System.Threading.Tasks;";
         private void AddAlreadyExistsMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine("\t\tpublic bool AlreadyExists(string name, int currentItemId)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\tbool alreadyExists = false;");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\tif (name != null)");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine($"\t\t\t\tvar foundItem = {listVarName}.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);");
-            _sb.AppendLine($"\t\t\t\talreadyExists = foundItem != null;");
-            _sb.AppendLine("\t\t\t}");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\treturn alreadyExists;");
-            _sb.AppendLine("\t\t}");
-            _sb.AppendLine();
+            _sb?.AppendLine("\t\tpublic bool AlreadyExists(string name, int currentItemId)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\tbool alreadyExists = false;");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\tif (name != null)");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine($"\t\t\t\tvar foundItem = {listVarName}.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);");
+            _sb?.AppendLine($"\t\t\t\talreadyExists = foundItem != null;");
+            _sb?.AppendLine("\t\t\t}");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\treturn alreadyExists;");
+            _sb?.AppendLine("\t\t}");
+            _sb?.AppendLine();
         }
 
         /*
@@ -517,38 +553,41 @@ using System.Threading.Tasks;";
         private void AddFromModelMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> FromModel({_baseClassName} model)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine("\t\t\ttry");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine("\t\t\t\tif (model != null)");
-            _sb.AppendLine("\t\t\t\t{");
-            _sb.AppendLine($"\t\t\t\t\tawait Task.Run(() =>");
-            _sb.AppendLine("\t\t\t\t\t{");
+            _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> FromModel({_baseClassName} model)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine("\t\t\ttry");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine("\t\t\t\tif (model != null)");
+            _sb?.AppendLine("\t\t\t\t{");
+            _sb?.AppendLine($"\t\t\t\t\tawait Task.Run(() =>");
+            _sb?.AppendLine("\t\t\t\t\t{");
 
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t\t\t{fieldName} = model.{fieldName};");
+                    _sb?.AppendLine($"\t\t\t\t\t\t{fieldName} = model.{fieldName};");
 
+                }
             }
 
-            _sb.AppendLine("\t\t\t\t\t});"); // await
-            _sb.AppendLine("\t\t\t\t}"); // if
-            _sb.AppendLine("\t\t\t}"); // try
-            _sb.AppendLine("\t\t\tcatch(Exception ex)");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine($"\t\t\t\t Console.WriteLine(\"FromModel({_baseClassName} model, Dictionary<string, object> serviceList): {0}\\r\\n{1}\", ex.Message, ex.StackTrace);");
-            _sb.AppendLine("\t\t\t}");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\treturn this;");
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t\t\t\t});"); // await
+            _sb?.AppendLine("\t\t\t\t}"); // if
+            _sb?.AppendLine("\t\t\t}"); // try
+            _sb?.AppendLine("\t\t\tcatch(Exception ex)");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine($"\t\t\t\t Console.WriteLine(\"FromModel({_baseClassName} model, Dictionary<string, object> serviceList): {0}\\r\\n{1}\", ex.Message, ex.StackTrace);");
+            _sb?.AppendLine("\t\t\t}");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\treturn this;");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -568,27 +607,31 @@ using System.Threading.Tasks;";
         private void AddToNewModelMethod()
         {
 
-            _sb.AppendLine($"\t\tpublic {_baseClassName} ToNewModel()");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\treturn new {_baseClassName}");
-            _sb.AppendLine("\t\t\t{");
+            _sb?.AppendLine($"\t\tpublic {_baseClassName} ToNewModel()");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\treturn new {_baseClassName}");
+            _sb?.AppendLine("\t\t\t{");
 
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName} = this.{fieldName},");
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
+                    _sb?.AppendLine($"\t\t\t\t{fieldName} = this.{fieldName},");
+
+                }
             }
 
-            _sb.AppendLine("\t\t\t};");
+            _sb?.AppendLine("\t\t\t};");
 
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -614,10 +657,10 @@ using System.Threading.Tasks;";
         private void AddToNewIModelMethod()
         {
 
-            _sb.AppendLine($"\t\tpublic IModelExtendedProperties ToNewIModel()");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\treturn new {_vmClassName}(_contextProvider)");
-            _sb.AppendLine("\t\t\t{");
+            _sb?.AppendLine($"\t\tpublic IModelExtendedProperties ToNewIModel()");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\treturn new {_vmClassName}(_contextProvider)");
+            _sb?.AppendLine("\t\t\t{");
 
             foreach (var property in _iModelExtendedPropertiesProperties)
             {
@@ -625,26 +668,29 @@ using System.Threading.Tasks;";
                 Type fieldType = property.PropertyType;
                 object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName}  = this.{fieldName},");
+                _sb?.AppendLine($"\t\t\t\t{fieldName}  = this.{fieldName},");
 
             }
 
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName} = this.{fieldName},");
+                    _sb?.AppendLine($"\t\t\t\t{fieldName} = this.{fieldName},");
 
+                }
             }
 
-            _sb.AppendLine("\t\t\t};");
+            _sb?.AppendLine("\t\t\t};");
 
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -658,14 +704,14 @@ using System.Threading.Tasks;";
         private void AddSetEditModeMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SetEditMode(bool isEditMode)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine("\t\t\tIsEditMode = isEditMode;");
-            _sb.AppendLine("\t\t\tawait Task.CompletedTask;");
-            _sb.AppendLine("\t\t\treturn this;");
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SetEditMode(bool isEditMode)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine("\t\t\tIsEditMode = isEditMode;");
+            _sb?.AppendLine("\t\t\tawait Task.CompletedTask;");
+            _sb?.AppendLine("\t\t\treturn this;");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -679,14 +725,14 @@ using System.Threading.Tasks;";
         private void AddSaveModelVMMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SaveModelVM()");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine("\t\t\tIsEditMode = false;");
-            _sb.AppendLine("\t\t\tawait Task.CompletedTask;");
-            _sb.AppendLine("\t\t\treturn this;");
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SaveModelVM()");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine("\t\t\tIsEditMode = false;");
+            _sb?.AppendLine("\t\t\tawait Task.CompletedTask;");
+            _sb?.AppendLine("\t\t\treturn this;");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -715,10 +761,10 @@ using System.Threading.Tasks;";
         private void AddSaveModelVMToNewModelVM()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SaveModelVMToNewModelVM()");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\tvar newModel = new {_vmClassName}(_contextProvider)");
-            _sb.AppendLine("\t\t\t{");
+            _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SaveModelVMToNewModelVM()");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\tvar newModel = new {_vmClassName}(_contextProvider)");
+            _sb?.AppendLine("\t\t\t{");
 
             foreach (var property in _iModelExtendedPropertiesProperties)
             {
@@ -726,27 +772,29 @@ using System.Threading.Tasks;";
                 Type fieldType = property.PropertyType;
                 object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName}  = this.{fieldName},");
+                _sb?.AppendLine($"\t\t\t\t{fieldName}  = this.{fieldName},");
 
             }
-
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t{fieldName} = this.{fieldName},");
-
+                    _sb?.AppendLine($"\t\t\t\t{fieldName} = this.{fieldName},");
+                }
             }
-            _sb.AppendLine("\t\t\t};");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\tawait Task.CompletedTask;");
-            _sb.AppendLine("\t\t\treturn newModel;");
-            _sb.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine("\t\t\t};");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\tawait Task.CompletedTask;");
+            _sb?.AppendLine("\t\t\treturn newModel;");
+            _sb?.AppendLine("\t\t}");
+
+            _sb?.AppendLine();
         }
 
         /*
@@ -771,24 +819,24 @@ using System.Threading.Tasks;";
         private void AddAddItemToListMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\tvar list = modelVMList.ToList();");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\tint listCount = list.Count();");
-            _sb.AppendLine("\t\t\tRowID = listCount + 1;");
-            _sb.AppendLine("\t\t\tif (listCount > 0)");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine("\t\t\t\tvar firstItem = list.First();");
-            _sb.AppendLine("\t\t\t}");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\tlist.Add(this);");
-            _sb.AppendLine("\t\t\tawait Task.CompletedTask;");
-            _sb.AppendLine("\t\t\treturn list;");
+            _sb?.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\tvar list = modelVMList.ToList();");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\tint listCount = list.Count();");
+            _sb?.AppendLine("\t\t\tRowID = listCount + 1;");
+            _sb?.AppendLine("\t\t\tif (listCount > 0)");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine("\t\t\t\tvar firstItem = list.First();");
+            _sb?.AppendLine("\t\t\t}");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\tlist.Add(this);");
+            _sb?.AppendLine("\t\t\tawait Task.CompletedTask;");
+            _sb?.AppendLine("\t\t\treturn list;");
 
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -834,53 +882,57 @@ using System.Threading.Tasks;";
         private void AddUpdateListMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList, bool isAdding)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\tif (isAdding)");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine("\t\t\t\tvar list = modelVMList.ToList();");
-            _sb.AppendLine("\t\t\t\tlist.Remove(this);");
-            _sb.AppendLine("\t\t\t\tmodelVMList = list;");
-            _sb.AppendLine("\t\t\t}");
-            _sb.AppendLine("\t\t\telse");
-            _sb.AppendLine("\t\t\t{");
-            _sb.AppendLine("\t\t\t\tvar foundModel = modelVMList.FirstOrDefault(e => e.RowID == RowID);");
-            _sb.AppendLine($"\t\t\t\tvar modelVM = foundModel == null? default : ({_vmClassName})foundModel;");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\t\tif (modelVM != null)");
-            _sb.AppendLine("\t\t\t\t{");
+            _sb?.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList, bool isAdding)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\tif (isAdding)");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine("\t\t\t\tvar list = modelVMList.ToList();");
+            _sb?.AppendLine("\t\t\t\tlist.Remove(this);");
+            _sb?.AppendLine("\t\t\t\tmodelVMList = list;");
+            _sb?.AppendLine("\t\t\t}");
+            _sb?.AppendLine("\t\t\telse");
+            _sb?.AppendLine("\t\t\t{");
+            _sb?.AppendLine("\t\t\t\tvar foundModel = modelVMList.FirstOrDefault(e => e.RowID == RowID);");
+            _sb?.AppendLine($"\t\t\t\tvar modelVM = foundModel == null? default : ({_vmClassName})foundModel;");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\t\tif (modelVM != null)");
+            _sb?.AppendLine("\t\t\t\t{");
+
             foreach (var property in _iModelExtendedPropertiesProperties)
             {
                 string fieldName = property.Name;
                 Type fieldType = property.PropertyType;
                 object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t\tmodelVM.{fieldName}  = {fieldName};");
+                _sb?.AppendLine($"\t\t\t\t\tmodelVM.{fieldName}  = {fieldName};");
 
             }
 
-            foreach (DataColumn column in _columns)
+            if (_columns != null)
             {
-                string fieldName = column.ColumnName;
-                string aliasTypeName = column.DataType.ToAliasType();
-                Type fieldType = column.DataType;
-                object fieldValue = fieldType.GenerateDefaultValue();
+                foreach (DataColumn column in _columns)
+                {
+                    string fieldName = column.ColumnName;
+                    string aliasTypeName = column.DataType.ToAliasType();
+                    Type fieldType = column.DataType;
+                    object fieldValue = fieldType.GenerateDefaultValue();
 
-                _sb.AppendLine($"\t\t\t\t\tmodelVM.{fieldName} = {fieldName};");
+                    _sb?.AppendLine($"\t\t\t\t\tmodelVM.{fieldName} = {fieldName};");
 
+                }
             }
 
-            _sb.AppendLine("\t\t\t\t}");
-            _sb.AppendLine("\t\t\t}");
-            _sb.AppendLine();
+            _sb?.AppendLine("\t\t\t\t}");
+            _sb?.AppendLine("\t\t\t}");
+            _sb?.AppendLine();
 
-            _sb.AppendLine("\t\t\t await Task.CompletedTask;");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\t return modelVMList;");
+            _sb?.AppendLine("\t\t\t await Task.CompletedTask;");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\t return modelVMList;");
 
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         /*
@@ -902,17 +954,17 @@ using System.Threading.Tasks;";
         private void AddDeleteItemFromListMethod()
         {
             string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
-            _sb.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList)");
-            _sb.AppendLine("\t\t{");
-            _sb.AppendLine($"\t\t\tvar list = modelVMList.ToList();");
-            _sb.AppendLine();
-            _sb.AppendLine("\t\t\tvar isDeleted = list.Remove(this);");
-            _sb.AppendLine("\t\t\tawait Task.CompletedTask;");
-            _sb.AppendLine("\t\t\treturn list;");
+            _sb?.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList)");
+            _sb?.AppendLine("\t\t{");
+            _sb?.AppendLine($"\t\t\tvar list = modelVMList.ToList();");
+            _sb?.AppendLine();
+            _sb?.AppendLine("\t\t\tvar isDeleted = list.Remove(this);");
+            _sb?.AppendLine("\t\t\tawait Task.CompletedTask;");
+            _sb?.AppendLine("\t\t\treturn list;");
 
-            _sb.AppendLine("\t\t}");
+            _sb?.AppendLine("\t\t}");
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
         // Implement IDisposable to clean up resources
         public void Dispose()

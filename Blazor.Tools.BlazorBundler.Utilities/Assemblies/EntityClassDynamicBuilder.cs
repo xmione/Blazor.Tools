@@ -7,25 +7,33 @@
 
 using Blazor.Tools.BlazorBundler.Extensions;
 using System.Data;
-using System.Reflection;
 using System.Text;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
     public class EntityClassDynamicBuilder : IDisposable
     {
-        private string _nameSpace;
-        private DataTable _dataTable;
+        private string? _nameSpace;
+        private DataTable? _dataTable;
         private List<string>? _usingStatements;
-        private string _className;
-        private DataColumnCollection _columns;
-        private StringBuilder _sb;
-        private Type? _classType;
+        private string? _className;
+        private DataColumnCollection? _columns;
+        private StringBuilder? _sb;
         private bool _disposed;
+
+        private Type? _classType;
 
         public Type? ClassType
         {
             get { return _classType; }
+        }
+
+        private DisposableAssembly? _disposableAssembly;
+
+        public DisposableAssembly? DisposableAssembly
+        {
+            get { return _disposableAssembly; }
+            set { _disposableAssembly = value; }
         }
 
         public EntityClassDynamicBuilder(string nameSpace, DataTable dataTable, List<string>? usingStatements)
@@ -58,46 +66,57 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             {
                 foreach (string nameSpace in _usingStatements)
                 {
-                    _sb.AppendLine($"using {nameSpace};");
+                    _sb?.AppendLine($"using {nameSpace};");
                 }
-                _sb.AppendLine();
+
+                _sb?.AppendLine();
             }
         }
 
         private void AddNameSpace()
         {
-            _sb.AppendLine($"namespace {_nameSpace}");
-            _sb.AppendLine("{");
+            _sb?.AppendLine($"namespace {_nameSpace}");
+            _sb?.AppendLine("{");
             AddClass();
-            _sb.AppendLine("}");
+            _sb?.AppendLine("}");
 
         }
 
         private void AddClass()
         {
-            _sb.AppendLine($"\tpublic class {_className}");
-            _sb.AppendLine("\t{");
+            _sb?.AppendLine($"\tpublic class {_className}");
+            _sb?.AppendLine("\t{");
             AddProperties();
-            _sb.AppendLine("\t}");
+            _sb?.AppendLine("\t}");
         }
 
         private void AddProperties()
         {
-            foreach (DataColumn dc in _columns)
+            if (_columns != null)
             {
-                string fieldName = dc.ColumnName;
-                string fieldType = dc.DataType.ToAliasType();
-                string items = $"\t\tpublic {fieldType} {fieldName} ";
-                _sb.Append(items);
-                _sb.AppendLine("{get; set;}");
+                foreach (DataColumn dc in _columns)
+                {
+                    string fieldName = dc.ColumnName;
+                    string fieldType = dc.DataType.ToAliasType();
+                    string items = $"\t\tpublic {fieldType} {fieldName} ";
+                    _sb?.Append(items);
+                    _sb?.AppendLine("{get; set;}");
+                }
             }
 
-            _sb.AppendLine();
+            _sb?.AppendLine();
         }
 
         public override string ToString()
         {
-            return _sb.ToString();
+            string stringValue = string.Empty;
+
+            if (_sb != null)
+            {
+                stringValue = _sb.ToString();
+            }
+
+            return stringValue;
         }
 
         public void Save(string assemblyName, string classCode, string nameSpace, string className, string dllPath)
@@ -119,10 +138,10 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
             classGenerator.AddReference(systemLocation);  // System.dll
             classGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
-             
-            _classType = classGenerator.CreateType(classCode, nameSpace, className); // type created from memory stream does not have assembly location.
-             
-            // Save the compiled assembly to the Temp folder
+
+            _classType = classGenerator.CreateType(classCode, nameSpace, className); // type created from memory stream does not have disposableAssembly location.
+
+            // Save the compiled disposableAssembly to the Temp folder
             classGenerator.SaveAssemblyToTempFolder(dllPath);
 
             while (dllPath.IsFileInUse())
@@ -132,9 +151,10 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 Thread.Sleep(1000);
             }
 
-            using (var assembly = DisposableAssembly.LoadFile(dllPath))
+            using (var disposableAssembly = DisposableAssembly.LoadFile(dllPath))
             {
-                _classType = assembly.GetType($"{nameSpace}.{className}"); // type created from loading an assembly file has an assembly location.
+                _classType = disposableAssembly.GetType($"{nameSpace}.{className}"); // type created from loading an disposableAssembly file has an disposableAssembly location.
+                _disposableAssembly = disposableAssembly;
             }
 
             while (dllPath.IsFileInUse())

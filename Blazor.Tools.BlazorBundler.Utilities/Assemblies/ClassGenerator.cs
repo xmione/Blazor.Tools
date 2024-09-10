@@ -2,13 +2,10 @@
     Class Name  : ClassGenerator
     Created By  : Solomio S. Sisante
     Created On  : August 31, 2024
-    Purpose     : To create EmployeeVM Assembly class dynamically and save it to a .dll file.
+    Purpose     : To create EmployeeVM DisposableAssembly class dynamically and save it to a .dll file.
   ====================================================================================================*/
-using Blazor.Tools.BlazorBundler.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.ComponentModel.DataAnnotations;
 using OutputKind = Microsoft.CodeAnalysis.OutputKind;
 using Assembly = System.Reflection.Assembly;
 using Blazor.Tools.BlazorBundler.Extensions;
@@ -17,17 +14,28 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
     public class ClassGenerator : IDisposable
     {
-        private CSharpCompilation _compilation;
-        private string _assemblyName;
-        private OutputKind _outputKind;
+
+        private string? _assemblyName;
         private bool _disposed = false;
 
-        public CSharpCompilation Compilation
+        private Assembly? _assembly;
+
+        public Assembly? Assembly
+        {
+            get { return _assembly; }
+            set { _assembly = value; }
+        }
+
+        private CSharpCompilation? _compilation;
+
+        public CSharpCompilation? Compilation
         {
             get { return _compilation; }
             set { _compilation = value; }
         }
-        
+
+        private OutputKind _outputKind;
+
         public OutputKind OutputKind
         {
             get { return _outputKind; }
@@ -40,7 +48,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _outputKind = OutputKind.DynamicallyLinkedLibrary;
             _compilation = CSharpCompilation.Create(assemblyName,
                 options: new CSharpCompilationOptions(_outputKind));
-
         }
 
         public void AddReference(string assemblyPath)
@@ -54,13 +61,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         public void AddReference(Stream assemblyStream)
         {
             var reference = MetadataReference.CreateFromStream(assemblyStream);
-            _compilation = _compilation.AddReferences(reference);
+            _compilation = _compilation?.AddReferences(reference);
         }
 
         public void AddReference(byte[] assemblyBytes)
         {
             var reference = MetadataReference.CreateFromImage(assemblyBytes);
-            _compilation = _compilation.AddReferences(reference);
+            _compilation = _compilation?.AddReferences(reference);
         }
 
         public Type? CreateType(string classCode, string nameSpace, string className)
@@ -68,12 +75,12 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             Type? type = null;
             var syntaxTree = CSharpSyntaxTree.ParseText(classCode);
 
-            _compilation = _compilation.AddSyntaxTrees(syntaxTree);
+            _compilation = _compilation?.AddSyntaxTrees(syntaxTree);
 
             using var ms = new MemoryStream();
-            var result = _compilation.Emit(ms);
+            var result = _compilation?.Emit(ms);
 
-            if (!result.Success)
+            if (result != null && !result.Success)
             {
                 var failures = result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 foreach (var diagnostic in failures)
@@ -86,19 +93,19 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             ms.Seek(0, SeekOrigin.Begin);
             byte[] rawAssembly = ms.ToArray();
-            var assembly = Assembly.Load(rawAssembly);
-            
+            _assembly = Assembly.Load(rawAssembly);
+
             try
             {
-                var types = assembly.GetTypes();
-                type = assembly.GetType($"{nameSpace}.{className}");
+                var types = _assembly.GetTypes();
+                type = _assembly.GetType($"{nameSpace}.{className}");
             }
             catch (ReflectionTypeLoadException ex)
             {
                 var loaderExceptions = ex.LoaderExceptions;
                 foreach (var loaderException in loaderExceptions)
                 {
-                    Console.WriteLine(loaderException.Message);
+                    Console.WriteLine(loaderException?.Message);
                 }
             }
 
@@ -108,9 +115,9 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         public void SaveAssemblyToTempFolder(string fileName)
         {
             using var ms = new MemoryStream();
-            var result = _compilation.Emit(ms);
+            var result = _compilation?.Emit(ms);
 
-            if (!result.Success)
+            if (result != null && !result.Success)
             {
                 var failures = result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 foreach (var diagnostic in failures)
@@ -180,6 +187,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     // Perform any necessary cleanup here
                     _compilation = null;
                     _assemblyName = null;
+                    _assembly = null;
                 }
 
                 _disposed = true;
