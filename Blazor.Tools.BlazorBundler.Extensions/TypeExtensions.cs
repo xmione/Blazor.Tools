@@ -4,6 +4,10 @@
     Created On  : September 2, 2024
     Purpose     : To provide a helper class for type extenstions.
   ====================================================================================================*/
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
+
 namespace Blazor.Tools.BlazorBundler.Extensions
 {
     public static class TypeExtensions
@@ -103,7 +107,127 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             object defaultValue = type.GenerateDefaultValue();
             return defaultValue is bool boolValue ? boolValue.ToString().ToLower() : defaultValue?.ToString() ?? "null";
         }
+        public static void DisplayTypeDifferences(this Type type1, Type type2)
+        {
+            bool isEqual = true;
 
+            // Compare and print only the properties that differ
+            if (type1.FullName != type2.FullName)
+            {
+                Console.WriteLine("FullName differs:");
+                Console.WriteLine("type1 FullName: " + type1.FullName);
+                Console.WriteLine("type2 FullName: " + type2.FullName);
+                isEqual = false;
+            }
+
+            if (type1.Assembly.FullName != type2.Assembly.FullName)
+            {
+                Console.WriteLine("Assembly differs:");
+                Console.WriteLine("type1 Assembly: " + type1.Assembly.FullName);
+                Console.WriteLine("type2 Assembly: " + type2.Assembly.FullName);
+                isEqual = false;
+            }
+
+            if (type1.Namespace != type2.Namespace)
+            {
+                Console.WriteLine("Namespace differs:");
+                Console.WriteLine("type1 Namespace: " + type1.Namespace);
+                Console.WriteLine("type2 Namespace: " + type2.Namespace);
+                isEqual = false;
+            }
+
+            if (type1.Module.Name != type2.Module.Name)
+            {
+                Console.WriteLine("Module differs:");
+                Console.WriteLine("type1 Module: " + type1.Module.Name);
+                Console.WriteLine("type2 Module: " + type2.Module.Name);
+                isEqual = false;
+            }
+
+            // Check if the types are loaded from different locations
+            if (type1.Assembly.Location != type2.Assembly.Location)
+            {
+                Console.WriteLine("Assembly Location differs:");
+                Console.WriteLine("type1 Assembly Location: " + type1.Assembly.Location);
+                Console.WriteLine("type2 Assembly Location: " + type2.Assembly.Location);
+                isEqual = false;
+            }
+
+            // Check if the types are loaded in different contexts
+            if (AssemblyLoadContext.GetLoadContext(type1.Assembly) != AssemblyLoadContext.GetLoadContext(type2.Assembly))
+            {
+                Console.WriteLine("Assembly Load Context differs:");
+                Console.WriteLine("type1 Assembly Load Context: " + AssemblyLoadContext.GetLoadContext(type1.Assembly));
+                Console.WriteLine("type2 Assembly Load Context: " + AssemblyLoadContext.GetLoadContext(type2.Assembly));
+                isEqual = false;
+            }
+
+            // Compare the runtime type handles
+            if (!type1.TypeHandle.Equals(type2.TypeHandle))
+            {
+                Console.WriteLine("TypeHandle differs:");
+                Console.WriteLine("type1 TypeHandle: " + type1.TypeHandle);
+                Console.WriteLine("type2 TypeHandle: " + type2.TypeHandle);
+                isEqual = false;
+            }
+
+            // Check if either of the types are generic and compare generic arguments
+            if (type1.IsGenericType != type2.IsGenericType ||
+                !type1.GetGenericArguments().SequenceEqual(type2.GetGenericArguments()))
+            {
+                Console.WriteLine("Generic Type Arguments differ:");
+                Console.WriteLine("type1 Generic Type Arguments: " + string.Join(", ", type1.GetGenericArguments().Cast<Type>()));
+                Console.WriteLine("type2 Generic Type Arguments: " + string.Join(", ", type2.GetGenericArguments().Cast<Type>()));
+                isEqual = false;
+            }
+
+            // Check if either of the assemblies are loaded in reflection-only mode
+            if (type1.Assembly.ReflectionOnly != type2.Assembly.ReflectionOnly)
+            {
+                Console.WriteLine("ReflectionOnly mode differs:");
+                Console.WriteLine("type1 ReflectionOnly: " + type1.Assembly.ReflectionOnly);
+                Console.WriteLine("type2 ReflectionOnly: " + type2.Assembly.ReflectionOnly);
+                isEqual = false;
+            }
+
+            // Compare custom attributes of both types
+            var type1Attributes = type1.GetCustomAttributes(false);
+            var type2Attributes = type2.GetCustomAttributes(false);
+
+            if (!type1Attributes.SequenceEqual(type2Attributes))
+            {
+                Console.WriteLine("Custom Attributes differ:");
+                Console.WriteLine("type1 Attributes: " + string.Join(", ", type1Attributes.Select(attr => attr.GetType().Name)));
+                Console.WriteLine("type2 Attributes: " + string.Join(", ", type2Attributes.Select(attr => attr.GetType().Name)));
+                isEqual = false;
+            }
+
+            // Check if types are dynamically generated (like proxies or reflection emit types)
+            if (type1.IsConstructedGenericType != type2.IsConstructedGenericType)
+            {
+                Console.WriteLine("IsConstructedGenericType differs:");
+                Console.WriteLine("type1 IsConstructedGenericType: " + type1.IsConstructedGenericType);
+                Console.WriteLine("type2 IsConstructedGenericType: " + type2.IsConstructedGenericType);
+                isEqual = false;
+            }
+
+            if (type1.IsDefined(typeof(CompilerGeneratedAttribute), false) != type2.IsDefined(typeof(CompilerGeneratedAttribute), false))
+            {
+                Console.WriteLine("IsDefinedFromReflectionEmit differs:");
+                Console.WriteLine("type1 IsDefinedFromReflectionEmit: " + type1.IsDefined(typeof(CompilerGeneratedAttribute), false));
+                Console.WriteLine("type2 IsDefinedFromReflectionEmit: " + type2.IsDefined(typeof(CompilerGeneratedAttribute), false));
+                isEqual = false;
+            }
+
+            if (isEqual)
+            {
+                Console.WriteLine("The types are identical based on the checked properties.");
+            }
+            else
+            {
+                Console.WriteLine("The types are not equal based on the differences shown above.");
+            }
+        }
 
     }
 
