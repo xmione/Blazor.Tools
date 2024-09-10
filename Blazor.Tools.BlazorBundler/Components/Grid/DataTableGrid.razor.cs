@@ -517,39 +517,39 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             });
 
             // Define the HelloWorld method
-            vmClassBuilder.DefineMethod(
-                "HelloWorld",
-                typeof(Task<string>), // Return type
-                new[] { typeof(string) }, // Parameter types
-                new[] { "message" }, // Parameter names
-                (ilg, localBuilder) =>
-                {
-                    // Load 'message' (parameter 1) onto the evaluation stack
-                    ilg.Emit(OpCodes.Ldarg_1);
+            //vmClassBuilder.DefineMethod(
+            //    "HelloWorld",
+            //    typeof(Task<string>), // Return type
+            //    new[] { typeof(string) }, // Parameter types
+            //    new[] { "message" }, // Parameter names
+            //    (ilg, localBuilder) =>
+            //    {
+            //        // Load 'message' (parameter 1) onto the evaluation stack
+            //        ilg.Emit(OpCodes.Ldarg_1);
 
-                    // Call Console.WriteLine with the message
-                    var consoleType = typeof(Console);
-                    var writeLineMethod = consoleType.GetMethod("WriteLine", new[] { typeof(string) });
-                    if (writeLineMethod == null)
-                    {
-                        throw new InvalidOperationException("Console.WriteLine method not found.");
-                    }
-                    ilg.Emit(OpCodes.Call, writeLineMethod);
+            //        // Call Console.WriteLine with the message
+            //        var consoleType = typeof(Console);
+            //        var writeLineMethod = consoleType.GetMethod("WriteLine", new[] { typeof(string) });
+            //        if (writeLineMethod == null)
+            //        {
+            //            throw new InvalidOperationException("Console.WriteLine method not found.");
+            //        }
+            //        ilg.Emit(OpCodes.Call, writeLineMethod);
 
-                    // Load 'message' (parameter 1) onto the evaluation stack again
-                    ilg.Emit(OpCodes.Ldarg_1);
+            //        // Load 'message' (parameter 1) onto the evaluation stack again
+            //        ilg.Emit(OpCodes.Ldarg_1);
 
-                    // Create a Task<string> with the message as a completed result
-                    var fromResultMethod = typeof(Task).GetMethod("FromResult", new[] { typeof(string) });
-                    if (fromResultMethod == null)
-                    {
-                        throw new InvalidOperationException("Task.FromResult method not found.");
-                    }
-                    ilg.Emit(OpCodes.Call, fromResultMethod);
+            //        // Create a Task<string> with the message as a completed result
+            //        var fromResultMethod = typeof(Task).GetMethod("FromResult", new[] { typeof(string) });
+            //        if (fromResultMethod == null)
+            //        {
+            //            throw new InvalidOperationException("Task.FromResult method not found.");
+            //        }
+            //        ilg.Emit(OpCodes.Call, fromResultMethod);
 
-                    // Return the Task<string> from the method
-                    ilg.Emit(OpCodes.Ret);
-                });
+            //        // Return the Task<string> from the method
+            //        ilg.Emit(OpCodes.Ret);
+            //    });
 
             vmClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, new[] { "isEditMode" },  (ilg, localBuilder) =>
             {
