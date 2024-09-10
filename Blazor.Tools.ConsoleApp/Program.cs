@@ -13,8 +13,6 @@ using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
-using System.Reflection.Emit;
-using System.Runtime.Loader;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -49,7 +47,7 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
                 Console.WriteLine("[10] - Train sample Language Data");
                 Console.WriteLine("[11] - Decompile IL code");
-                Console.WriteLine("[12] - Save Dynamically Created Assembly to .dll file");
+                Console.WriteLine("[12] - Save Dynamically Created DisposableAssembly to .dll file");
                 Console.WriteLine("[13] - Decompile ViewModels dll");
                 Console.WriteLine("[14] - Decompile ViewModels dll and Invoke EmployeeVM SetEditMode");
                 Console.WriteLine("[15] - Run SetEditMethod of EmployeeVM from Blazor.Tools.BlazorBundler.dll ");
@@ -57,7 +55,8 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[17] - Create Blazor.Tools.BlazorBundler.dll to Temp folder");
                 Console.WriteLine("[18] - Run .dll file method from Temp folder");
                 Console.WriteLine("[19] - Create dll using DynamicAssemblyCreator");
-                Console.WriteLine("[20] - Exit");
+                Console.WriteLine("[20] - Create dll From DataTable");
+                Console.WriteLine("[21] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -185,8 +184,11 @@ namespace Blazor.Tools.ConsoleApp
                         var dac = new DynamicAssemblyCreator();
                         dac.CreateAssembly().Wait();
 
-                        return; 
+                        break; 
                     case "20":
+                        CreateDLLFromDataTable.Run();
+                        break; 
+                    case "21":
                         return; 
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -326,9 +328,11 @@ namespace Blazor.Tools.ConsoleApp
             string blazorBundlerPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\";
             string viewModelsDLLFileName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll";
             string defaultTempFolder = Path.GetTempPath();
-
             string tempFolder = string.Empty;
             string? assemblyPath = null;
+
+            string outputCodeFileName = "DecompiledCode.cs";
+            string outputCodePath = string.Empty;
 
             bool continueLoop = true;
             while (continueLoop)
@@ -344,11 +348,13 @@ namespace Blazor.Tools.ConsoleApp
                     case "":
                     case "0":
                         assemblyPath = Path.Combine(defaultTempFolder, viewModelsDLLFileName);
+                        outputCodePath = Path.Combine(defaultTempFolder, outputCodeFileName);
                         
                         break;
                     case "1":
                         assemblyPath = Path.Combine(blazorBundlerPath, viewModelsDLLFileName);
-                         
+                        outputCodePath = Path.Combine(blazorBundlerPath, outputCodeFileName);
+
                         break;
                     default:
                         Console.Write("DLL File Name (default)EmployeeVM.dll: ");
@@ -363,7 +369,7 @@ namespace Blazor.Tools.ConsoleApp
                 }
                 else
                 {
-                    Console.WriteLine("Assembly File does not exist: {0}", assemblyPath);
+                    Console.WriteLine("DisposableAssembly File does not exist: {0}", assemblyPath);
                 }
             }
             
@@ -371,7 +377,9 @@ namespace Blazor.Tools.ConsoleApp
             if (assemblyPath != null)
             {
                 Console.WriteLine("Decompiling {0} [{1}]", assemblyPath, typeName);
-                string decompiledCode = assemblyPath.DecompileType(typeName);
+                //string decompiledCode = assemblyPath.DecompileType(typeName);
+
+                string decompiledCode = assemblyPath.DecompileWholeModuleToClass(outputCodePath);
 
                 Console.WriteLine(decompiledCode);
             }
@@ -418,6 +426,9 @@ namespace Blazor.Tools.ConsoleApp
 
         }
 
+        /// <summary>
+        /// Option 12:
+        /// </summary>
         public static void SaveDynamicallyCreatedAssembly()
         {
             // Define the paths in the Temp folder
@@ -562,7 +573,7 @@ namespace Blazor.Tools.ConsoleApp
             // Save the assembly to disk
             assemblyDefinition.Write(dllPath);
 
-            Console.WriteLine("Assembly created and saved as {0}", dllPath);
+            Console.WriteLine("DisposableAssembly created and saved as {0}", dllPath);
         }
 
         private static void CreateType(
@@ -756,6 +767,10 @@ namespace Blazor.Tools.ConsoleApp
 
         }
 
+        /// <summary>
+        /// Option 17:
+        /// </summary>
+        /// <returns></returns>
         public static async Task CreateBundlerDLL()
         {
             // Define the paths in the Temp folder
@@ -776,25 +791,43 @@ namespace Blazor.Tools.ConsoleApp
 
             string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             Type baseClassType = default!;
+            Assembly baseClassAssembly = default!;
             using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements))
             {
                 var baseClassCode = baseClassGenerator.ToString();
                 baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, tableName, baseDLLPath);
                 baseClassType = baseClassGenerator.ClassType ?? default!;
+                baseClassAssembly = baseClassGenerator?.DisposableAssembly?.Assembly ?? default!;
             }
 
             string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
 
             var vmClassName = $"{tableName}VM";
+            Type vmClassType = default!;
+            Assembly vmClassAssembly = default!;
             using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
             {
                 viewModelClassGenerator.CreateFromDataTable(selectedTable);
                 var vmClassCode = viewModelClassGenerator.ToString();
                 viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
+                vmClassType = viewModelClassGenerator.ClassType ?? default!;    
+                vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
+
+                var references = viewModelClassGenerator?.Compilation?.References.ToList();
+
+                if (references != null)
+                {
+                    Console.WriteLine("Start displaying references...");
+                    foreach (var reference in references)
+                    {
+                        Console.WriteLine(reference.Display);
+                    }
+                    Console.WriteLine("Displaying references has ended.");
+                }
             }
 
-            baseClassType = null;
+            //baseClassType = null;
             while (baseDLLPath.IsFileInUse())
             {
                 //baseDLLPath.KillLockingProcesses();
@@ -808,6 +841,48 @@ namespace Blazor.Tools.ConsoleApp
                 Thread.Sleep(1000);
             }
 
+            // Get the types from the assemblies
+            //Type baseClassType = baseClassAssembly.GetTypes()
+                //.FirstOrDefault(t => t.Name == "Employee"); // Adjust the name as needed
+
+            //Type vmClassType = vmClassAssembly.GetTypes()
+            //    .FirstOrDefault(t => t.Name == "EmployeeVM"); // Adjust the name as needed
+
+            Type iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
+            Type iViewModelGenericType = typeof(IViewModel<,>);
+
+            if (baseClassType == null || vmClassType == null)
+            {
+                Console.WriteLine("Base class or ViewModel type not found.");
+                return;
+            }
+
+            // Create the generic type for IViewModel<T, U>
+            Type specificIViewModelType = iViewModelGenericType.MakeGenericType(baseClassType, iModelExtendedPropertiesType);
+
+            // Create an instance of the ViewModel dynamically
+            object viewModelInstance = Activator.CreateInstance(vmClassType);
+
+            if (viewModelInstance == null)
+            {
+                Console.WriteLine("Failed to create an instance of the ViewModel.");
+                return;
+            }
+
+            // Check if the ViewModel implements the specific IViewModel<T, U>
+            bool implementsViewModelInterface = specificIViewModelType.IsAssignableFrom(viewModelInstance.GetType());
+            Console.WriteLine($"Implements IViewModel<{baseClassType.Name}, IModelExtendedProperties>: {implementsViewModelInterface}");
+
+            if (implementsViewModelInterface)
+            {
+                // Cast the instance to the interface type
+                var viewModelInterfaceInstance = Convert.ChangeType(viewModelInstance, specificIViewModelType);
+                Console.WriteLine("Successfully casted to the interface type.");
+            }
+            else
+            {
+                Console.WriteLine("Failed to cast to the interface type.");
+            }
             await Task.CompletedTask;
         }
 
@@ -844,6 +919,6 @@ namespace Blazor.Tools.ConsoleApp
             isEditModeValue = instance.GetProperty("IsEditMode");
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
         }
-        
+         
     }
 }

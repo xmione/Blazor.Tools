@@ -22,6 +22,7 @@
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Extensions\Blazor.Tools.BlazorBundler.Extensions.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.SessionManagement\Blazor.Tools.BlazorBundler.SessionManagement.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
