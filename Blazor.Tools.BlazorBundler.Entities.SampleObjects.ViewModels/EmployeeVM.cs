@@ -5,6 +5,8 @@
     Purpose     : To provide a view model class for the Employee class.
   ====================================================================================================*/
 
+// Do not remove the declared usings here even if they are unnecessary.
+// They are used to dynamically create the assembly dll file.
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
