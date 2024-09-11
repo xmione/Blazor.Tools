@@ -8,8 +8,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
     public class CreateDLLFromDataTable
     {
-        private static string _iEmployeeFulliQualifiedName;
-        private static string _employeeFullyQualifiedName;
+        private static string _iEmployeeFullyQualifiedName = string.Empty;
+        private static string _employeeFullyQualifiedName = string.Empty;
 
         public static void BuildAndSaveAssembly(DataTable dataTable)
         {
@@ -25,7 +25,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var employeeTypeName = "Employee";
             var employeeFullyQualifiedName = $"{employeeNameSpace}.{employeeTypeName}";
 
-            _iEmployeeFulliQualifiedName = iEmployeeFullyQualifiedName;
+            _iEmployeeFullyQualifiedName = iEmployeeFullyQualifiedName;
             _employeeFullyQualifiedName = employeeFullyQualifiedName;
             // Define the IEmployee interface
 
@@ -98,8 +98,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 propertyBuilder.SetSetMethod(setterBuilder);
 
                 // Implement the interface methods
-                var interfaceGetterMethod = iEmployee.GetMethod($"get_{column.ColumnName}");
-                var interfaceSetterMethod = iEmployee.GetMethod($"set_{column.ColumnName}");
+                var interfaceGetterMethod = iEmployee.GetMethod($"get_{column.ColumnName}") ?? default!;
+                var interfaceSetterMethod = iEmployee.GetMethod($"set_{column.ColumnName}") ?? default!;
                 classBuilder.DefineMethodOverride(getterBuilder, interfaceGetterMethod);
                 classBuilder.DefineMethodOverride(setterBuilder, interfaceSetterMethod);
             }
@@ -122,7 +122,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var assembly = AssemblyLoadContext.Default.LoadFromStream(new MemoryStream(assemblyBytes));
 
             // Get the types
-            var iEmployeeType = assembly.GetType(_iEmployeeFulliQualifiedName);
+            var iEmployeeType = assembly.GetType(_iEmployeeFullyQualifiedName);
             var employeeType = assembly.GetType(_employeeFullyQualifiedName);
 
             if (iEmployeeType == null || employeeType == null)

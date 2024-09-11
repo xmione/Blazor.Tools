@@ -966,6 +966,7 @@ using System.Threading.Tasks;";
 
             _sb?.AppendLine();
         }
+
         // Implement IDisposable to clean up resources
         public void Dispose()
         {

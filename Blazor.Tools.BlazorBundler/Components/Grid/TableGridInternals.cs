@@ -477,7 +477,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async void EditRowAsync(IViewModel<TModel, IModelExtendedProperties>? modelVM)
         {
-            if (_items != null && modelVM != null && ModelVM != null)
+            if (_items != null && modelVM != null)
             {
                 _isEditing = true;
                 var vmType = modelVM.GetType();
@@ -549,7 +549,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task SaveRowAsync(IViewModel<TModel, IModelExtendedProperties>? modelVM)
         {
-            if (modelVM != null && _editedRow != null && ModelVM != null)
+            if (modelVM != null && _editedRow != null)
             {
                 _isEditing = false;
                 var item = await modelVM.SetEditMode(_isEditing);
@@ -572,7 +572,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 return;
             }
 
-            if (_editedRow != null && _editedRowSaved != null && ModelVM != null)
+            if (_editedRow != null && _editedRowSaved != null )
             {
                 var item = await _editedRowSaved.SetEditMode(false);
                 _items = await item.UpdateList(_items, _isAdding);

@@ -42,19 +42,27 @@ using System.Reflection.Emit;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class DynamicClassBuilder
+    public class DynamicClassBuilder : IDisposable
     {
-        private readonly AssemblyName _assemblyName;
-        private readonly AssemblyBuilder _assemblyBuilder;
-        private readonly ModuleBuilder _moduleBuilder;
-        private readonly TypeBuilder _typeBuilder;
-        private readonly bool _hasInterfaces;
+        private Assembly? _assembly;
+        private AssemblyName? _assemblyName;
+        private PersistedAssemblyBuilder? _assemblyBuilder;
+        private ModuleBuilder? _moduleBuilder;
+        private TypeBuilder? _typeBuilder;
+        private bool _hasInterfaces;
         private Type[]? _interfaces;
-        private Type _dynamicType = default!;
-        private readonly List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> _constructors = default!;
-        private List<string> _addedProperties = default!;
-        private List<string> _addedMethods = default!;
+        private Type? _dynamicType = default!;
+        private List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>? _constructors = default!;
+        private List<string>? _addedProperties = default!;
+        private List<string>? _addedMethods = default!;
         private string? _assemblyFilePath;
+        private bool _disposed;
+        private string? _className = null;
+
+        public Assembly? Assembly
+        {
+            get { return _assembly; }
+        }
 
         public Type DynamicType
         {
@@ -62,11 +70,18 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             set { _dynamicType = value; }
         }
 
+        public DynamicClassBuilder()
+        {
+        }
+
         public DynamicClassBuilder(string assemblyName, string className, Type? baseType = null, Type[]? interfaces = null)
         {
+            _className = className;
             var fullyQualifiedClassName = $"{assemblyName}.{className}";
             _assemblyName = new AssemblyName(assemblyName);
-            _assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.Run);
+            _assemblyName.Version = new Version("1.0.0.0");
+            //_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.Run);
+            _assemblyBuilder = new PersistedAssemblyBuilder(_assemblyName, typeof(object).Assembly);
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule(assemblyName);
             
             _hasInterfaces = interfaces != null && interfaces.Length > 0;
@@ -74,12 +89,151 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _constructors = new List<(ConstructorBuilder, Type[])>();
             _addedProperties = new List<string>();
             _addedMethods = new List<string>();
-            _typeBuilder = _moduleBuilder.DefineType(
+            var attr = TypeAttributes.Public | TypeAttributes.Class;
+            var baseTypeName = baseType?.FullName ?? default!;
+            var baseTypeProperties = baseType?.GetProperties();
+            var baseTypeInterfaces = baseType?.GetInterfaces();
+            
+            baseType = baseType != null? DefineBaseClassType(_moduleBuilder, baseTypeName, baseTypeProperties, baseTypeInterfaces) : baseType;
+            _typeBuilder = DefineTypes(
+                _moduleBuilder,
                 fullyQualifiedClassName,
-                TypeAttributes.Public | TypeAttributes.Class,
+                attr,
                 baseType,
                 interfaces
-            );
+            ) ?? default!;
+        }
+
+        public TypeBuilder? DefineTypes(ModuleBuilder mb, string fullyQualifiedClassName, TypeAttributes attr, Type? parent, Type[]? types = null)
+        {
+            TypeBuilder? tb = null;
+            Type[]? dynamicTypes = null;
+            if (types != null)
+            {
+                // Initialize the dynamicTypes array with the same length as types
+                dynamicTypes = new Type[types.Length];
+
+                // Loop through the provided types and define dynamic types using DefineInterfaceType
+                for (int i = 0; i < types.Length; i++)
+                {
+                    Type interfaceType = types[i];
+
+                    // Use the type's name or fully qualified name to define each interface
+                    var interfaceName = interfaceType.FullName ?? interfaceType.Name;
+                    var propInfo = interfaceType.GetProperties();
+                    Type iType = DefineInterfaceType(mb, interfaceName, propInfo) ?? default!;
+
+                    // Store the dynamically created type in the dynamicTypes array
+                    dynamicTypes[i] = iType;
+                }
+
+            }
+
+            // Define the type that implements the interfaces in dynamicTypes
+            tb = mb.DefineType(fullyQualifiedClassName, attr, parent, dynamicTypes);
+            return tb;
+        }
+
+        private Type? DefineBaseClassType(ModuleBuilder mb, string fullyQualifiedName, PropertyInfo[]? columnsInfo, Type[]? types = null)
+        {
+            Type? type = null;
+            TypeBuilder? tb = null;
+
+            tb = mb.DefineType(fullyQualifiedName, TypeAttributes.Public | TypeAttributes.Class, typeof(object), types);
+
+            if (columnsInfo != null)
+            {
+                foreach (var columnInfo in columnsInfo)
+                {
+                    // Define the field
+                    var fieldBuilder = tb.DefineField(columnInfo.Name, columnInfo.PropertyType, FieldAttributes.Private);
+
+                    // Define the property
+                    var propertyBuilder = tb.DefineProperty(columnInfo.Name, PropertyAttributes.HasDefault, columnInfo.PropertyType, null);
+
+                    // Define the getter method
+                    var getterBuilder = tb.DefineMethod(
+                        $"get_{columnInfo.Name}",
+                        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.SpecialName,
+                        columnInfo.PropertyType,
+                        Type.EmptyTypes
+                    );
+
+                    // Generate IL for the getter method
+                    var getterIL = getterBuilder.GetILGenerator();
+                    getterIL.Emit(OpCodes.Ldarg_0); // Load "this" onto the stack
+                    getterIL.Emit(OpCodes.Ldfld, fieldBuilder); // Load the field value onto the stack
+                    getterIL.Emit(OpCodes.Ret); // Return the value
+
+                    // Set the getter method for the property
+                    propertyBuilder.SetGetMethod(getterBuilder);
+
+                    // Define the setter method
+                    var setterBuilder = tb.DefineMethod(
+                        $"set_{columnInfo.Name}",
+                        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.SpecialName,
+                        null,
+                        new[] { columnInfo.PropertyType }
+                    );
+
+                    // Generate IL for the setter method
+                    var setterIL = setterBuilder.GetILGenerator();
+                    setterIL.Emit(OpCodes.Ldarg_0); // Load "this" onto the stack
+                    setterIL.Emit(OpCodes.Ldarg_1); // Load the new value onto the stack
+                    setterIL.Emit(OpCodes.Stfld, fieldBuilder); // Store the value into the field
+                    setterIL.Emit(OpCodes.Ret); // Return
+
+                    // Set the setter method for the property
+                    propertyBuilder.SetSetMethod(setterBuilder);
+
+                    // Implement the interface methods
+                    if (types != null)
+                    {
+                        foreach (Type baseType in types)
+                        {
+                            var interfaceGetterMethod = baseType.GetMethod($"get_{columnInfo.Name}") ?? default!;
+                            var interfaceSetterMethod = baseType.GetMethod($"set_{columnInfo.Name}") ?? default!;
+                            tb.DefineMethodOverride(getterBuilder, interfaceGetterMethod);
+                            tb.DefineMethodOverride(setterBuilder, interfaceSetterMethod);
+                        }
+                    }
+                    
+                }
+
+            }
+
+            type = tb.CreateType();
+            return type;
+        }
+        
+        private Type? DefineInterfaceType(ModuleBuilder mb, string fullyQualifiedName, PropertyInfo[] columnsInfo)
+        {
+            Type? type = null;
+            TypeBuilder? tb = null;
+
+            tb = mb.DefineType(fullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
+            foreach (var columnInfo in columnsInfo)
+            {
+                // Define the getter method
+                tb.DefineMethod(
+                    $"get_{columnInfo.Name}",
+                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                    columnInfo.PropertyType,
+                    Type.EmptyTypes
+                );
+
+                // Define the setter method
+                tb.DefineMethod(
+                    $"set_{columnInfo.Name}",
+                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                    null,
+                    new[] { columnInfo.PropertyType }
+                );
+            }
+
+            type = tb.CreateType();
+            return type;
         }
 
         public FieldBuilder DefineField(string fieldName, Type fieldType, FieldAttributes attributes)
@@ -137,7 +291,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return _constructors.AsReadOnly();
         }
 
-        public Type CreateType()
+        
+        public Type? CreateType()
         {
             Type? type = null;
 
@@ -151,12 +306,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
 
             return type;
-        }
-
-        public object? CreateInstance()
-        {
-            _dynamicType = CreateType();
-            return Activator.CreateInstance(_dynamicType);
         }
 
         public void CreateClassFromDataTable(DataTable? table)
@@ -215,7 +364,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
         }
 
-        public void DefineMethod(string methodName, Type returnType, Type[] parameterTypes, string[]? parameterNames, Action<ILGenerator, LocalBuilder?> generateMethodBody)
+        public void DefineMethod(string methodName, Type? returnType, Type[] parameterTypes, string[]? parameterNames, Action<ILGenerator, LocalBuilder?> generateMethodBody)
         {
             MethodBuilder methodBuilder = _typeBuilder.DefineMethod(
                 methodName,
@@ -253,7 +402,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         public ConstructorInfo[] GetConstructors()
         {
-            Type dynamicType = CreateType();
+            Type dynamicType = CreateType() ?? default!;
             if (dynamicType == null)
             {
                 throw new InvalidOperationException("Dynamic type creation failed.");
@@ -265,14 +414,19 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         public void SaveAssembly(string assemblyFilePath)
         {
             _assemblyFilePath = assemblyFilePath;
-            // Create an assembly in memory
-            var assembly = _moduleBuilder.Assembly;
-            
+
+            // Create the type before saving it to disk
+            _dynamicType = _typeBuilder?.CreateType();
+
             // Save the assembly to disk
-            using (var fileStream = new FileStream(assemblyFilePath, FileMode.Create, FileAccess.Write))
+            _assemblyBuilder?.Save(assemblyFilePath);
+
+            // Try to load the assembly to make sure that you can get the static version so that you can do more things like GetProperties()
+            _assembly = assemblyFilePath.LoadAssemblyFromDLLFile();
+            if (_assembly != null && _assemblyName != null)
             {
-                var assemblyBytes = assembly.GetAssemblyBytesFromDynamicAssembly(); //get assemblyBytes here and do not create any additional methods for this
-                fileStream.Write(assemblyBytes, 0, assemblyBytes.Length);
+                var fullyQualifiedName = $"{_assemblyName.Name}.{_className}";
+                _dynamicType = _assembly.GetType(fullyQualifiedName);
             }
         }
 
@@ -284,6 +438,45 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
         }
 
+        // Implement IDisposable to clean up resources
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Protected method for cleanup logic
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Perform any necessary cleanup here
+                    _assembly = null;
+                    _assemblyName = null;
+                    _className = null;
+                    _assemblyBuilder = null;
+                    _moduleBuilder = null;
+                    _typeBuilder = null;
+                    _hasInterfaces = false;
+                    _interfaces = null;
+                    _dynamicType = null;
+                    _constructors = null;
+                    _addedProperties = null;
+                    _addedMethods = null;
+                    _assemblyFilePath = null;
+    }
+
+                _disposed = true;
+            }
+        }
+
+        // Destructor to ensure resources are cleaned up
+        ~DynamicClassBuilder()
+        {
+            Dispose(false);
+        }
     }
 }
 
