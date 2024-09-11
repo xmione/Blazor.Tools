@@ -8,20 +8,35 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
     public class CreateDLLFromDataTable
     {
+        private static string _iEmployeeFulliQualifiedName;
+        private static string _employeeFullyQualifiedName;
+
         public static void BuildAndSaveAssembly(DataTable dataTable)
         {
             var assemblyName = new AssemblyName("DynamicAssembly");
             var persistedAssemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
             var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule("MainModule");
+            
+            var iEmployeeNameSpace = "Blazor.Tools.BlazorBundler.Interfaces";
+            var iEmployeeTypeName = "IEmployee";
+            var iEmployeeFullyQualifiedName = $"{iEmployeeNameSpace}.{iEmployeeTypeName}";
+            
+            var employeeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            var employeeTypeName = "Employee";
+            var employeeFullyQualifiedName = $"{employeeNameSpace}.{employeeTypeName}";
 
+            _iEmployeeFulliQualifiedName = iEmployeeFullyQualifiedName;
+            _employeeFullyQualifiedName = employeeFullyQualifiedName;
             // Define the IEmployee interface
-            var interfaceBuilder = moduleBuilder.DefineType("IEmployee", TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
+            var interfaceBuilder = moduleBuilder.DefineType(iEmployeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
             foreach (DataColumn column in dataTable.Columns)
             {
                 // Define the getter method
                 interfaceBuilder.DefineMethod(
                     $"get_{column.ColumnName}",
-                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
+                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
                     column.DataType,
                     Type.EmptyTypes
                 );
@@ -29,7 +44,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 // Define the setter method
                 interfaceBuilder.DefineMethod(
                     $"set_{column.ColumnName}",
-                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
+                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
                     null,
                     new[] { column.DataType }
                 );
@@ -37,7 +52,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var iEmployee = interfaceBuilder.CreateType();
 
             // Define the Employee class that implements IEmployee
-            var classBuilder = moduleBuilder.DefineType("Employee", TypeAttributes.Public | TypeAttributes.Class, typeof(object), new[] { iEmployee });
+            var classBuilder = moduleBuilder.DefineType(employeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Class, typeof(object), new[] { iEmployee });
 
             foreach (DataColumn column in dataTable.Columns)
             {
@@ -91,10 +106,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var employeeType = classBuilder.CreateType();
 
             // Save the assembly to a file
-            using (var fileStream = new FileStream("DynamicAssembly.dll", FileMode.Create, FileAccess.Write))
-            {
-                persistedAssemblyBuilder.Save("DynamicAssembly.dll");
-            }
+            persistedAssemblyBuilder.Save("DynamicAssembly.dll");
+            //using (var fileStream = new FileStream("DynamicAssembly.dll", FileMode.Create, FileAccess.Write))
+            //{
+            //    persistedAssemblyBuilder.Save("DynamicAssembly.dll");
+            //}
 
             Console.WriteLine("DisposableAssembly saved successfully!");
         }
@@ -106,8 +122,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var assembly = AssemblyLoadContext.Default.LoadFromStream(new MemoryStream(assemblyBytes));
 
             // Get the types
-            var iEmployeeType = assembly.GetType("IEmployee");
-            var employeeType = assembly.GetType("Employee");
+            var iEmployeeType = assembly.GetType(_iEmployeeFulliQualifiedName);
+            var employeeType = assembly.GetType(_employeeFullyQualifiedName);
 
             if (iEmployeeType == null || employeeType == null)
             {
@@ -116,7 +132,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
 
             // Create an instance of the dynamically generated Employee class
-            var newEmployee = Activator.CreateInstance(employeeType);
+            var newEmployee = Activator.CreateInstance(employeeType) ?? default!;
+
+            // Check if the newEmployee instance is of the IEmployee type
+            if (iEmployeeType.IsAssignableFrom(newEmployee.GetType()))
+            {
+                Console.WriteLine("Successfully created an instance of Employee that implements IEmployee.");
+            }
 
             // Set properties dynamically using reflection
             foreach (var column in employeeType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
