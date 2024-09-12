@@ -1,12 +1,11 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
+﻿using Azure.Identity;
+using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using BlazorBootstrap;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
@@ -20,7 +19,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     public partial class DataTableGrid : ComponentBase
     {
         [Parameter] public string Title { get; set; } = default!;
-        [Parameter] public string TableID { get; set; } = default!;
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public DataTable SelectedTable { get; set; } = default!;
         [Parameter] public string ModelsAssemblyName { get; set; } = default!;
@@ -35,12 +33,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //[Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
         private DataTable _selectedTableVM = default!;
-        private bool _showSetTargetTableModal = false;
+        private bool _addSetTargetTableModal = false;
         private DataRow[]? _selectedData = default!;
         private string _selectedFieldValue = string.Empty;
         //private SessionManager _sessionManager = SessionManager.Instance;
         private bool _isRetrieved = false;
-        //private TableGrid<TModel, TIModel, TModelVM> _tableGrid = default!;
+        private Type? _tableGridType = default!;
 
         private List<TargetTable>? _targetTables;
         private string _tableName = string.Empty;
@@ -58,7 +56,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private int _startCol;
         private int _endCol;
         private IEnumerable<object> _items = Enumerable.Empty<object>();
-
+        private object? _tableGridInstance;
+        private object? _tableGridComponentReference;
+        private string _tableID = string.Empty;
+        private bool _showSetTargetTableModal;
 
         //private IList<SessionItem>? _sessionItems;
 
@@ -69,90 +70,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await base.OnParametersSetAsync();
         }
 
-        protected override void BuildRenderTree(RenderTreeBuilder builder)
-        {
-            var sequence = 0;
-
-            // Get the TableGrid component type with the correct generic types
-            var tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _interfaceType);
-
-            // Open the component using the resolved type
-            builder.OpenComponent(sequence++, tableGridType);
-            builder.AddAttribute(sequence++, "Title", Title);
-            builder.AddAttribute(sequence++, "TableID", _tableName.ToLower());
-            builder.AddAttribute(sequence++, "Model", _modelInstance);
-            builder.AddAttribute(sequence++, "ModelVM", _modelVMInstance);
-            builder.AddAttribute(sequence++, "IModel", default(IModelExtendedProperties)); // Use default or provide an actual instance if needed
-            
-            // Add the items as an attribute to the TableGrid component
-            builder.AddAttribute(sequence++, "Items", _items);
-            
-            builder.AddAttribute(sequence++, "DataSources", DataSources);
-            // Handle ItemsChanged EventCallback
-            var callbackMethod = typeof(EventCallbackFactory).GetMethod("Create", new[] { typeof(object), typeof(Action<>) });
-            if (callbackMethod != null)
-            {
-                var genericCallbackMethod = callbackMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(_modelVMType));
-                var callback = genericCallbackMethod.Invoke(null, new object[] { this, ItemsChanged });
-                builder.AddAttribute(sequence++, "ItemsChanged", callback);
-            }
-            builder.AddAttribute(sequence++, "ColumnDefinitions", _columnDefinitions);
-            builder.AddAttribute(sequence++, "AllowCellRangeSelection", AllowCellRangeSelection);
-
-            builder.CloseComponent(); // Closing TableGrid
-
-            // Icon for Set Target Table Modal
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.Table);
-            builder.AddAttribute(sequence++, "Class", "text-success icon-button mb-2 cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Step 1. Set Target Table");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, ShowSetTargetTableModalAsync));
-            builder.CloseComponent();
-
-            // Target tables grid rendering
-            //if (_targetTables != null)
-            //{
-            //    foreach (var targetTable in _targetTables)
-            //    {
-            //        if (targetTable != null && !string.IsNullOrEmpty(targetTable.DT))
-            //        {
-            //            var dt = targetTable.DT.DeserializeAsync<DataTable>().Result;
-            //            builder.OpenComponent<TableGrid>(sequence++);
-            //            builder.AddAttribute(sequence++, "DataTable", dt);
-            //            builder.CloseComponent();
-            //        }
-            //    }
-            //}
-
-            // Icon for Upload Data
-            builder.OpenComponent<Icon>(sequence++);
-            builder.AddAttribute(sequence++, "Name", IconName.CloudUpload);
-            builder.AddAttribute(sequence++, "Class", "cursor-pointer");
-            builder.AddAttribute(sequence++, "title", "Upload to existing AccSol tables");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, UploadData));
-            builder.CloseComponent();
-
-            // Set Target Table Modal
-            //if (_showSetTargetTableModal)
-            //{
-            //    builder.OpenComponent<SetTargetTableModal>(sequence++);
-            //    builder.AddAttribute(sequence++, "Title", Title);
-            //    builder.AddAttribute(sequence++, "ShowSetTargetTableModal", _showSetTargetTableModal);
-            //    builder.AddAttribute(sequence++, "OnClose", EventCallback.Factory.Create(this, CloseSetTargetTableModal));
-            //    builder.AddAttribute(sequence++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
-            //    builder.AddAttribute(sequence++, "SelectedData", _selectedData);
-            //    builder.AddAttribute(sequence++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataComb));
-            //    builder.CloseComponent();
-            //}
-        }
-
         private async Task InitializeVariables()
         {
             _selectedTableVM = SelectedTable?.Copy() ?? _selectedTableVM; // use this variable and do not change the parameter variable SelectedTable
             _tableName = SelectedTable?.TableName ?? _tableName; //Employee
-
+            _tableID = _tableName.ToLower();
             await CreateDynamicBundlerDLL();
-            //await CreateBundlerDLL();
+
+            // Get the TableGrid component type with the correct generic types
+            _tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _interfaceType);
 
             //_sessionItems = new List<SessionItem>
             //{
@@ -170,7 +96,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //    },
             //    new SessionItem()
             //    {
-            //        Key = $"{Title}_showSetTargetTableModal", Value = _showSetTargetTableModal, Type = typeof(bool), Serialize = true
+            //        Key = $"{Title}_addSetTargetTableModal", Value = _addSetTargetTableModal, Type = typeof(bool), Serialize = true
             //    }
             //};
 
@@ -238,98 +164,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await DefineTableColumns(modelVMTempDllPath, modelTypeName, modelVMTypeName);
 
-        }
-
-        public async Task CreateBundlerDLL()
-        {
-            // Define the paths in the Temp folder
-            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-
-            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
-
-            var usingStatements = new List<string>
-            {
-                "System"
-            };
-
-            string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            Type baseClassType = default!;
-            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, _selectedTableVM, usingStatements))
-            {
-                var baseClassCode = baseClassGenerator.ToString();
-                baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, _tableName, baseDLLPath);
-                baseClassType = baseClassGenerator.ClassType ?? default!;
-            }
-
-            string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
-
-            var vmClassName = $"{_tableName}VM";
-            Type vmClassType = default!;
-            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
-            {
-                viewModelClassGenerator.CreateFromDataTable(_selectedTableVM);
-                var vmClassCode = viewModelClassGenerator.ToString();
-                viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
-                vmClassType = viewModelClassGenerator.ClassType ?? default!;
-            }
-
-            //baseClassType = null;
-            while (baseDLLPath.IsFileInUse())
-            {
-                //baseDLLPath.KillLockingProcesses();
-
-                Thread.Sleep(1000);
-            }
-
-            while (vmDllPath.IsFileInUse())
-            {
-                //vmDllPath.KillLockingProcesses();
-                Thread.Sleep(1000);
-            }
-
-            _modelType = baseClassType;
-            _modelVMType = vmClassType;
-
-            _modelInstance = Activator.CreateInstance(_modelType);
-            _modelVMInstance = Activator.CreateInstance(_modelVMType);
-
-            // Use reflection to work with IViewModel
-            
-            var iModelType = typeof(IModelExtendedProperties);
-            var viewModelInterfaceType = typeof(IViewModel<,>).MakeGenericType(_modelType, iModelType);
-
-            var isEqual = _modelType == _modelInstance.GetType();
-            var isEqualVM = _modelVMType == _modelVMInstance.GetType();
-
-            // Load the assembly and get the type
-            Assembly generatedAssembly = Assembly.LoadFrom(vmDllPath);
-            Type viewModelType = generatedAssembly.GetType("Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.EmployeeVM");
-
-            // Ensure that _modelType and iModelType are the types you expect
-            bool implementsViewModelInterface = viewModelInterfaceType.IsAssignableFrom(viewModelType);
-            Console.WriteLine($"Implements IViewModel<,>: {implementsViewModelInterface}");
-
-
-            if (viewModelInterfaceType.IsAssignableFrom(_modelVMType))
-            {
-                // Access the Model property via reflection
-                var modelProperty = viewModelInterfaceType.GetProperty("Model");
-                //var modelInstance = modelProperty.;
-
-                //Console.WriteLine("Model Instance: " + modelInstance?.ToString());
-
-                // Access other properties or methods as needed
-            }
-            else
-            {
-                Console.WriteLine("The generated ViewModel does not implement IViewModel.");
-            }
-
-            await DefineTableColumns();
-            await Task.CompletedTask;
         }
 
         private async Task DefineConstructors(DynamicClassBuilder vmClassBuilder)
@@ -527,7 +361,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ret);
             });
 
-            vmClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, new[] { "isEditMode" },  (ilg, localBuilder) =>
+            vmClassBuilder.DefineMethod("SetEditMode", typeof(Task<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)), new[] { typeof(bool) }, new[] { "isEditMode" }, (ilg, localBuilder) =>
             {
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -759,64 +593,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task DefineTableColumns(string dllPath, string modelTypeName, string modelVMTypeName)
         {
-
-
-            var modelExtendedProperties = new ModelExtendedProperties();
-            var excludedColumns = modelExtendedProperties.GetProperties();
-            // TableColumnDefinition should be based on model type, e.g.: Employee class and not EmployeeVM
-            var props = _modelType.GetProperties();
-            if (props != null)
-            {
-                //_selectedTableVM.AddPropertiesFromPropertyInfoList(props);
-                _columnDefinitions = new List<TableColumnDefinition>();
-                foreach (PropertyInfo property in props)
-                {
-                    var tableColumnDefinition = new TableColumnDefinition
-                    {
-                        ColumnName = property.Name,
-                        HeaderText = property.Name,
-                        ColumnType = typeof(string),
-                        CellClicked = async (columnName, vm, rowIndex) => await HandleCellClickAsync(columnName, vm, rowIndex),
-                        ValueChanged = new Action<object, object>((newValue, modelInstance) => OnValueChanged(property.Name, newValue, modelInstance))
-                    };
-
-                    _columnDefinitions.Add(tableColumnDefinition);
-                }
-            }
-
-            _selectedTableVM.AddPropertiesFromPropertyInfoList(excludedColumns);
-
-            // Use reflection to call the ConvertDataTableToObjects method
-            var itemsMethod = typeof(DataTableExtensions).GetMethod(
-                "ConvertDataTableToObjects",
-                BindingFlags.Static | BindingFlags.Public,
-                null,
-                new[] { typeof(DataTable) }, // Specify the parameters here
-                null);
-
-            if (itemsMethod != null)
-            {
-                var genericMethod = itemsMethod.MakeGenericMethod(_modelVMType);
-                var items = genericMethod.Invoke(null, new object[] { _selectedTableVM });
-
-                // Cast items to IEnumerable<object>
-                if (items != null)
-                {
-                    _items = (IEnumerable<object>)items;
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("The ConvertDataTableToObjects method was not found.");
-            }
-
-            await Task.CompletedTask;
-        }
-
-        private async Task DefineTableColumns()
-        {
-            // Get the type of the dynamic TModel and TModelVM classes
-            _interfaceType = typeof(IModelExtendedProperties);
             var modelExtendedProperties = new ModelExtendedProperties();
             var excludedColumns = modelExtendedProperties.GetProperties();
             // TableColumnDefinition should be based on model type, e.g.: Employee class and not EmployeeVM
@@ -913,8 +689,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
 
             string cellIdentifier = $"R{modelVM.RowID}C{column}";
-            var startCellID = $"{TableID}-start-cell";
-            var endCellID = $"{TableID}-end-cell";
+            var startCellID = $"{_tableID}-start-cell";
+            var endCellID = $"{_tableID}-end-cell";
             _startCell = await JSRuntime.InvokeAsync<string>("getValue", startCellID);
             _endCell = await JSRuntime.InvokeAsync<string>("getValue", endCellID);
 
@@ -926,9 +702,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _startCell = cellIdentifier;
                 _isFirstCellClicked = areBothFilled ? _isFirstCellClicked : false;
 
-                await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-row", $"{_startRow}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-col", $"{_startCol}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-cell", cellIdentifier);
+                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-row", $"{_startRow}");
+                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-col", $"{_startCol}");
+                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-start-cell", cellIdentifier);
             }
             else
             {
@@ -937,9 +713,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _endCell = cellIdentifier;
                 _isFirstCellClicked = areBothFilled ? _isFirstCellClicked : true;
 
-                await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-row", $"{_endRow}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-col", $"{_endCol}");
-                await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-cell", cellIdentifier);
+                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-row", $"{_endRow}");
+                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-col", $"{_endCol}");
+                await JSRuntime.InvokeVoidAsync("setValue", $"{_tableID}-end-cell", cellIdentifier);
             }
 
             areBothFilled = !string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell);
@@ -948,7 +724,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 var totalRows = _items.Count();
                 var totalCols = _columnDefinitions?.Count;
-                await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, TableID, true);
+                await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, _tableID, true);
             }
 
             await Task.CompletedTask;
@@ -963,7 +739,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //        _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
             //        _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
             //        _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTables"))?.Value;
-            //        _showSetTargetTableModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_showSetTargetTableModal"))?.Value ?? false);
+            //        _addSetTargetTableModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_addSetTargetTableModal"))?.Value ?? false);
 
             //        _isRetrieved = true;
             //        StateHasChanged();
@@ -979,10 +755,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private void CloseSetTargetTableModal()
         {
-            _showSetTargetTableModal = false;
+            _addSetTargetTableModal = false;
             StateHasChanged();
 
-            //_sessionManager.SaveToSessionTableAsync($"{Title}_showSetTargetTableModal", _showSetTargetTableModal, serialize: true).Wait();
+            //_sessionManager.SaveToSessionTableAsync($"{Title}_addSetTargetTableModal", _addSetTargetTableModal, serialize: true).Wait();
         }
 
         private async Task SaveToTargetTableAsync(List<TargetTable>? targetTables)
@@ -1022,16 +798,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task ShowSetTargetTableModalAsync()
         {
-            _showSetTargetTableModal = true;
-            //_selectedData = await _tableGrid.ShowSetTargetTableModalAsync();
-            if (_selectedData == null)
-            {
-                _showSetTargetTableModal = false;
-            }
-
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_showSetTargetTableModal", _showSetTargetTableModal, serialize: true);
-            StateHasChanged();
+            _addSetTargetTableModal = true;
+            
+            //StateHasChanged();
             await Task.CompletedTask;
         }
 
@@ -1047,5 +816,148 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            if (_tableGridType != null)
+            {
+                var seq = 0;
+
+                // Open the component using the resolved type
+                builder.OpenComponent(seq++, _tableGridType);
+                builder.AddAttribute(seq++, "Title", Title);
+                builder.AddAttribute(seq++, "TableID", _tableName.ToLower());
+                builder.AddAttribute(seq++, "Model", _modelInstance);
+                builder.AddAttribute(seq++, "ModelVM", _modelVMInstance);
+                builder.AddAttribute(seq++, "IModel", default(IModelExtendedProperties)); // Use default or provide an actual instance if needed
+
+                // Add the items as an attribute to the TableGrid component
+                builder.AddAttribute(seq++, "Items", _items);
+
+                builder.AddAttribute(seq++, "DataSources", DataSources);
+                // Handle ItemsChanged EventCallback
+                var callbackMethod = typeof(EventCallbackFactory).GetMethod("Create", new[] { typeof(object), typeof(Action<>) });
+                if (callbackMethod != null)
+                {
+                    var genericCallbackMethod = callbackMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(_modelVMType));
+                    var callback = genericCallbackMethod.Invoke(null, new object[] { this, ItemsChanged });
+                    builder.AddAttribute(seq++, "ItemsChanged", callback);
+                }
+                builder.AddAttribute(seq++, "ColumnDefinitions", _columnDefinitions);
+                builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
+
+                // Capture the component reference
+                builder.AddComponentReferenceCapture(seq++, inst =>
+                {
+                    _tableGridComponentReference = inst;
+                });
+
+                builder.CloseComponent(); // Closing TableGrid
+
+                // Icon for Set Target Table Modal
+                builder.OpenComponent<Icon>(seq++);
+                builder.AddAttribute(seq++, "Name", IconName.Table);
+                builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer");
+                builder.AddAttribute(seq++, "title", "Step 1. Set Target Table");
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ShowSetTargetTableModalAsync));
+                builder.CloseComponent();
+
+                // Target tables grid rendering
+                //if (_targetTables != null)
+                //{
+                //    foreach (var targetTable in _targetTables)
+                //    {
+                //        if (targetTable != null && !string.IsNullOrEmpty(targetTable.DT))
+                //        {
+                //            var dt = targetTable.DT.DeserializeAsync<DataTable>().Result;
+                //            builder.OpenComponent<TableGrid>(seq++);
+                //            builder.AddAttribute(seq++, "DataTable", dt);
+                //            builder.CloseComponent();
+                //        }
+                //    }
+                //}
+
+                // Icon for Upload Data
+                builder.OpenComponent<Icon>(seq++);
+                builder.AddAttribute(seq++, "Name", IconName.CloudUpload);
+                builder.AddAttribute(seq++, "Class", "cursor-pointer");
+                builder.AddAttribute(seq++, "title", "Upload to existing AccSol tables");
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, UploadData));
+                builder.CloseComponent();
+
+                // TODO: sol: put this in the AfterRenderAsync method.
+                // Set Target Table Modal
+                if (_showSetTargetTableModal)
+                {
+                    builder.OpenComponent<SetTargetTableModal>(seq++);
+                    builder.AddAttribute(seq++, "Title", Title);
+                    builder.AddAttribute(seq++, "ShowSetTargetTableModal", _addSetTargetTableModal);
+                    builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseSetTargetTableModal));
+                    builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
+                    builder.AddAttribute(seq++, "SelectedData", _selectedData);
+                    builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataComb));
+                    builder.CloseComponent();
+                }
+            }
+
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstTime)
+        {
+            if (firstTime)
+            { 
+            }
+
+            if (_addSetTargetTableModal)
+            {
+                _showSetTargetTableModal = true;
+                var startCellID = $"{_tableID}-start-cell";
+                var endCellID = $"{_tableID}-end-cell";
+                _startCell = await JSRuntime.InvokeAsync<string>("getValue", startCellID);
+                _endCell = await JSRuntime.InvokeAsync<string>("getValue", endCellID);
+
+                // Get the method info for ShowSetTargetTableModalAsync
+                var showTargetTableModalAsyncMethod = _tableGridType?.GetMethod("ShowSetTargetTableModalAsync");
+                var reloadTableGridInternalsComponent = _tableGridType?.GetMethod("ReloadTableGridInternalsComponent");
+
+                if (_tableGridComponentReference != null)
+                {
+                    // Cast the reference to the appropriate type (generic table grid)
+                    var tableGridInstance = _tableGridComponentReference as dynamic;
+
+                    // Invoke the method
+                    if (tableGridInstance != null)
+                    {
+
+                        var resultTask = tableGridInstance.ShowSetTargetTableModalAsync(_startCell, _endCell);
+
+                        // Since it's a Task, you can await it or use other async handling
+                        _selectedData = await resultTask;
+
+                        // Now you can use the 'rows' variable which is of type DataRow[]?
+                        if (_selectedData != null)
+                        {
+                            foreach (var row in _selectedData)
+                            {
+                                // Process each row here
+                                Console.WriteLine(row);
+                            }
+                        }
+                    }
+                }
+                 
+                //_selectedData = await showTargetTableModalAsyncMethod.Invoke();
+                if (_selectedData == null)
+                {
+                    _addSetTargetTableModal = false;
+                }
+
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_addSetTargetTableModal", _addSetTargetTableModal, serialize: true);
+
+                
+                StateHasChanged();
+            }
+
+        }
     }
 }

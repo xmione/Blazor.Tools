@@ -6,14 +6,12 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using System.Data;
 using Microsoft.JSInterop;
-using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.SessionManagement;
-using DocumentFormat.OpenXml.Wordprocessing;
-using System.Reflection;
+using Blazor.Tools.BlazorBundler.Extensions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGridInternals<TModel, TIModel> : ComponentBase
+    public partial class TableGridInternals<TModel, TIModel> : ComponentBase where TModel : class
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
@@ -48,6 +46,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private string _endCell = string.Empty;
         private bool _isFirstCellClicked;
         private bool _isComponentInitialized;
+        private DataTable? _dataTable;
 
         protected override async Task OnInitializedAsync()
         {
@@ -74,6 +73,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await GetPageRowsAsync(_items);
         }
+
         protected override async void BuildRenderTree(RenderTreeBuilder builder)
         {
             int seq = 0;
@@ -532,7 +532,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
         }
 
-
         private async Task DeleteRowAsync(IViewModel<TModel, IModelExtendedProperties>? modelVM)
         {
             if (modelVM != null && ModelVM != null)
@@ -605,13 +604,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await Task.CompletedTask;
         }
+
         private async Task HandleFilterDataTableAsync(IEnumerable<IViewModel<TModel, IModelExtendedProperties>> filteredRows)
         {
             await GetPageRowsAsync(filteredRows);
             StateHasChanged(); 
             await Task.CompletedTask;
         }
-
 
         private async Task PageSizeChangedAsync(ChangeEventArgs e)
         {
@@ -769,8 +768,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-col", "");
             await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-col", "");
 
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
+            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
 
             await Task.CompletedTask;
         }
@@ -812,13 +811,94 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             }
 
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
                 //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
 
             StateHasChanged(); // Refresh UI to reflect the changes in cell selection
 
             await Task.CompletedTask;
+        }
+
+        public async Task<DataRow[]?> ShowSetTargetTableModalAsync(string startCell, string endCell)
+        {
+            _startCell = startCell;
+            _endCell = endCell; 
+            DataRow[] selectedData = default!;
+
+            try
+            {
+                
+                if (!string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell))
+                {
+                    // Parsing startCell ("R1-C1")
+                    int startRow = int.Parse(startCell.Substring(1, startCell.IndexOf('-') - 1));
+                    int startCol = int.Parse(startCell.Substring(startCell.IndexOf('C') + 1));
+
+                    // Parsing endCell ("R101-C6")
+                    int endRow = int.Parse(endCell.Substring(1, endCell.IndexOf('-') - 1));
+                    int endCol = int.Parse(endCell.Substring(endCell.IndexOf('C') + 1));
+
+                    selectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+
+                    //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+
+                    await Task.CompletedTask;
+                }
+            }
+            catch (TaskCanceledException ex)
+            {
+                Console.WriteLine("JavaScript invocation was canceled: " + ex.Message);
+            }
+            catch (JSException jsEx)
+            {
+                Console.WriteLine("JavaScript exception occurred: " + jsEx.Message);
+            }
+
+            await Task.CompletedTask;
+            //StateHasChanged();
+
+            return selectedData;
+        }
+
+        public async Task ReloadComponent()
+        {
+            StateHasChanged();
+            await Task.CompletedTask;
+        }
+
+        private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
+        {
+            List<DataRow> dataInRange = new List<DataRow>();
+
+            var tModelList = Items.Select(item => item as TModel).ToList();
+            _dataTable = tModelList?.ToDataTable() ?? default!;
+
+            if (_dataTable != null)
+            {
+                // Create a new DataTable with the selected columns
+                DataTable filteredDataTable = new DataTable();
+                for (int i = startCol - 1; i <= endCol - 1; i++)
+                {
+                    var column = _dataTable.Columns[i];
+                    filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
+                }
+
+                for (int i = startRow - 1; i < endRow - 1; i++)
+                {
+                    DataRow newRow = filteredDataTable.NewRow();
+
+                    for (int j = startCol - 1; j < endCol - 1; j++)
+                    {
+                        newRow[j] = _dataTable.Rows[i][j];
+                    }
+
+                    dataInRange.Add(newRow);
+                }
+
+            }
+
+            return dataInRange.ToArray();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -831,7 +911,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 
             }
-
+            
             if (_isAdding)
             {
                 await JSRuntime.InvokeVoidAsync("scrollToBottom", $"{TableID}-div");
