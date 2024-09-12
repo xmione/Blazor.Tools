@@ -66,7 +66,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 else
                 {
-                    servicesAssembly = ModelsAssemblyPath.LoadAssemblyFromDLLFile();
+                    servicesAssembly = ServicesAssemblyPath.LoadAssemblyFromDLLFile();
                 }
 
             }

@@ -882,7 +882,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 builder.AddAttribute(seq++, "ColumnDefinitions", _columnDefinitions);
                 builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
-
+                
                 // Capture the component reference
                 builder.AddComponentReferenceCapture(seq++, inst =>
                 {
@@ -928,6 +928,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
                 builder.AddAttribute(seq++, "SelectedData", _selectedData);
                 builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataComb));
+                builder.AddAttribute(seq++, "TableList", TableList);
                 builder.CloseComponent();
 
             }

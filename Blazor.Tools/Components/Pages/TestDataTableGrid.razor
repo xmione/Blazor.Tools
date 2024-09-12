@@ -19,7 +19,8 @@
                 HiddenColumnNames="@HiddenEmployeeColumns" 
                 DataSources="@DataSources"
                 ItemsChanged="@OnItemsChanged" 
-                AllowCellRangeSelection="true"/>
+                AllowCellRangeSelection="true"
+                TableList="@TableList" />
 
 <DataTableGrid  Title="@CountryDataTable.TableName" 
                 SelectedTable="@CountryDataTable" 
@@ -27,5 +28,6 @@
                 ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenCountryColumns"
                 DataSources="@DataSources"
-                ItemsChanged="@OnItemsChanged" />
+                ItemsChanged="@OnItemsChanged"
+               TableList="@TableList" />
   

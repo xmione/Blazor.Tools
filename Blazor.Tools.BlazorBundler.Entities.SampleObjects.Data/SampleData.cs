@@ -4,6 +4,9 @@ using Bogus;
 using System.Data;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
+using System.Reflection;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 {
@@ -128,7 +131,40 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             set { _viewModelsAssemblyName = value; }
         }
 
+        private List<AssemblyTable>? _tableList;
+
+        public List<AssemblyTable>? TableList
+        {
+            get { return _tableList; }
+            set { _tableList = value; }
+        }
+
+        private bool _loadAssemblyFromDLLFile;
+
+        public bool LoadAssemblyFromDLLPath
+        {
+            get { return _loadAssemblyFromDLLFile; }
+            set { _loadAssemblyFromDLLFile = value; }
+        }
+
         public SampleData()
+        {
+            _loadAssemblyFromDLLFile = true; // Default value should be true;
+            Create();
+        }
+
+        /// <summary>
+        /// Creates an instance of the SampleData with options for loading the assembly needed to create the TableList.
+        /// </summary>
+        /// <param name="loadAssemblyFromDLLFile">(bool) - Loads the assembly from dll file path, otherwise, loads it from the assembly name.</param>
+        public SampleData(bool loadAssemblyFromDLLFile)
+        {
+            _loadAssemblyFromDLLFile = loadAssemblyFromDLLFile;
+
+            Create();
+        }
+
+        private void Create()
         {
             Title = "Employee List";
             TableID = "employee";
@@ -141,7 +177,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             _countryVM = new CountryVM(new ContextProvider());
             _employees = new List<EmployeeVM>();
             _countries = new List<CountryVM>();
-            
+
             _employeeDataTable = new DataTable("Employee");
             _employeeDataTable.Columns.Add("ID", typeof(int));
             _employeeDataTable.Columns.Add("FirstName", typeof(string));
@@ -160,9 +196,10 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             _countryHeaderNames = default!;
             _modelsAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             _viewModelsAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-
+            _tableList = new List<AssemblyTable>();
             CreateTableColumnDefinitions();
             CreateDummyData();
+            CreateAssemblyTableList();
         }
 
         private void CreateTableColumnDefinitions()
@@ -276,6 +313,60 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
                 ["ID"] = "ID",
                 ["Name"] = "Country Name",
             };
+        }
+
+        private void CreateAssemblyTableList()
+        {
+            /*
+                Note: These are the important parameters that you need to supply to create the Assembly Table List.
+                      These are used to get the model classes that is used to update the database files.
+             */
+            var modelsAssemblyName = "AccSol.Interfaces";
+            var modelsAssemblyPath = @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll";
+            var servicesAssemblyName = "AccSol.Services";
+            var servicesAssemblyPath = @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll";
+
+            Assembly? modelsAssembly;
+            Assembly? servicesAssembly;
+
+            if (_loadAssemblyFromDLLFile)
+            {
+                // Load assembly from Assembly DLL File
+                modelsAssembly = modelsAssemblyPath.LoadAssemblyFromDLLFile();
+                servicesAssembly = servicesAssemblyPath.LoadAssemblyFromDLLFile();
+            }
+            else 
+            {
+                // Load assembly from Assembly Name
+                modelsAssembly = modelsAssemblyPath.LoadAssemblyFromName();
+                servicesAssembly = servicesAssemblyPath.LoadAssemblyFromName();
+            }
+
+            var interfaceNames = modelsAssembly?.GetAssemblyInterfaceNames().ToList();
+            modelsAssemblyName = modelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
+            servicesAssemblyName = servicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
+            
+            if (interfaceNames != null)
+            {
+                for (int i = 0; i < interfaceNames.Count(); i++)
+                {
+                    var iFace = interfaceNames[i];
+                    var assemblyTable = new AssemblyTable()
+                    {
+                        ID = i + 1,
+                        AssemblyName = modelsAssemblyName,
+                        AssemblyPath = modelsAssemblyPath,
+                        ServiceName = servicesAssemblyName,
+                        ServicePath = servicesAssemblyPath,
+                        LoadAssemblyFromDLLFile = _loadAssemblyFromDLLFile,
+                        IsInterface = true,
+                        TableName = iFace.Item2.Substring(1, iFace.Item2.Length - 1),
+                        TypeName = iFace.Item2
+                    };
+
+                    _tableList?.Add(assemblyTable);
+                }
+            }
         }
 
         public void OnIDValueChanged(object newValue, EmployeeVM employeeVM)
