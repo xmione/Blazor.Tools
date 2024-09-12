@@ -3,13 +3,12 @@ using Blazor.Tools.BlazorBundler.SessionManagement;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
-using System.Data;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
     public partial class ExcelUploaderHeader : ComponentBase
     {
-        [Parameter] public EventCallback<BBBrowserFile> OnFileUpload { get; set; }
+        [Parameter] public EventCallback<IBrowserFile> OnFileUpload { get; set; }
 
         private SessionManager _sessionManager = SessionManager.Instance;
         private IList<SessionItem>? _sessionItems;
@@ -83,15 +82,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
-            int sequence = 0;
+            int seq = 0;
 
             // InputFile element
-            builder.OpenElement(sequence++, "input");
-            builder.AddAttribute(sequence++, "type", "file");
-            builder.AddAttribute(sequence++, "id", "fileInput");
-            builder.AddAttribute(sequence++, "accept", ".xlsx");
-            builder.AddAttribute(sequence++, "onchange", EventCallback.Factory.Create<InputFileChangeEventArgs>(this, HandleFileUpload));
-            builder.CloseElement();
+            builder.OpenComponent<InputFile>(seq++);
+            builder.AddAttribute(seq++, "type", "file");
+            builder.AddAttribute(seq++, "id", "fileInput");
+            builder.AddAttribute(seq++, "accept", ".xlsx");
+            builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<InputFileChangeEventArgs>(this, HandleFileUpload));
+            builder.CloseComponent();
         }
     }
 }

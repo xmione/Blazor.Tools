@@ -105,10 +105,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            var modelTypeName = $"{ModelsAssemblyName}.{_tableName}";
-            var modelVMTypeName = $"{ViewModelsAssemblyName}.{_tableName}VM";
-            var modelTempDllPath = Path.Combine(tempFolderPath, $"{modelTypeName}.dll");
-            var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{modelVMTypeName}.dll");
+            var modelTempDllPath = Path.Combine(tempFolderPath, $"{ModelsAssemblyName}.dll");
+            var modelVMTempDllPath = Path.Combine(tempFolderPath, $"{ViewModelsAssemblyName}.dll");
 
             // Create an instance of DynamicClassBuilder for TModel
             using (var modelClassBuilder = new DynamicClassBuilder(ModelsAssemblyName, _tableName))
@@ -160,7 +158,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _interfaceType = _modelVMType.GetInterface(tIModelTypeFullName) ?? default!;
             }
 
-            await DefineTableColumns(modelVMTempDllPath, modelTypeName, modelVMTypeName);
+            await DefineTableColumns(modelVMTempDllPath, ModelsAssemblyName, ViewModelsAssemblyName);
 
         }
 

@@ -46,6 +46,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                             await Task.Run(() => dataAdapter.Fill(dataTable));
                         }
 
+                        dataTable.TableName = sheetName;
                         dataSet.Tables.Add(dataTable);
                     }
                 }

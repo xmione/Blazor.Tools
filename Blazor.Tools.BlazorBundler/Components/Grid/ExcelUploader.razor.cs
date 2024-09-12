@@ -12,12 +12,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     public partial class ExcelUploader : ComponentBase
     {
         [Parameter] public string Title { get; set; } = "Upload Excel File";
-        [Parameter] public string ModelsAssemblyPath { get; set; } = default!;
         [Parameter] public string ModelsAssemblyName { get; set; } = default!;
-        [Parameter] public string ServicesAssemblyPath { get; set; } = default!;
-        [Parameter] public string ServicesAssemblyName { get; set; } = default!;
-        [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
-        [Parameter] public bool IsInterface { get; set; } = false;
+        [Parameter] public string ViewModelsAssemblyName { get; set; } = default!;
+        [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!;
         [Inject] private IConfiguration Configuration { get; set; } = default!;
 
         private bool _isUploaded = false;
@@ -31,9 +28,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override async Task OnParametersSetAsync()
         {
-            await base.OnParametersSetAsync();
             await InitializeVariables();
             await RetrieveDataFromSessionTableAsync();
+            await base.OnParametersSetAsync();
         }
 
         private async Task InitializeVariables()
@@ -148,11 +145,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(sequence++, "ExcelDataSet", _excelDataSet);
                 builder.AddAttribute(sequence++, "ExcelProcessor", _excelProcessor);
                 builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
-                builder.AddAttribute(sequence++, "ModelsAssemblyPath", ModelsAssemblyPath);
-                builder.AddAttribute(sequence++, "ServicesAssemblyName", ServicesAssemblyName);
-                builder.AddAttribute(sequence++, "ServicesAssemblyPath", ServicesAssemblyPath);
-                builder.AddAttribute(sequence++, "LoadAssemblyFromDLLFile", LoadAssemblyFromDLLFile);
-                builder.AddAttribute(sequence++, "IsInterface", IsInterface);
+                builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
+                builder.AddAttribute(sequence++, "HostAssemblies", HostAssemblies);
                 builder.CloseComponent();
             }
 

@@ -36,6 +36,7 @@
 
   ====================================================================================================*/
 using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -80,7 +81,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var fullyQualifiedClassName = $"{assemblyName}.{className}";
             _assemblyName = new AssemblyName(assemblyName);
             _assemblyName.Version = new Version("1.0.0.0");
-            //_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.Run);
             _assemblyBuilder = new PersistedAssemblyBuilder(_assemblyName, typeof(object).Assembly);
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule(assemblyName);
             
@@ -413,21 +413,31 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         public void SaveAssembly(string assemblyFilePath)
         {
-            _assemblyFilePath = assemblyFilePath;
-
-            // Create the type before saving it to disk
-            _dynamicType = _typeBuilder?.CreateType();
-
-            // Save the assembly to disk
-            _assemblyBuilder?.Save(assemblyFilePath);
-
-            // Try to load the assembly to make sure that you can get the static version so that you can do more things like GetProperties()
-            _assembly = assemblyFilePath.LoadAssemblyFromDLLFile();
-            if (_assembly != null && _assemblyName != null)
+            try 
             {
-                var fullyQualifiedName = $"{_assemblyName.Name}.{_className}";
-                _dynamicType = _assembly.GetType(fullyQualifiedName);
+                _assemblyFilePath = assemblyFilePath;
+
+                // Create the type before saving it to disk
+                _dynamicType = _typeBuilder?.CreateType();
+
+                // Save the assembly to disk
+                _assemblyBuilder?.Save(assemblyFilePath);
+
+                // Try to load the assembly to make sure that you can get the static version so that you can do more things like GetProperties()
+                var assembly = assemblyFilePath.LoadAssemblyFromDLLFile();
+                if (assembly != null && _assemblyName != null)
+                {
+                    var fullyQualifiedName = $"{_assemblyName.Name}.{_className}";
+                    _dynamicType = assembly.GetType(fullyQualifiedName);
+                }
+
+                _assembly = assembly;
             }
+            catch (Exception ex)
+            {
+                ApplicationExceptionLogger.HandleException(ex);
+            }
+            
         }
 
         public void DeleteAssembly()

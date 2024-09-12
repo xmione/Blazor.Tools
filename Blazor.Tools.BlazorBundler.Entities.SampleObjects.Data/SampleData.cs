@@ -57,12 +57,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
         }
 
         private List<EmployeeVM> _employees;
+
         public List<EmployeeVM> Employees {
             get { return _employees; }
             set { _employees = value; }
         }
 
         private List<CountryVM> _countries;
+
         public List<CountryVM> Countries
         {
             get { return _countries; }
@@ -70,6 +72,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
         }
         
         private DataTable _employeeDataTable;
+
         public DataTable EmployeeDataTable
         {
             get { return _employeeDataTable; }
@@ -77,6 +80,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
         }
         
         private DataTable _countryDataTable;
+
         public DataTable CountryDataTable
         {
             get { return _countryDataTable; }
@@ -139,17 +143,9 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             set { _tableList = value; }
         }
 
-        private bool _loadAssemblyFromDLLFile;
-
-        public bool LoadAssemblyFromDLLPath
-        {
-            get { return _loadAssemblyFromDLLFile; }
-            set { _loadAssemblyFromDLLFile = value; }
-        }
-
         public SampleData()
         {
-            _loadAssemblyFromDLLFile = true; // Default value should be true;
+            HostAssemblies.LoadAssemblyFromDLLFile = true; // Default value should be true;
             Create();
         }
 
@@ -159,7 +155,8 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
         /// <param name="loadAssemblyFromDLLFile">(bool) - Loads the assembly from dll file path, otherwise, loads it from the assembly name.</param>
         public SampleData(bool loadAssemblyFromDLLFile)
         {
-            _loadAssemblyFromDLLFile = loadAssemblyFromDLLFile;
+            HostAssemblies.LoadAssemblyFromDLLFile = loadAssemblyFromDLLFile;
+            HostAssemblies.IsInterface = true;
 
             Create();
         }
@@ -321,30 +318,30 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
                 Note: These are the important parameters that you need to supply to create the Assembly Table List.
                       These are used to get the model classes that is used to update the database files.
              */
-            var modelsAssemblyName = "AccSol.Interfaces";
-            var modelsAssemblyPath = @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll";
-            var servicesAssemblyName = "AccSol.Services";
-            var servicesAssemblyPath = @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll";
+            HostAssemblies.ModelsAssemblyName = "AccSol.Interfaces";
+            HostAssemblies.ModelsAssemblyPath = @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll";
+            HostAssemblies.ServicesAssemblyName = "AccSol.Services";
+            HostAssemblies.ServicesAssemblyPath = @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll";
 
             Assembly? modelsAssembly;
             Assembly? servicesAssembly;
 
-            if (_loadAssemblyFromDLLFile)
+            if (HostAssemblies.LoadAssemblyFromDLLFile)
             {
                 // Load assembly from Assembly DLL File
-                modelsAssembly = modelsAssemblyPath.LoadAssemblyFromDLLFile();
-                servicesAssembly = servicesAssemblyPath.LoadAssemblyFromDLLFile();
+                modelsAssembly = HostAssemblies.ModelsAssemblyPath.LoadAssemblyFromDLLFile();
+                servicesAssembly = HostAssemblies.ServicesAssemblyPath.LoadAssemblyFromDLLFile();
             }
             else 
             {
                 // Load assembly from Assembly Name
-                modelsAssembly = modelsAssemblyPath.LoadAssemblyFromName();
-                servicesAssembly = servicesAssemblyPath.LoadAssemblyFromName();
+                modelsAssembly = HostAssemblies.ModelsAssemblyPath.LoadAssemblyFromName();
+                servicesAssembly = HostAssemblies.ServicesAssemblyPath.LoadAssemblyFromName();
             }
 
             var interfaceNames = modelsAssembly?.GetAssemblyInterfaceNames().ToList();
-            modelsAssemblyName = modelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
-            servicesAssemblyName = servicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
+            HostAssemblies.ModelsAssemblyName = HostAssemblies.ModelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
+            HostAssemblies.ServicesAssemblyName = HostAssemblies.ServicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
             
             if (interfaceNames != null)
             {
@@ -354,12 +351,12 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
                     var assemblyTable = new AssemblyTable()
                     {
                         ID = i + 1,
-                        AssemblyName = modelsAssemblyName,
-                        AssemblyPath = modelsAssemblyPath,
-                        ServiceName = servicesAssemblyName,
-                        ServicePath = servicesAssemblyPath,
-                        LoadAssemblyFromDLLFile = _loadAssemblyFromDLLFile,
-                        IsInterface = true,
+                        AssemblyName = HostAssemblies.ModelsAssemblyName,
+                        AssemblyPath = HostAssemblies.ModelsAssemblyPath,
+                        ServiceName = HostAssemblies.ServicesAssemblyName,
+                        ServicePath = HostAssemblies.ServicesAssemblyPath,
+                        LoadAssemblyFromDLLFile = HostAssemblies.LoadAssemblyFromDLLFile,
+                        IsInterface = HostAssemblies.IsInterface,
                         TableName = iFace.Item2.Substring(1, iFace.Item2.Length - 1),
                         TypeName = iFace.Item2
                     };

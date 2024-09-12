@@ -48,6 +48,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
         }
 
         private Dictionary<string, object> _dataSources = default!;
+
         public Dictionary<string, object> DataSources
         {
             get { return _dataSources; }
@@ -55,17 +56,31 @@ namespace Blazor.Tools.BlazorBundler.Entities
         }
         
         private string _context = string.Empty;
+        
         public string Context
         {
             get { return _context; }
             set { _context = value; }
         }
 
-        public ATableGridData() { }
+        private HostAssemblies _hostAssemblies;
+
+        public HostAssemblies HostAssemblies
+        {
+            get { return _hostAssemblies; }
+            set { _hostAssemblies = value; }
+        }
+
+        public ATableGridData() 
+        {
+            _hostAssemblies = new HostAssemblies();
+        }
+
         public virtual void OnItemsChanged(IEnumerable<IModelExtendedProperties> updatedItems)
         {
             _items = updatedItems.ToList();
         }
+
         private IEnumerable<IModelExtendedProperties> GetItems()
         {
             if (_items == null && _dataSources == null)

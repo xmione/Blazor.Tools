@@ -14,12 +14,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     {
         [Parameter] public DataSet? ExcelDataSet { get; set; } = default!;
         [Parameter] public ExcelProcessor ExcelProcessor { get; set; } = default!;
-        [Parameter] public string ModelsAssemblyName { get; set; } = default!; //"AccSol.EF.Interfaces"
-        [Parameter] public string ModelsAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll"
-        [Parameter] public string ServicesAssemblyName { get; set; } = default!; //"AccSol.Services"
-        [Parameter] public string ServicesAssemblyPath { get; set; } = default!; // @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll"
-        [Parameter] public bool LoadAssemblyFromDLLFile { get; set; } = false;
-        [Parameter] public bool IsInterface { get; set; } = false;
+        [Parameter] public string ModelsAssemblyName { get; set; } = default!; 
+        [Parameter] public string ViewModelsAssemblyName { get; set; } = default!; 
+        [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!; 
 
         private DataTable? _selectedTable;
         private string? _selectedTableName;
@@ -49,24 +46,24 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             Assembly? modelsAssembly = null;
             Assembly? servicesAssembly = null;
 
-            if (LoadAssemblyFromDLLFile)
+            if (HostAssemblies.LoadAssemblyFromDLLFile)
             {
-                if (ModelsAssemblyPath == null)
+                if (HostAssemblies.ModelsAssemblyPath == null)
                 {
                     throw new ArgumentException("ModelsAssemblyPath is required.");
                 }
                 else
                 {
-                    modelsAssembly = ModelsAssemblyPath.LoadAssemblyFromDLLFile();
+                    modelsAssembly = HostAssemblies.ModelsAssemblyPath.LoadAssemblyFromDLLFile();
                 }
 
-                if (ServicesAssemblyPath == null)
+                if (HostAssemblies.ServicesAssemblyPath == null)
                 {
                     throw new ArgumentException("ServicesAssemblyPath is required.");
                 }
                 else
                 {
-                    servicesAssembly = ServicesAssemblyPath.LoadAssemblyFromDLLFile();
+                    servicesAssembly = HostAssemblies.ServicesAssemblyPath.LoadAssemblyFromDLLFile();
                 }
 
             }
@@ -81,13 +78,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     modelsAssembly = ModelsAssemblyName.LoadAssemblyFromName();
                 }
 
-                if (ServicesAssemblyName == null)
+                if (HostAssemblies.ServicesAssemblyName == null)
                 {
                     throw new ArgumentException("ServicesAssemblyName is required.");
                 }
                 else
                 {
-                    servicesAssembly = ServicesAssemblyName.LoadAssemblyFromName();
+                    servicesAssembly = HostAssemblies.ServicesAssemblyName.LoadAssemblyFromName();
                 }
             }
 
@@ -114,7 +111,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             var interfaceNames = modelsAssembly?.GetAssemblyInterfaceNames().ToList();
             var modelsAssemblyName = ModelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
-            var servicesAssemblyName = ServicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
+            var servicesAssemblyName = HostAssemblies.ServicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
             if (interfaceNames != null)
             {
                 for (int i = 0; i < interfaceNames.Count(); i++)
@@ -124,11 +121,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     {
                         ID = i + 1,
                         AssemblyName = modelsAssemblyName,
-                        AssemblyPath = ModelsAssemblyPath,
+                        AssemblyPath = HostAssemblies.ModelsAssemblyPath,
                         ServiceName = servicesAssemblyName,
-                        ServicePath = ServicesAssemblyPath,
-                        LoadAssemblyFromDLLFile = LoadAssemblyFromDLLFile,
-                        IsInterface = IsInterface,
+                        ServicePath = HostAssemblies.ServicesAssemblyPath,
+                        LoadAssemblyFromDLLFile = HostAssemblies.LoadAssemblyFromDLLFile,
+                        IsInterface = HostAssemblies.IsInterface,
                         TableName = iFace.Item2.Substring(1, iFace.Item2.Length - 1),
                         TypeName = iFace.Item2
                     };
@@ -234,7 +231,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     builder.OpenComponent<DataTableGrid>(sequence++);
                     builder.AddAttribute(sequence++, "Title", _selectedTableName);
                     builder.AddAttribute(sequence++, "SelectedTable", _selectedTable);
-                    builder.AddAttribute(sequence++, "AllowCellSelection", true);
+                    builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
+                    builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
+                    builder.AddAttribute(sequence++, "AllowCellRangeSelection", true);
                     builder.AddAttribute(sequence++, "TableList", _tableList);
                     builder.CloseComponent();
 
