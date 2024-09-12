@@ -33,7 +33,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //[Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
         private DataTable _selectedTableVM = default!;
-        private bool _addSetTargetTableModal = false;
         private DataRow[]? _selectedData = default!;
         private string _selectedFieldValue = string.Empty;
         //private SessionManager _sessionManager = SessionManager.Instance;
@@ -59,7 +58,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private object? _tableGridInstance;
         private object? _tableGridComponentReference;
         private string _tableID = string.Empty;
-        private bool _showSetTargetTableModal;
 
         //private IList<SessionItem>? _sessionItems;
 
@@ -753,17 +751,17 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private void CloseSetTargetTableModal()
+        private async Task CloseSetTargetTableModalAsync()
         {
-            _addSetTargetTableModal = false;
-            StateHasChanged();
+            var modalId = $"{Title.ToLower()}-set-target-table-modal";
+            await JSRuntime.InvokeVoidAsync("removeClassFromElement", modalId, "show");
 
             //_sessionManager.SaveToSessionTableAsync($"{Title}_addSetTargetTableModal", _addSetTargetTableModal, serialize: true).Wait();
         }
 
         private async Task SaveToTargetTableAsync(List<TargetTable>? targetTables)
         {
-            CloseSetTargetTableModal();
+            CloseSetTargetTableModalAsync();
 
             _targetTables = targetTables;
             //await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTables", _targetTables, serialize: true);
@@ -798,9 +796,49 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task ShowSetTargetTableModalAsync()
         {
-            _addSetTargetTableModal = true;
-            
-            //StateHasChanged();
+            var startCellID = $"{_tableID}-start-cell";
+            var endCellID = $"{_tableID}-end-cell";
+            _startCell = await JSRuntime.InvokeAsync<string>("getValue", startCellID);
+            _endCell = await JSRuntime.InvokeAsync<string>("getValue", endCellID);
+
+            // Get the method info for ShowSetTargetTableModalAsync
+            var showTargetTableModalAsyncMethod = _tableGridType?.GetMethod("ShowSetTargetTableModalAsync");
+            var reloadTableGridInternalsComponent = _tableGridType?.GetMethod("ReloadTableGridInternalsComponent");
+
+            if (_tableGridComponentReference != null)
+            {
+                // Cast the reference to the appropriate type (generic table grid)
+                var tableGridInstance = _tableGridComponentReference as dynamic;
+
+                // Invoke the method
+                if (tableGridInstance != null)
+                {
+
+                    var resultTask = tableGridInstance.ShowSetTargetTableModalAsync(_startCell, _endCell);
+
+                    // Since it's a Task, you can await it or use other async handling
+                    _selectedData = await resultTask;
+
+                    // Now you can use the 'rows' variable which is of type DataRow[]?
+                    if (_selectedData != null)
+                    {
+                        foreach (var row in _selectedData)
+                        {
+                            // Process each row here
+                            Console.WriteLine(row);
+                        }
+                    }
+                }
+            }
+
+            //_selectedData = await showTargetTableModalAsyncMethod.Invoke();
+            if (_selectedData != null)
+            {
+                //_showSetTargetTableModal = false;
+                var modalId = $"{Title.ToLower()}-set-target-table-modal";
+                await JSRuntime.InvokeVoidAsync("addClassToElement", modalId, "show");
+            }
+
             await Task.CompletedTask;
         }
 
@@ -884,80 +922,17 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, UploadData));
                 builder.CloseComponent();
 
-                // TODO: sol: put this in the AfterRenderAsync method.
-                // Set Target Table Modal
-                if (_showSetTargetTableModal)
-                {
-                    builder.OpenComponent<SetTargetTableModal>(seq++);
-                    builder.AddAttribute(seq++, "Title", Title);
-                    builder.AddAttribute(seq++, "ShowSetTargetTableModal", _addSetTargetTableModal);
-                    builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseSetTargetTableModal));
-                    builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
-                    builder.AddAttribute(seq++, "SelectedData", _selectedData);
-                    builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataComb));
-                    builder.CloseComponent();
-                }
+                builder.OpenComponent<SetTargetTableModal>(seq++);
+                builder.AddAttribute(seq++, "Title", Title);
+                builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseSetTargetTableModalAsync));
+                builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
+                builder.AddAttribute(seq++, "SelectedData", _selectedData);
+                builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataComb));
+                builder.CloseComponent();
+
             }
 
         }
-
-        protected override async Task OnAfterRenderAsync(bool firstTime)
-        {
-            if (firstTime)
-            { 
-            }
-
-            if (_addSetTargetTableModal)
-            {
-                _showSetTargetTableModal = true;
-                var startCellID = $"{_tableID}-start-cell";
-                var endCellID = $"{_tableID}-end-cell";
-                _startCell = await JSRuntime.InvokeAsync<string>("getValue", startCellID);
-                _endCell = await JSRuntime.InvokeAsync<string>("getValue", endCellID);
-
-                // Get the method info for ShowSetTargetTableModalAsync
-                var showTargetTableModalAsyncMethod = _tableGridType?.GetMethod("ShowSetTargetTableModalAsync");
-                var reloadTableGridInternalsComponent = _tableGridType?.GetMethod("ReloadTableGridInternalsComponent");
-
-                if (_tableGridComponentReference != null)
-                {
-                    // Cast the reference to the appropriate type (generic table grid)
-                    var tableGridInstance = _tableGridComponentReference as dynamic;
-
-                    // Invoke the method
-                    if (tableGridInstance != null)
-                    {
-
-                        var resultTask = tableGridInstance.ShowSetTargetTableModalAsync(_startCell, _endCell);
-
-                        // Since it's a Task, you can await it or use other async handling
-                        _selectedData = await resultTask;
-
-                        // Now you can use the 'rows' variable which is of type DataRow[]?
-                        if (_selectedData != null)
-                        {
-                            foreach (var row in _selectedData)
-                            {
-                                // Process each row here
-                                Console.WriteLine(row);
-                            }
-                        }
-                    }
-                }
-                 
-                //_selectedData = await showTargetTableModalAsyncMethod.Invoke();
-                if (_selectedData == null)
-                {
-                    _addSetTargetTableModal = false;
-                }
-
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_addSetTargetTableModal", _addSetTargetTableModal, serialize: true);
-
-                
-                StateHasChanged();
-            }
-
-        }
+         
     }
 }

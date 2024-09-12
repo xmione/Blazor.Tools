@@ -319,7 +319,7 @@ window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
     console.log("areBothEmpty", areBothEmpty);
 
     // Check if the element is currently in focus
-
+    
     console.log("_isStartCellInFocus", _isStartCellInFocus); // Output: true or false
 
     var startRow = 0;
@@ -338,9 +338,9 @@ window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
     if (areBothEmpty) {
         startCell.value = cellIdentifier;
         startCellValue = cellIdentifier;
-
+        
         StartCellClicked(true, tableID);
-
+        
         // get existing startCell value first
         var startCellSplit = startCellValue.split('-');
 
@@ -506,7 +506,7 @@ window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
 
     // and then mark it.
     var shouldMark = true;
-
+    
     //var savedStartRow = startRow;
     //var savedEndRow = endRow;
     //var savedStartCol = startCol;
@@ -530,3 +530,18 @@ window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
 window.CellClick2 = (employeeJson) => {
     alert(employeeJson);
 }
+
+window.addClassToElement = (elementId, className) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.add(className);
+    }
+};
+
+window.removeClassFromElement = (elementId, className) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.remove(className);
+    }
+};
+

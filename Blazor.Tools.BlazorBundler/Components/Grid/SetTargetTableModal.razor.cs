@@ -12,7 +12,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     public partial class SetTargetTableModal : ComponentBase
     {
         [Parameter] public string Title { get; set; } = "Sample Table";
-        [Parameter] public bool ShowSetTargetTableModal { get; set; }
         [Parameter] public EventCallback OnClose { get; set; }
         [Parameter] public EventCallback<List<TargetTable>> OnSave { get; set; }
         [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
@@ -788,6 +787,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.CloseElement();
             builder.CloseElement();
         }
+
         private void RenderLookupTableModalEntry(RenderTreeBuilder builder, int seq)
         {
             builder.OpenComponent<AddLookupTableModal>(seq++);
@@ -1013,15 +1013,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             try 
             {
                 var seq = 0;
+                
+                // Modal container
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "id", $"{Title.ToLower()}-set-target-table-modal");
+                builder.AddAttribute(seq++, "class", $"data-table-grid-modal");
 
                 // PageTitle
                 builder.OpenElement(seq++, "PageTitle");
                 builder.AddContent(seq++, "SetTargetTableModal");
                 builder.CloseElement();
-
-                // Modal container
-                builder.OpenElement(seq++, "div");
-                builder.AddAttribute(seq++, "class", $"data-table-grid-modal {(ShowSetTargetTableModal ? "show" : "")}");
 
                 // Buttons
                 RenderTitleButtons(builder, seq);

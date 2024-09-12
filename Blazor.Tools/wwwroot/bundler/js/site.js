@@ -530,3 +530,18 @@ window.CellClick = (employeeJson, col, tableID, totalRows, totalCols) => {
 window.CellClick2 = (employeeJson) => {
     alert(employeeJson);
 }
+
+window.addClassToElement = (elementId, className) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.add(className);
+    }
+};
+
+window.removeClassFromElement = (elementId, className) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.remove(className);
+    }
+};
+

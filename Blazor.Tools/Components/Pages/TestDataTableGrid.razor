@@ -12,7 +12,8 @@
 
 <h1>Testing Sample Data Table Grid Component</h1>
 
-<DataTableGrid SelectedTable="@EmployeeDataTable" 
+<DataTableGrid  Title="@EmployeeDataTable.TableName"
+                SelectedTable="@EmployeeDataTable" 
                 ModelsAssemblyName="@ModelsAssemblyName"
                 ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenEmployeeColumns" 
@@ -20,7 +21,8 @@
                 ItemsChanged="@OnItemsChanged" 
                 AllowCellRangeSelection="true"/>
 
-<DataTableGrid SelectedTable="@CountryDataTable" 
+<DataTableGrid  Title="@CountryDataTable.TableName" 
+                SelectedTable="@CountryDataTable" 
                 ModelsAssemblyName="@ModelsAssemblyName"
                 ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenCountryColumns"
