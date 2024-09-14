@@ -13,6 +13,7 @@ using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
+using System.Text;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -46,16 +47,16 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[8] - Parse Json File and Save to database");
                 Console.WriteLine("[9] - Get Language training data from Database then train model");
                 Console.WriteLine("[10] - Train sample Language Data");
-                Console.WriteLine("[11] - Decompile IL code");
-                Console.WriteLine("[12] - Save Dynamically Created DisposableAssembly to .dll file");
-                Console.WriteLine("[13] - Decompile ViewModels dll");
-                Console.WriteLine("[14] - Decompile ViewModels dll and Invoke EmployeeVM SetEditMode");
+                Console.WriteLine("[11] - Decompile IL code using System.Reflection.Emit");
+                Console.WriteLine("[12] - Save Roslyn Dynamically Created DisposableAssembly to .dll file");
+                Console.WriteLine("[13] - Decompile ViewModels dll using System.Reflection.Emit");
+                Console.WriteLine("[14] - Decompile ViewModels dll using System.Reflection.Emit and Invoke EmployeeVM SetEditMode");
                 Console.WriteLine("[15] - Run SetEditMethod of EmployeeVM from Blazor.Tools.BlazorBundler.dll ");
-                Console.WriteLine("[16] - Decompile .dll to Temp folder class (.cs) file");
-                Console.WriteLine("[17] - Create Blazor.Tools.BlazorBundler.dll to Temp folder");
+                Console.WriteLine("[16] - Decompile .dll using ICSharpCode.Decompiler to Temp folder class (.cs) file");
+                Console.WriteLine("[17] - Create Roslyn Blazor.Tools.BlazorBundler.dll to Temp folder");
                 Console.WriteLine("[18] - Run .dll file method from Temp folder");
-                Console.WriteLine("[19] - Create dll using DynamicAssemblyCreator");
-                Console.WriteLine("[20] - Create dll From DataTable");
+                Console.WriteLine("[19] - Create Mono.Cecil dll using DynamicAssemblyCreator");
+                Console.WriteLine("[20] - Create PersistedAssemblyBuilder dll From DataTable");
                 Console.WriteLine("[21] - Exit");
 
                 var choice = Console.ReadLine();
@@ -323,6 +324,9 @@ namespace Blazor.Tools.ConsoleApp
             ilDecoder.DecodeIL(ilCode);
         }
 
+        /// <summary>
+        /// Option 13:
+        /// </summary>
         private static void DecompileEmployeeVM()
         {
             string blazorBundlerPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\";
@@ -387,6 +391,9 @@ namespace Blazor.Tools.ConsoleApp
             Console.WriteLine("You have just decompiled {0}", assemblyPath);
         }
 
+        /// <summary>
+        /// Option 14:
+        /// </summary>
         private static void DecompileEmployeeVMSetEditModeMethod()
         {
             string vmDllFileName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll";
@@ -730,11 +737,14 @@ namespace Blazor.Tools.ConsoleApp
             Console.WriteLine("Trying to set IsEditMode to true");
             await assembly.InvokeMethodAsync(typeName, methodName, instance, true); // Pass parameters as needed
 
-            isEditModeValue = instance.GetProperty("IsEditMode");
+            isEditModeValue = instance.GetProperty("IsEditMode") ?? false;
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
 
         }
 
+        /// <summary>
+        /// Option 16: Decompile dll file using ICSharpCode.Decompiler.
+        /// </summary>
         public static void DecompileDLLFile()
         {
             // Define the paths in the Temp folder
@@ -743,10 +753,11 @@ namespace Blazor.Tools.ConsoleApp
             Console.WriteLine("This will decompile the selected dll file from the temp folder: \r\n\t{0}", tempFolderPath);
             Console.WriteLine("Please select an option: Default option when is [0]");
             Console.WriteLine("[0] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll");
-            Console.WriteLine("[1] - Blazor.Tools.BlazorBundler.dll");
-            Console.WriteLine("[2] - Employee.dll");
+            Console.WriteLine("[1] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.dll");
+            Console.WriteLine("[2] - Blazor.Tools.BlazorBundler.dll");
+            Console.WriteLine("[3] - Employee.dll");
 
-            string choice = Console.ReadLine();
+            string choice = Console.ReadLine() ?? string.Empty;
             switch (choice)
             {
                 case "":
@@ -754,11 +765,15 @@ namespace Blazor.Tools.ConsoleApp
                     assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
                     break;
                 case "1":
-                    assemblyName = "Blazor.Tools.BlazorBundler";
+                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
                     break;
                 case "2":
+                    assemblyName = "Blazor.Tools.BlazorBundler";
+                    break;
+                case "3":
                     assemblyName = "Employee";
                     break;
+                
             }
             string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
             var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
@@ -768,7 +783,7 @@ namespace Blazor.Tools.ConsoleApp
         }
 
         /// <summary>
-        /// Option 17:
+        /// Option 17: Creates Bundler dll file using Roslyn compiler.
         /// </summary>
         /// <returns></returns>
         public static async Task CreateBundlerDLL()
@@ -777,7 +792,9 @@ namespace Blazor.Tools.ConsoleApp
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
             string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-            
+            string baseClassCode = string.Empty;
+            string vmClassCode = string.Empty;
+
             var sampleData = new SampleData();
 
             var selectedTable = sampleData.EmployeeDataTable;
@@ -794,7 +811,7 @@ namespace Blazor.Tools.ConsoleApp
             Assembly baseClassAssembly = default!;
             using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements))
             {
-                var baseClassCode = baseClassGenerator.ToString();
+                baseClassCode = baseClassGenerator.ToString();
                 baseClassGenerator.Save(baseClassAssemblyName, baseClassCode, baseClassNameSpace, tableName, baseDLLPath);
                 baseClassType = baseClassGenerator.ClassType ?? default!;
                 baseClassAssembly = baseClassGenerator?.DisposableAssembly?.Assembly ?? default!;
@@ -809,7 +826,8 @@ namespace Blazor.Tools.ConsoleApp
             using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
             {
                 viewModelClassGenerator.CreateFromDataTable(selectedTable);
-                var vmClassCode = viewModelClassGenerator.ToString();
+                //vmClassCode = viewModelClassGenerator.ToString();
+                vmClassCode = baseClassCode + viewModelClassGenerator.ToString();
                 viewModelClassGenerator.Save(vmClassAssemblyName, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
                 vmClassType = viewModelClassGenerator.ClassType ?? default!;    
                 vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
@@ -858,10 +876,10 @@ namespace Blazor.Tools.ConsoleApp
             }
 
             // Create the generic type for IViewModel<T, U>
-            Type specificIViewModelType = iViewModelGenericType.MakeGenericType(baseClassType, iModelExtendedPropertiesType);
+            Type specificIViewModelType = iViewModelGenericType?.MakeGenericType(baseClassType, iModelExtendedPropertiesType) ?? default!;
 
             // Create an instance of the ViewModel dynamically
-            object viewModelInstance = Activator.CreateInstance(vmClassType);
+            object viewModelInstance = Activator.CreateInstance(vmClassType) ?? default!;
 
             if (viewModelInstance == null)
             {
@@ -883,6 +901,7 @@ namespace Blazor.Tools.ConsoleApp
             {
                 Console.WriteLine("Failed to cast to the interface type.");
             }
+
             await Task.CompletedTask;
         }
 

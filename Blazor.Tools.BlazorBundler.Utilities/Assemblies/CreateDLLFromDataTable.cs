@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*====================================================================================================
+    Class Name  : CreateDLLFromDataTable
+    Created By  : Solomio S. Sisante
+    Created On  : September 10, 2024
+    Purpose     : To provide a sample POC prototype class for creating dynamic classes dll file using
+                  System.Reflection.Emit PersistedAssemblyBuilder.
+  ====================================================================================================*/
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -10,115 +17,130 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
     {
         private static string _iEmployeeFullyQualifiedName = string.Empty;
         private static string _employeeFullyQualifiedName = string.Empty;
+        private static string _dllPath = string.Empty;
 
         public static void BuildAndSaveAssembly(DataTable dataTable)
         {
-            var assemblyName = new AssemblyName("DynamicAssembly");
-            var persistedAssemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
-            var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule("MainModule");
-            
-            var iEmployeeNameSpace = "Blazor.Tools.BlazorBundler.Interfaces";
-            var iEmployeeTypeName = "IEmployee";
-            var iEmployeeFullyQualifiedName = $"{iEmployeeNameSpace}.{iEmployeeTypeName}";
-            
-            var employeeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            var employeeTypeName = "Employee";
-            var employeeFullyQualifiedName = $"{employeeNameSpace}.{employeeTypeName}";
-
-            _iEmployeeFullyQualifiedName = iEmployeeFullyQualifiedName;
-            _employeeFullyQualifiedName = employeeFullyQualifiedName;
-            // Define the IEmployee interface
-
-            var interfaceBuilder = moduleBuilder.DefineType(iEmployeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
-
-            foreach (DataColumn column in dataTable.Columns)
+            try 
             {
-                // Define the getter method
-                interfaceBuilder.DefineMethod(
-                    $"get_{column.ColumnName}",
-                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
-                    column.DataType,
-                    Type.EmptyTypes
-                );
+                var contextAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+                var employeeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+                var employeeTypeName = "Employee";
+                var employeeFullyQualifiedName = $"{employeeNameSpace}.{employeeTypeName}";
+                _dllPath = Path.Combine(Path.GetTempPath(), contextAssemblyName + ".dll"); // use the parent assembly name that envelopes class and interface namespaces
 
-                // Define the setter method
-                interfaceBuilder.DefineMethod(
-                    $"set_{column.ColumnName}",
-                    MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
-                    null,
-                    new[] { column.DataType }
-                );
+                var iEmployeeNameSpace = "Blazor.Tools.BlazorBundler.Interfaces";
+                var iEmployeeTypeName = "IEmployee";
+                var iEmployeeFullyQualifiedName = $"{iEmployeeNameSpace}.{iEmployeeTypeName}";
+
+                //var assemblyName = new AssemblyName("DynamicAssembly");
+                var assemblyName = new AssemblyName(contextAssemblyName); // use the parent assembly name
+                assemblyName.Version = new Version("1.0.0.0");
+                var persistedAssemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
+                var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule(employeeNameSpace);
+                //var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule("MainModule");
+
+                _iEmployeeFullyQualifiedName = iEmployeeFullyQualifiedName;
+                _employeeFullyQualifiedName = employeeFullyQualifiedName;
+                // Define the IEmployee interface
+
+                var interfaceBuilder = moduleBuilder.DefineType(iEmployeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
+                foreach (DataColumn column in dataTable.Columns)
+                {
+                    // Define the getter method
+                    interfaceBuilder.DefineMethod(
+                        $"get_{column.ColumnName}",
+                        MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                        column.DataType,
+                        Type.EmptyTypes
+                    );
+
+                    // Define the setter method
+                    interfaceBuilder.DefineMethod(
+                        $"set_{column.ColumnName}",
+                        MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                        null,
+                        new[] { column.DataType }
+                    );
+                }
+
+                var iEmployee = interfaceBuilder.CreateType();
+
+                // Define the Employee class that implements IEmployee
+                var classBuilder = moduleBuilder.DefineType(employeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Class, typeof(object), new[] { iEmployee });
+
+                foreach (DataColumn column in dataTable.Columns)
+                {
+                    // Define the field
+                    var fieldBuilder = classBuilder.DefineField(column.ColumnName, column.DataType, FieldAttributes.Private);
+
+                    // Define the property
+                    var propertyBuilder = classBuilder.DefineProperty(column.ColumnName, PropertyAttributes.HasDefault, column.DataType, null);
+
+                    // Define the getter method
+                    var getterBuilder = classBuilder.DefineMethod(
+                        $"get_{column.ColumnName}",
+                        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.SpecialName,
+                        column.DataType,
+                        Type.EmptyTypes
+                    );
+
+                    // Generate IL for the getter method
+                    var getterIL = getterBuilder.GetILGenerator();
+                    getterIL.Emit(OpCodes.Ldarg_0); // Load "this" onto the stack
+                    getterIL.Emit(OpCodes.Ldfld, fieldBuilder); // Load the field value onto the stack
+                    getterIL.Emit(OpCodes.Ret); // Return the value
+
+                    // Set the getter method for the property
+                    propertyBuilder.SetGetMethod(getterBuilder);
+
+                    // Define the setter method
+                    var setterBuilder = classBuilder.DefineMethod(
+                        $"set_{column.ColumnName}",
+                        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.SpecialName,
+                        null,
+                        new[] { column.DataType }
+                    );
+
+                    // Generate IL for the setter method
+                    var setterIL = setterBuilder.GetILGenerator();
+                    setterIL.Emit(OpCodes.Ldarg_0); // Load "this" onto the stack
+                    setterIL.Emit(OpCodes.Ldarg_1); // Load the new value onto the stack
+                    setterIL.Emit(OpCodes.Stfld, fieldBuilder); // Store the value into the field
+                    setterIL.Emit(OpCodes.Ret); // Return
+
+                    // Set the setter method for the property
+                    propertyBuilder.SetSetMethod(setterBuilder);
+
+                    // Implement the interface methods
+                    var interfaceGetterMethod = iEmployee.GetMethod($"get_{column.ColumnName}") ?? default!;
+                    var interfaceSetterMethod = iEmployee.GetMethod($"set_{column.ColumnName}") ?? default!;
+                    classBuilder.DefineMethodOverride(getterBuilder, interfaceGetterMethod);
+                    classBuilder.DefineMethodOverride(setterBuilder, interfaceSetterMethod);
+                }
+                var employeeType = classBuilder.CreateType();
+
+                // Save the assembly to a file
+                persistedAssemblyBuilder.Save(_dllPath);
+                //using (var fileStream = new FileStream("DynamicAssembly.dll", FileMode.Create, FileAccess.Write))
+                //{
+                //    persistedAssemblyBuilder.Save("DynamicAssembly.dll");
+                //}
+
+                Console.WriteLine("DisposableAssembly saved successfully!");
             }
-            var iEmployee = interfaceBuilder.CreateType();
-
-            // Define the Employee class that implements IEmployee
-            var classBuilder = moduleBuilder.DefineType(employeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Class, typeof(object), new[] { iEmployee });
-
-            foreach (DataColumn column in dataTable.Columns)
-            {
-                // Define the field
-                var fieldBuilder = classBuilder.DefineField(column.ColumnName, column.DataType, FieldAttributes.Private);
-
-                // Define the property
-                var propertyBuilder = classBuilder.DefineProperty(column.ColumnName, PropertyAttributes.HasDefault, column.DataType, null);
-
-                // Define the getter method
-                var getterBuilder = classBuilder.DefineMethod(
-                    $"get_{column.ColumnName}",
-                    MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.SpecialName,
-                    column.DataType,
-                    Type.EmptyTypes
-                );
-
-                // Generate IL for the getter method
-                var getterIL = getterBuilder.GetILGenerator();
-                getterIL.Emit(OpCodes.Ldarg_0); // Load "this" onto the stack
-                getterIL.Emit(OpCodes.Ldfld, fieldBuilder); // Load the field value onto the stack
-                getterIL.Emit(OpCodes.Ret); // Return the value
-
-                // Set the getter method for the property
-                propertyBuilder.SetGetMethod(getterBuilder);
-
-                // Define the setter method
-                var setterBuilder = classBuilder.DefineMethod(
-                    $"set_{column.ColumnName}",
-                    MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.SpecialName,
-                    null,
-                    new[] { column.DataType }
-                );
-
-                // Generate IL for the setter method
-                var setterIL = setterBuilder.GetILGenerator();
-                setterIL.Emit(OpCodes.Ldarg_0); // Load "this" onto the stack
-                setterIL.Emit(OpCodes.Ldarg_1); // Load the new value onto the stack
-                setterIL.Emit(OpCodes.Stfld, fieldBuilder); // Store the value into the field
-                setterIL.Emit(OpCodes.Ret); // Return
-
-                // Set the setter method for the property
-                propertyBuilder.SetSetMethod(setterBuilder);
-
-                // Implement the interface methods
-                var interfaceGetterMethod = iEmployee.GetMethod($"get_{column.ColumnName}") ?? default!;
-                var interfaceSetterMethod = iEmployee.GetMethod($"set_{column.ColumnName}") ?? default!;
-                classBuilder.DefineMethodOverride(getterBuilder, interfaceGetterMethod);
-                classBuilder.DefineMethodOverride(setterBuilder, interfaceSetterMethod);
+            catch (Exception ex) 
+            { 
+                ApplicationExceptionLogger.HandleException(ex);
             }
-            var employeeType = classBuilder.CreateType();
-
-            // Save the assembly to a file
-            persistedAssemblyBuilder.Save("DynamicAssembly.dll");
-            //using (var fileStream = new FileStream("DynamicAssembly.dll", FileMode.Create, FileAccess.Write))
-            //{
-            //    persistedAssemblyBuilder.Save("DynamicAssembly.dll");
-            //}
-
-            Console.WriteLine("DisposableAssembly saved successfully!");
+            
         }
 
         public static void CreateAndUseInstance()
         {
             // Load the saved assembly from the file
-            var assemblyBytes = File.ReadAllBytes("DynamicAssembly.dll");
+            var assemblyBytes = File.ReadAllBytes(_dllPath);
             var assembly = AssemblyLoadContext.Default.LoadFromStream(new MemoryStream(assemblyBytes));
 
             // Get the types
