@@ -229,6 +229,43 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
         }
 
-    }
+        public static (string? Namespace, string? ClassName) GetNamespaceAndClassName(this Type type)
+        {
+            // Get the FullName of the type, if it's not null
+            string fullName = type?.FullName ?? default!;
+            if (string.IsNullOrEmpty(fullName))
+            {
+                throw new ArgumentException("Type does not have a FullName.");
+            }
 
+            // If the type is generic, strip off the generic parameters and assembly details
+            if (type.IsGenericType)
+            {
+                // This will give us something like: Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2
+                fullName = type.GetGenericTypeDefinition()?.FullName ?? default!;
+            }
+
+            // Split the FullName by the last dot to separate namespace and class name
+            int lastDotIndex = fullName.LastIndexOf('.');
+            if (lastDotIndex == -1)
+            {
+                // If no dot is found, it's a root-level type with no namespace
+                return (null, fullName);
+            }
+
+            // Extract namespace and class name
+            string ns = fullName.Substring(0, lastDotIndex);
+            string className = fullName.Substring(lastDotIndex + 1);
+
+            // Strip out generic arity (`2 in `IViewModel`2`) if present in class name
+            int backtickIndex = className.IndexOf('`');
+            if (backtickIndex != -1)
+            {
+                className = className.Substring(0, backtickIndex);
+            }
+
+            return (ns, className);
+        }
+
+    }
 }
