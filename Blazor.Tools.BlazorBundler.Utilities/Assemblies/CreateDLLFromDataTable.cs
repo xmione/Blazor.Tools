@@ -9,7 +9,6 @@ using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.Loader;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
@@ -25,6 +24,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         private string _employeeFullyQualifiedName;
         private string _iEmployeeFullyQualifiedName;
 
+        public string ContextAssemblyName 
+        {
+            get{ return _contextAssemblyName; }
+        }
+        
         public string DLLPath 
         {
             get{ return _dllPath; }
@@ -142,46 +146,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             
         }
-
-        public void CreateAndUseInstance()
-        {
-            // Load the saved assembly from the file
-            var assemblyBytes = File.ReadAllBytes(_dllPath);
-            var assembly = AssemblyLoadContext.Default.LoadFromStream(new MemoryStream(assemblyBytes));
-
-            // Get the types
-            var iEmployeeType = assembly.GetType(_iEmployeeFullyQualifiedName);
-            var employeeType = assembly.GetType(_employeeFullyQualifiedName);
-
-            if (iEmployeeType == null || employeeType == null)
-            {
-                Console.WriteLine("Failed to load types.");
-                return;
-            }
-
-            // Create an instance of the dynamically generated Employee class
-            var newEmployee = Activator.CreateInstance(employeeType) ?? default!;
-
-            // Check if the newEmployee instance is of the IEmployee type
-            if (iEmployeeType.IsAssignableFrom(newEmployee.GetType()))
-            {
-                Console.WriteLine("Successfully created an instance of Employee that implements IEmployee.");
-            }
-
-            // Set properties dynamically using reflection
-            foreach (var column in employeeType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                var propertyValue = column.FieldType == typeof(int) ? (object)1 : "John Doe";
-                column.SetValue(newEmployee, propertyValue);
-            }
-
-            // Output the values
-            foreach (var column in employeeType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                Console.WriteLine($"{column.Name}: {column.GetValue(newEmployee)}");
-            }
-        }
-
+         
         public void Run()
         {
             // Create a sample DataTable
@@ -193,9 +158,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var cdft = new CreateDLLFromDataTable();
             // Generate and save the dynamic assembly
             cdft.BuildAndSaveAssembly(dataTable);
-
-            // Create and use an instance of the dynamically generated type
-            cdft.CreateAndUseInstance();
         }
     }
 }

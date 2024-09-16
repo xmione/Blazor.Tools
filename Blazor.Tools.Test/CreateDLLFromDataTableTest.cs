@@ -22,9 +22,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
         public void TestInit()
         {
             // Create a sample DataTable
-            _dataTable.Columns.Add("Id", typeof(int));
-            _dataTable.Columns.Add("Name", typeof(string));
-            _dataTable.Columns.Add("Age", typeof(int));
+            _dataTable = EmployeeDataTable;
 
             // Initialize the bUnit test context
             _testContext = new TestContext();
@@ -36,7 +34,6 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _testContext.Services.AddSingleton(_createDLLFromDataTableMock.Object);
 
             _createDLLFromDataTableMock.Setup(m => m.BuildAndSaveAssembly(_dataTable));
-            _createDLLFromDataTableMock.Setup(m => m.CreateAndUseInstance());
 
         }
 
@@ -48,7 +45,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
         }
 
         [TestMethod]
-        public void Run_Test()
+        public void Create_Sample_DLL_Test()
         {
             try
             {
@@ -64,7 +61,6 @@ namespace Blazor.Tools.BlazorBundler.Tests
 
                 // Execute the method
                 cdft.BuildAndSaveAssembly(_dataTable);
-                cdft.CreateAndUseInstance();
 
                 // Check if the DLLPath is correctly set and the file exists
                 Assert.IsTrue(File.Exists(cdft.DLLPath), "DLL file was not created successfully.");
@@ -73,6 +69,59 @@ namespace Blazor.Tools.BlazorBundler.Tests
             {
                 Assert.Fail($"Test failed with exception: {ex.Message}");
                 ApplicationExceptionLogger.HandleException(ex);
+            }
+        }
+        
+        [TestMethod]
+        public void Assembly_With_Different_Namespaces_Test()
+        {
+            try
+            {
+                var employeeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+                var employeeTypeName = _dataTable.TableName;
+                var iEmployeeNameSpace = "Blazor.Tools.BlazorBundler.Interfaces";
+                var iEmployeeTypeName = $"I{employeeTypeName}";
+
+                var fullyQualifiedEmployeeTypeName = $"{employeeNameSpace}.{employeeTypeName}";
+                var fullyQualifiedIEmployeeTypeName = $"{iEmployeeNameSpace}.{iEmployeeTypeName}";
+
+                var lastIndex = employeeNameSpace.LastIndexOf('.');
+                var contextAssemblyName = employeeNameSpace[..lastIndex];
+
+                // Use the actual class instead of a mock
+                var cdft = new CreateDLLFromDataTable(employeeNameSpace, employeeTypeName, iEmployeeNameSpace, iEmployeeTypeName);
+
+                // Delete file if exists
+                if (File.Exists(cdft.DLLPath))
+                {
+                    File.Delete(cdft.DLLPath);
+                }
+
+                // Execute the method
+                cdft.BuildAndSaveAssembly(_dataTable);
+
+                // Check if the DLLPath is correctly set and the file exists
+                Assert.IsTrue(File.Exists(cdft.DLLPath), "DLL file was not created successfully.");
+
+                // Check if Context assembly name is correct
+                Assert.IsTrue(cdft.ContextAssemblyName == contextAssemblyName, $"Context assembly name {cdft.ContextAssemblyName} was not correct. Expecting {contextAssemblyName}");
+
+                // Check if concrete class type is assignable to interface type and vice-versa
+                using (var assembly = DisposableAssembly.LoadFile(cdft.DLLPath))
+                {
+                    Type concreteType = assembly.Assembly.GetType(fullyQualifiedEmployeeTypeName) ?? default!;
+                    Type interfaceType = assembly.Assembly.GetType(fullyQualifiedIEmployeeTypeName) ?? default!;
+                    var isConcreteTypeAssignableToInterfaceType = interfaceType.IsAssignableFrom(concreteType);
+                    var isInterfaceTypeAssignableToConcreteType = interfaceType.IsAssignableFrom(concreteType);
+
+                    Assert.IsTrue(isConcreteTypeAssignableToInterfaceType, $"Concrete type {concreteType} is not assignable to {interfaceType}");
+                    Assert.IsTrue(isInterfaceTypeAssignableToConcreteType, $"Interface type {interfaceType} is not assignable to {concreteType}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ApplicationExceptionLogger.HandleException(ex);
+                Assert.Fail($"Test failed with exception: {ex.Message}");
             }
         }
 
