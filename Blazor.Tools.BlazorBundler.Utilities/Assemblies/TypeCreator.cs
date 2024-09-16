@@ -4,14 +4,15 @@
     Created On  : September 15, 2024
     Purpose     : To provide a POC prototype for testing type creations.
   ====================================================================================================*/
+using Blazor.Tools.BlazorBundler.Interfaces;
 using System.Reflection;
 using System.Reflection.Emit;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class TypeCreator
+    public class TypeCreator : ITypeCreator
     {
-        public static Type DefineInterfaceType(ModuleBuilder mb, string fullyQualifiedName)
+        public Type DefineInterfaceType(ModuleBuilder mb, string fullyQualifiedName)
         {
             // Extract the base type name
             string baseTypeName = GetBaseTypeName(fullyQualifiedName);
@@ -26,7 +27,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return tb.CreateType();
         }
 
-        private static string GetBaseTypeName(string fullyQualifiedName)
+        private string GetBaseTypeName(string fullyQualifiedName)
         {
             int backtickIndex = fullyQualifiedName.IndexOf('`');
             if (backtickIndex != -1)
@@ -36,7 +37,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return fullyQualifiedName;
         }
 
-        private static void DefineGenericParameters(TypeBuilder tb, string fullyQualifiedName)
+        private void DefineGenericParameters(TypeBuilder tb, string fullyQualifiedName)
         {
             int backtickIndex = fullyQualifiedName.IndexOf('`');
             if (backtickIndex != -1)
@@ -61,8 +62,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("MainModule");
 
             string fullyQualifiedName = "Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2[[Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.Employee, Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null],[Blazor.Tools.BlazorBundler.Interfaces.IModelExtendedProperties, Blazor.Tools.BlazorBundler.Interfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]";
-
-            Type createdType = DefineInterfaceType(moduleBuilder, fullyQualifiedName);
+            var tc = new TypeCreator();
+            Type createdType = tc.DefineInterfaceType(moduleBuilder, fullyQualifiedName);
 
             Console.WriteLine($"Created Type FullName: {createdType.FullName}");
             Console.WriteLine($"Created Type Name: {createdType.Name}");

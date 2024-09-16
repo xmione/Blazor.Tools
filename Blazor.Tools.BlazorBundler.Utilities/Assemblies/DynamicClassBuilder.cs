@@ -680,7 +680,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             // Extract the base type name
             string baseTypeName = GetBaseTypeName(fullyQualifiedName);
 
-            tb = mb.DefineType(fullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+            tb = mb.DefineType(baseTypeName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
             // Extract and define generic parameters if needed
             DefineGenericParameters(tb, fullyQualifiedName);

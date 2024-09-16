@@ -239,7 +239,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
 
             // If the type is generic, strip off the generic parameters and assembly details
-            if (type.IsGenericType)
+            if (type?.IsGenericType ?? false)
             {
                 // This will give us something like: Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2
                 fullName = type.GetGenericTypeDefinition()?.FullName ?? default!;
