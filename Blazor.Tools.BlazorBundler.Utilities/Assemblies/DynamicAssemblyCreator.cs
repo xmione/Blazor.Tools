@@ -11,7 +11,6 @@ using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 using TypeAttributes = Mono.Cecil.TypeAttributes;
-using System.Threading.Tasks;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {

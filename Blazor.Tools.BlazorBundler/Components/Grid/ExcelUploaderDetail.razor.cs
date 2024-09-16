@@ -110,7 +110,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
 
             var interfaceNames = modelsAssembly?.GetAssemblyInterfaceNames().ToList();
-            var modelsAssemblyName = ModelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
+            var modelsAssemblyName = HostAssemblies.ModelsAssemblyName ?? modelsAssembly?.GetName().Name ?? string.Empty;
             var servicesAssemblyName = HostAssemblies.ServicesAssemblyName ?? servicesAssembly?.GetName().Name ?? string.Empty;
             if (interfaceNames != null)
             {

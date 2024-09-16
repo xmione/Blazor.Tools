@@ -51,23 +51,31 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         public static bool IsFileInUse(this string filePath)
         {
             bool isInUse = false;
-            FileInfo fileInfo = new FileInfo(filePath);
-
-            if (fileInfo.IsFileInUse())
+            if (File.Exists(filePath))
             {
-                Console.WriteLine("File {0} is in use by the following processes:", filePath);
+                FileInfo fileInfo = new FileInfo(filePath);
 
-                LockingProcesses = fileInfo.GetProcessesUsingFile();
-                foreach (var process in LockingProcesses)
+                if (fileInfo.IsFileInUse())
                 {
-                    Console.WriteLine($"- {process.ProcessName} (PID: {process.Id})");
+                    Console.WriteLine("File {0} is in use by the following processes:", filePath);
+
+                    LockingProcesses = fileInfo.GetProcessesUsingFile();
+                    foreach (var process in LockingProcesses)
+                    {
+                        Console.WriteLine($"- {process.ProcessName} (PID: {process.Id})");
+                    }
+
+                    isInUse = true;
+                }
+                else
+                {
+                    Console.WriteLine("File {0} is not in use.", filePath);
                 }
 
-                isInUse = true; 
             }
-            else
+            else 
             {
-                Console.WriteLine("File {0} is not in use.", filePath);
+                Console.WriteLine("File {0} does not exist.", filePath);
             }
 
             return isInUse;

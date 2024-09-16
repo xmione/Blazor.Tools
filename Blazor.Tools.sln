@@ -41,6 +41,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Tools.BlazorBundler.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Tools.BlazorBundler.Utilities", "Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj", "{16F5F2AD-1830-4345-826B-6370A2183C89}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Tools.AppHost.Test", "Blazor.Tools.AppHost.Test\Blazor.Tools.AppHost.Test.csproj", "{C10DDE12-EE66-4229-9170-CD21AAC8BB84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Tools.Test", "Blazor.Tools.Test\Blazor.Tools.Test.csproj", "{1DEE10DD-6274-46C5-8F93-A0A28BD6A6FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +127,14 @@ Global
 		{16F5F2AD-1830-4345-826B-6370A2183C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16F5F2AD-1830-4345-826B-6370A2183C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16F5F2AD-1830-4345-826B-6370A2183C89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C10DDE12-EE66-4229-9170-CD21AAC8BB84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C10DDE12-EE66-4229-9170-CD21AAC8BB84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C10DDE12-EE66-4229-9170-CD21AAC8BB84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C10DDE12-EE66-4229-9170-CD21AAC8BB84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DEE10DD-6274-46C5-8F93-A0A28BD6A6FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DEE10DD-6274-46C5-8F93-A0A28BD6A6FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DEE10DD-6274-46C5-8F93-A0A28BD6A6FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DEE10DD-6274-46C5-8F93-A0A28BD6A6FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

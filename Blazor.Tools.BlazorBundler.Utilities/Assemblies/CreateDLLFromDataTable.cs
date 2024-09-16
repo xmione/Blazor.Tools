@@ -23,8 +23,10 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         {
             try 
             {
-                var contextAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
                 var employeeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+                //var contextAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
+                var lastIndex = employeeNameSpace.LastIndexOf('.');
+                var contextAssemblyName = employeeNameSpace[..lastIndex];
                 var employeeTypeName = "Employee";
                 var employeeFullyQualifiedName = $"{employeeNameSpace}.{employeeTypeName}";
                 _dllPath = Path.Combine(Path.GetTempPath(), contextAssemblyName + ".dll"); // use the parent assembly name that envelopes class and interface namespaces
@@ -128,7 +130,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 //    persistedAssemblyBuilder.Save("DynamicAssembly.dll");
                 //}
 
-                Console.WriteLine("DisposableAssembly saved successfully!");
+                Console.WriteLine("DisposableAssembly saved to {0} successfully!", _dllPath);
             }
             catch (Exception ex) 
             { 

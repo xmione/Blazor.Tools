@@ -57,7 +57,8 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[18] - Run .dll file method from Temp folder");
                 Console.WriteLine("[19] - Create Mono.Cecil dll using DynamicAssemblyCreator");
                 Console.WriteLine("[20] - Create PersistedAssemblyBuilder dll From DataTable");
-                Console.WriteLine("[21] - Exit");
+                Console.WriteLine("[21] - Test TypeCreator");
+                Console.WriteLine("[22] - Exit");
 
                 var choice = Console.ReadLine();
 
@@ -751,31 +752,41 @@ namespace Blazor.Tools.ConsoleApp
             var tempFolderPath = Path.GetTempPath(); 
             string assemblyName = string.Empty;
             Console.WriteLine("This will decompile the selected dll file from the temp folder: \r\n\t{0}", tempFolderPath);
-            Console.WriteLine("Please select an option: Default option when is [0]");
-            Console.WriteLine("[0] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll");
-            Console.WriteLine("[1] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.dll");
-            Console.WriteLine("[2] - Blazor.Tools.BlazorBundler.dll");
-            Console.WriteLine("[3] - Employee.dll");
+            Console.WriteLine("Please select an option: Default option is [0]");
+            Console.WriteLine("[0] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.dll");
+            Console.WriteLine("[1] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll");
+            Console.WriteLine("[2] - Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.dll");
+            Console.WriteLine("[3] - Blazor.Tools.BlazorBundler.dll");
+            Console.WriteLine("[4] - Employee.dll");
 
             string choice = Console.ReadLine() ?? string.Empty;
+            Console.WriteLine("You typed: {0}", choice);
+
             switch (choice)
             {
                 case "":
                 case "0":
-                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.dll";
                     break;
                 case "1":
-                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll";
                     break;
                 case "2":
-                    assemblyName = "Blazor.Tools.BlazorBundler";
+                    assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.dll";
                     break;
                 case "3":
-                    assemblyName = "Employee";
+                    assemblyName = "Blazor.Tools.BlazorBundler.dll";
                     break;
-                
+                case "4":
+                    assemblyName = "Employee.dll";
+                    break;
+                default:
+                    assemblyName = choice;        
+                    break;
             }
-            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
+
+            Console.WriteLine("Assembly To Decompile: {0}", assemblyName);
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}");
             var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
 
             dllPath.DecompileWholeModuleToClass(outputPath);
