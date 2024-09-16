@@ -55,13 +55,21 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
         }
 
-        public static void Test()
+        public static void Create()
         {
-            AssemblyName asmName = new AssemblyName("DynamicAssembly");
-            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
-            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("MainModule");
+            string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            string modelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string modelTypeName = "Employee";
+            string iModelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            string iModelTypeName = "IModelExtendedProperties";
+            string version = "1.0.0.0";
+            AssemblyName assemblyName = new AssemblyName(contextAssemblyName);
+            assemblyName.Version = new Version(version);
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
-            string fullyQualifiedName = "Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2[[Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.Employee, Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null],[Blazor.Tools.BlazorBundler.Interfaces.IModelExtendedProperties, Blazor.Tools.BlazorBundler.Interfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]";
+            string fullyQualifiedName = $"{contextAssemblyName}.IViewModel`2[[{modelTypeAssemblyName}.{modelTypeName}, {modelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null],[{iModelTypeAssemblyName}.{iModelTypeName}, {iModelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null]]";
+
             var tc = new TypeCreator();
             Type createdType = tc.DefineInterfaceType(moduleBuilder, fullyQualifiedName);
 

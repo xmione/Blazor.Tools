@@ -45,7 +45,7 @@ using System.Runtime.Loader;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class DynamicClassBuilder : IDisposable, IDynamicClassBuilder
+    public class DynamicClassBuilder : IDynamicClassBuilder
     {
         private AssemblyLoadContext? _assemblyLoadContext;
         private Assembly? _assembly;

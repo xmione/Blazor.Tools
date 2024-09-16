@@ -13,40 +13,48 @@ using System.Runtime.Loader;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
-    public class CreateDLLFromDataTable
+    public class CreateDLLFromDataTable : ICreateDLLFromDataTable
     {
-        private static string _iEmployeeFullyQualifiedName = string.Empty;
-        private static string _employeeFullyQualifiedName = string.Empty;
-        private static string _dllPath = string.Empty;
+        
+        private string _dllPath = string.Empty;
+        private string _employeeNameSpace;
+        private string _employeeTypeName;
+        private string _iEmployeeNameSpace;
+        private string _iEmployeeTypeName;
+        private string _contextAssemblyName;
+        private string _employeeFullyQualifiedName;
+        private string _iEmployeeFullyQualifiedName;
 
-        public static void BuildAndSaveAssembly(DataTable dataTable)
+        public string DLLPath 
+        {
+            get{ return _dllPath; }
+        }
+
+        public CreateDLLFromDataTable(string? employeeNameSpace = null, string? employeeTypeName = null, string? iEmployeeNameSpace = null, string? iEmployeeTypeName = null)
+        {
+            _employeeNameSpace = employeeNameSpace ?? "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";    
+            _employeeTypeName = employeeTypeName ?? "Employee";    
+            _iEmployeeNameSpace = iEmployeeNameSpace ?? "Blazor.Tools.BlazorBundler.Interfaces";    
+            _iEmployeeTypeName = iEmployeeTypeName ?? "IEmployee";
+            _employeeFullyQualifiedName = $"{_employeeNameSpace}.{_employeeTypeName}";
+            _iEmployeeFullyQualifiedName = $"{_iEmployeeNameSpace}.{_iEmployeeTypeName}";
+
+            var lastIndex = _employeeNameSpace.LastIndexOf('.');
+            _contextAssemblyName = _employeeNameSpace[..lastIndex];
+            _dllPath = Path.Combine(Path.GetTempPath(), _contextAssemblyName + ".dll"); // use the parent assembly name that envelopes class and interface namespaces
+        }
+
+        public void BuildAndSaveAssembly(DataTable dataTable)
         {
             try 
             {
-                var employeeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-                //var contextAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects";
-                var lastIndex = employeeNameSpace.LastIndexOf('.');
-                var contextAssemblyName = employeeNameSpace[..lastIndex];
-                var employeeTypeName = "Employee";
-                var employeeFullyQualifiedName = $"{employeeNameSpace}.{employeeTypeName}";
-                _dllPath = Path.Combine(Path.GetTempPath(), contextAssemblyName + ".dll"); // use the parent assembly name that envelopes class and interface namespaces
-
-                var iEmployeeNameSpace = "Blazor.Tools.BlazorBundler.Interfaces";
-                var iEmployeeTypeName = "IEmployee";
-                var iEmployeeFullyQualifiedName = $"{iEmployeeNameSpace}.{iEmployeeTypeName}";
-
-                //var assemblyName = new AssemblyName("DynamicAssembly");
-                var assemblyName = new AssemblyName(contextAssemblyName); // use the parent assembly name
+                var assemblyName = new AssemblyName(_contextAssemblyName); // use the parent assembly name
                 assemblyName.Version = new Version("1.0.0.0");
                 var persistedAssemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
-                var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule(employeeNameSpace);
-                //var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule("MainModule");
-
-                _iEmployeeFullyQualifiedName = iEmployeeFullyQualifiedName;
-                _employeeFullyQualifiedName = employeeFullyQualifiedName;
+                var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule(_employeeNameSpace);
+                
                 // Define the IEmployee interface
-
-                var interfaceBuilder = moduleBuilder.DefineType(iEmployeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+                var interfaceBuilder = moduleBuilder.DefineType(_iEmployeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
                 foreach (DataColumn column in dataTable.Columns)
                 {
@@ -70,7 +78,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 var iEmployee = interfaceBuilder.CreateType();
 
                 // Define the Employee class that implements IEmployee
-                var classBuilder = moduleBuilder.DefineType(employeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Class, typeof(object), new[] { iEmployee });
+                var classBuilder = moduleBuilder.DefineType(_employeeFullyQualifiedName, TypeAttributes.Public | TypeAttributes.Class, typeof(object), new[] { iEmployee });
 
                 foreach (DataColumn column in dataTable.Columns)
                 {
@@ -125,10 +133,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
                 // Save the assembly to a file
                 persistedAssemblyBuilder.Save(_dllPath);
-                //using (var fileStream = new FileStream("DynamicAssembly.dll", FileMode.Create, FileAccess.Write))
-                //{
-                //    persistedAssemblyBuilder.Save("DynamicAssembly.dll");
-                //}
 
                 Console.WriteLine("DisposableAssembly saved to {0} successfully!", _dllPath);
             }
@@ -139,7 +143,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             
         }
 
-        public static void CreateAndUseInstance()
+        public void CreateAndUseInstance()
         {
             // Load the saved assembly from the file
             var assemblyBytes = File.ReadAllBytes(_dllPath);
@@ -178,7 +182,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
         }
 
-        public static void Run()
+        public void Run()
         {
             // Create a sample DataTable
             var dataTable = new DataTable();
@@ -186,11 +190,12 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             dataTable.Columns.Add("Name", typeof(string));
             dataTable.Columns.Add("Age", typeof(int));
 
+            var cdft = new CreateDLLFromDataTable();
             // Generate and save the dynamic assembly
-            CreateDLLFromDataTable.BuildAndSaveAssembly(dataTable);
+            cdft.BuildAndSaveAssembly(dataTable);
 
             // Create and use an instance of the dynamically generated type
-            CreateDLLFromDataTable.CreateAndUseInstance();
+            cdft.CreateAndUseInstance();
         }
     }
 }

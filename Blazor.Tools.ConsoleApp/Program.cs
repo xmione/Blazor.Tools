@@ -57,7 +57,7 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("[18] - Run .dll file method from Temp folder");
                 Console.WriteLine("[19] - Create Mono.Cecil dll using DynamicAssemblyCreator");
                 Console.WriteLine("[20] - Create PersistedAssemblyBuilder dll From DataTable");
-                Console.WriteLine("[21] - Test TypeCreator");
+                Console.WriteLine("[21] - Create TypeCreator");
                 Console.WriteLine("[22] - Exit");
 
                 var choice = Console.ReadLine();
@@ -188,7 +188,8 @@ namespace Blazor.Tools.ConsoleApp
 
                         break; 
                     case "20":
-                        CreateDLLFromDataTable.Run();
+                        var cdft = new CreateDLLFromDataTable();
+                        cdft.Run();
                         break; 
                     case "21":
                         return; 

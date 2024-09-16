@@ -5,7 +5,7 @@ using System.Runtime.Loader;
 
 namespace Blazor.Tools.BlazorBundler.Interfaces
 {
-    public interface IDynamicClassBuilder
+    public interface IDynamicClassBuilder: IDisposable
     {
         public Assembly? Assembly { get; }
         public Type? DynamicType { get; set; }
