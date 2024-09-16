@@ -20,20 +20,21 @@ namespace Blazor.Tools.BlazorBundler.Tests
     [TestClass]
     public class DynamicBundlerTests : SampleData, IDisposable
     {
-        private TestContext _testContext = default!;
-        private Mock<IDataTableGrid> _dataTableGridMock = default!;
-        private Mock<IDynamicClassBuilder> _dynamicClassBuilderMock = default!;
-        private Mock<IModelExtendedProperties> _iModelExtendedProperties;
-        private IRenderedComponent<DataTableGrid> _dataTableGridComponent = default!;
-        private string _tableName;
+        private TestContext? _testContext;
+        private Mock<IDataTableGrid>? _dataTableGridMock;
+        private Mock<IDynamicClassBuilder>? _dynamicClassBuilderMock;
+        private Mock<IModelExtendedProperties>? _iModelExtendedProperties;
+        private IRenderedComponent<DataTableGrid>? _dataTableGridComponent;
+        private string? _tableName;
         private Type? _modelType;
         private Type? _modelVMType;
         private Type? _interfaceType;
         private object? _modelInstance;
         private object? _modelVMInstance;
-        private string _tempFolderPath;
-        private string _modelTempDllPath;
-        private string _modelVMTempDllPath;
+        private string? _tempFolderPath;
+        private string? _modelTempDllPath;
+        private string? _modelVMTempDllPath;
+
 
         [TestInitialize]
         public void TestInit()

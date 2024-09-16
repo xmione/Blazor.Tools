@@ -413,6 +413,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         public class MethodDefinition
         {
+            public TypeBuilder TB { get; set; }    
             public string Name { get; set; }
             public MethodAttributes Attributes { get; set; }
             public Type ReturnType { get; set; }
@@ -434,7 +435,6 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             public string Name { get; set; }
             public Type Type { get; set; }
         }
-
 
         public class ILInstruction
         {
