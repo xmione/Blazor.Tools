@@ -67,7 +67,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await base.OnParametersSetAsync();
         }
 
-        private async Task InitializeVariables()
+        public async Task InitializeVariables()
         {
             try 
             {

@@ -103,6 +103,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     properties: _modelProperties
                     );
 
+                _iEmployeeType.GetProperties();
                 _employeeType = CreateType(
                     ref moduleBuilder,
                     typeName: _employeeFullyQualifiedTypeName,
@@ -117,6 +118,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     properties: _iModelExtendedProperties
                     );
 
+                
                 _iViewModelType = CreateType(
                     ref moduleBuilder,
                     typeName: $"{_iEmployeeNameSpace}.IViewModel",

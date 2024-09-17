@@ -9,7 +9,7 @@ using System.Data;
 namespace Blazor.Tools.BlazorBundler.Tests
 {
     [TestClass]
-    public class CreateDLLFromDataTableTest : SampleData, IDisposable
+    public class CreateDLLFromDataTableTests : SampleData, IDisposable
     {
         private TestContext _testContext = default!;
         private Mock<ICreateDLLFromDataTable> _createDLLFromDataTableMock = default!;

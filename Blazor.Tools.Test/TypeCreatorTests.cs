@@ -6,6 +6,9 @@ using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using System.Reflection.Emit;
 using System.Reflection;
+using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using System.Diagnostics;
 
 namespace Blazor.Tools.BlazorBundler.Tests
 {
@@ -87,6 +90,34 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ApplicationExceptionLogger.HandleException(ex);
             }
         }
+
+        [TestMethod]
+        public void DefineInterfaceType_Test()
+        {
+            string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            string modelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string modelTypeName = "Employee";
+            string iModelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            string iModelTypeName = "IModelExtendedProperties";
+            string version = "1.0.0.0";
+
+            AssemblyName assemblyName = new AssemblyName(contextAssemblyName);
+            assemblyName.Version = new Version(version);
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(contextAssemblyName);
+
+            //string expectedTypeFullName = $"{contextAssemblyName}.IViewModel`2[[{modelTypeAssemblyName}.{modelTypeName}, {modelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null],[{iModelTypeAssemblyName}.{iModelTypeName}, {iModelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null]]";
+            var expectedType = typeof(IViewModel<Employee, IModelExtendedProperties>) ?? default!;
+            var tc = new TypeCreator();
+            string expectedTypeFullName = expectedType.FullName ?? default!;
+            Type createdType = tc.DefineInterfaceType(moduleBuilder, expectedTypeFullName);
+
+            Debug.WriteLine($"Expected FullName: {expectedTypeFullName}");
+            Debug.WriteLine($"Created Type FullName: {createdType.FullName}");
+
+            Assert.AreEqual(expectedTypeFullName, createdType.FullName);
+        }
+
 
         public void Dispose()
         {

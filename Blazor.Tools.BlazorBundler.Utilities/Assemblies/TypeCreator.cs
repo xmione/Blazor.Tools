@@ -14,44 +14,50 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
     {
         public Type DefineInterfaceType(ModuleBuilder mb, string fullyQualifiedName)
         {
-            // Extract the base type name
+            // Extract base type name and generic parameters
             string baseTypeName = GetBaseTypeName(fullyQualifiedName);
+            string[] genericParams = GetGenericParameters(fullyQualifiedName);
 
-            // Define the generic parameters if present
+            // Define the type with generic parameters
             TypeBuilder tb = mb.DefineType(baseTypeName, TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            // Extract and define generic parameters if needed
-            DefineGenericParameters(tb, fullyQualifiedName);
+            // Define the generic parameters
+            DefineGenericParameters(tb, genericParams);
 
-            // Create the type
+            // Create and return the type
             return tb.CreateType();
         }
 
         private string GetBaseTypeName(string fullyQualifiedName)
         {
             int backtickIndex = fullyQualifiedName.IndexOf('`');
-            if (backtickIndex != -1)
-            {
-                return fullyQualifiedName.Substring(0, backtickIndex);
-            }
-            return fullyQualifiedName;
+            return backtickIndex != -1 ? fullyQualifiedName.Substring(0, backtickIndex) : fullyQualifiedName;
         }
 
-        private void DefineGenericParameters(TypeBuilder tb, string fullyQualifiedName)
+        private string[] GetGenericParameters(string fullyQualifiedName)
         {
             int backtickIndex = fullyQualifiedName.IndexOf('`');
             if (backtickIndex != -1)
             {
-                string genericParams = fullyQualifiedName.Substring(backtickIndex + 1);
-                string[] genericParamNames = genericParams.Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+                string genericParams = fullyQualifiedName.Substring(backtickIndex + 1).Trim('[', ']');
+                return genericParams.Split(new[] { "],[" }, StringSplitOptions.None);
+            }
+            return Array.Empty<string>();
+        }
 
-                // Define generic parameters for the type
-                GenericTypeParameterBuilder[] genericParameters = tb.DefineGenericParameters(genericParamNames);
-                for (int i = 0; i < genericParameters.Length; i++)
+        private void DefineGenericParameters(TypeBuilder tb, string[] genericParams)
+        {
+            if (genericParams.Length > 0)
+            {
+                string[] genericParamNames = new string[genericParams.Length];
+                for (int i = 0; i < genericParams.Length; i++)
                 {
-                    genericParameters[i].SetGenericParameterAttributes(GenericParameterAttributes.None);
-                    // Additional configuration of generic parameters can be done here
+                    genericParamNames[i] = $"T{i + 1}";
                 }
+
+                GenericTypeParameterBuilder[] genericParameters = tb.DefineGenericParameters(genericParamNames);
+
+                // No constraints or attributes set for generic parameters
             }
         }
 
@@ -63,18 +69,20 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             string iModelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
             string iModelTypeName = "IModelExtendedProperties";
             string version = "1.0.0.0";
+
             AssemblyName assemblyName = new AssemblyName(contextAssemblyName);
             assemblyName.Version = new Version(version);
             AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
+            // Fully qualified name for the type
             string fullyQualifiedName = $"{contextAssemblyName}.IViewModel`2[[{modelTypeAssemblyName}.{modelTypeName}, {modelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null],[{iModelTypeAssemblyName}.{iModelTypeName}, {iModelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null]]";
 
             var tc = new TypeCreator();
             Type createdType = tc.DefineInterfaceType(moduleBuilder, fullyQualifiedName);
 
+            Console.WriteLine($"Expected FullName: {fullyQualifiedName}");
             Console.WriteLine($"Created Type FullName: {createdType.FullName}");
-            Console.WriteLine($"Created Type Name: {createdType.Name}");
         }
     }
 }

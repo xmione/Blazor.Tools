@@ -34,7 +34,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
         private string? _tempFolderPath;
         private string? _modelTempDllPath;
         private string? _modelVMTempDllPath;
-
+        
 
         [TestInitialize]
         public void TestInit()
@@ -80,7 +80,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _dynamicClassBuilderMock.Setup(m => m.DeleteAssembly()).Verifiable();
 
             _tableName = EmployeeDataTable.TableName;
-            
+
         }
 
         [TestCleanup]
@@ -210,6 +210,8 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 Assert.Fail($"Create failed with exception: {ex.Message}");
                 ApplicationExceptionLogger.HandleException(ex);
             }
+
+            await Task.CompletedTask;
         }
 
         private Task DefineConstructors(DynamicClassBuilder builder, string assemblyFilePath)

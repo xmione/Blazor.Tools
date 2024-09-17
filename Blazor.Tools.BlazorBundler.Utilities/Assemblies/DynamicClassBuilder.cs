@@ -496,6 +496,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             catch (Exception ex)
             {
                 ApplicationExceptionLogger.HandleException(ex);
+                throw;
             }
 
         }
