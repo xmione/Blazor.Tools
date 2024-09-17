@@ -65,7 +65,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             catch (Exception ex)
             {
                 Assert.Fail($"Test failed with exception: {ex.Message}");
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
         }
         
@@ -117,7 +117,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             }
             catch (Exception ex)
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
                 Assert.Fail($"Test failed with exception: {ex.Message}");
             }
         }

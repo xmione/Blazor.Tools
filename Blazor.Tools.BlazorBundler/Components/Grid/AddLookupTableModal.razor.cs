@@ -475,7 +475,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch (Exception ex)
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
            
         }

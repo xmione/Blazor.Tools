@@ -11,11 +11,11 @@ using System.Diagnostics;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
 {
-    public class ApplicationExceptionLogger
+    public class AppLogger
     {
         private const int REPL = 222;
         // Initialize Serilog with a file sink
-        static ApplicationExceptionLogger()
+        static AppLogger()
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
@@ -29,6 +29,22 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
                 .CreateLogger();
         }
 
+        public static void WriteInfo(string message)
+        {
+            // Log to the file always
+            LogToFile(message);
+
+            // Log to the appropriate output medium
+            if (Debugger.IsAttached)
+            {
+                LogToDebug(message);
+            }
+            else
+            {
+                LogToConsole(message);
+            }
+        }
+        
         public static void HandleException(Exception ex)
         {
             // Log to the file always
@@ -45,6 +61,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
             }
         }
 
+        private static void LogToDebug(string message)
+        {
+            Debug.WriteLine(new string('=', REPL));
+            Debug.WriteLine($"Info: {message}");
+            Debug.WriteLine(new string('=', REPL));
+        }
+        
         private static void LogToDebug(Exception ex)
         {
             Debug.WriteLine(new string('=', REPL));
@@ -67,7 +90,14 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
 
             Debug.WriteLine(new string('=', REPL));
         }
-
+        
+        private static void LogToConsole(string message)
+        {
+            Console.WriteLine(new string('=', REPL));
+            Console.WriteLine($"Info: {message}");
+            Console.WriteLine(new string('=', REPL));
+        }
+        
         private static void LogToConsole(Exception ex)
         {
             Console.WriteLine(new string('=', REPL));
@@ -91,6 +121,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
             Console.WriteLine(new string('=', REPL));
         }
 
+        private static void LogToFile(string message)
+        {
+            Log.Error(new string('=', REPL));
+            Log.Error($"Info: {message}");
+            Log.Error(new string('=', REPL));
+        }
+        
         private static void LogToFile(Exception ex)
         {
             Log.Error(new string('=', REPL));
@@ -113,6 +150,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
 
             Log.Error(new string('=', REPL));
         }
+
     }
 }
 

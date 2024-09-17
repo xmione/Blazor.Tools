@@ -48,7 +48,7 @@ namespace Blazor.Tools.Test
             catch (Exception ex)
             {
                 Assert.Fail($"Create failed with exception: {ex.Message}");
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
 
             await Task.CompletedTask;

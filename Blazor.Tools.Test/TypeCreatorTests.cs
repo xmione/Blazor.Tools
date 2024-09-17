@@ -87,7 +87,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             catch (Exception ex)
             {
                 Assert.Fail($"Create failed with exception: {ex.Message}");
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
         }
 
@@ -118,6 +118,124 @@ namespace Blazor.Tools.BlazorBundler.Tests
             Assert.AreEqual(expectedTypeFullName, createdType.FullName);
         }
 
+        [TestMethod]
+        public void CreateEmployeeType_Test()
+        {
+            // Define assembly and module
+            AssemblyName assemblyName = new AssemblyName("DynamicAssembly");
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicModule");
+
+            // Define the Employee class
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.Employee",
+                TypeAttributes.Public | TypeAttributes.Class);
+
+            // Define fields
+            FieldBuilder idField = typeBuilder.DefineField("ID", typeof(int), FieldAttributes.Public);
+            FieldBuilder firstNameField = typeBuilder.DefineField("FirstName", typeof(string), FieldAttributes.Public);
+            FieldBuilder middleNameField = typeBuilder.DefineField("MiddleName", typeof(string), FieldAttributes.Public);
+            FieldBuilder lastNameField = typeBuilder.DefineField("LastName", typeof(string), FieldAttributes.Public);
+            FieldBuilder dateOfBirthField = typeBuilder.DefineField("DateOfBirth", typeof(DateOnly), FieldAttributes.Public);
+            FieldBuilder countryIdField = typeBuilder.DefineField("CountryID", typeof(int), FieldAttributes.Public);
+
+            // Define properties
+            DefineClassProperty(typeBuilder, "ID", typeof(int));
+            DefineClassProperty(typeBuilder, "FirstName", typeof(string));
+            DefineClassProperty(typeBuilder, "MiddleName", typeof(string));
+            DefineClassProperty(typeBuilder, "LastName", typeof(string));
+            DefineClassProperty(typeBuilder, "DateOfBirth", typeof(DateOnly));
+            DefineClassProperty(typeBuilder, "CountryID", typeof(int));
+
+            // Create the type
+            Type employeeType = typeBuilder.CreateType();
+
+            // Retrieve and print properties
+            var properties = employeeType.GetProperties();
+            foreach (var prop in properties)
+            {
+                AppLogger.WriteInfo($"Property: {prop.Name}, Type: {prop.PropertyType}");
+            }
+        }
+
+        [TestMethod]
+        public void CreateIEmployeeType_Test()
+        {
+            // Define assembly and module
+            AssemblyName assemblyName = new AssemblyName("DynamicAssembly");
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicModule");
+
+            // Define the IEmployee interface
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.IEmployee",
+                TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
+            // Define properties for the interface
+            DefineInterfaceProperty(typeBuilder, "ID", typeof(int));
+            DefineInterfaceProperty(typeBuilder, "FirstName", typeof(string));
+            DefineInterfaceProperty(typeBuilder, "MiddleName", typeof(string));
+            DefineInterfaceProperty(typeBuilder, "LastName", typeof(string));
+            DefineInterfaceProperty(typeBuilder, "DateOfBirth", typeof(DateOnly));
+            DefineInterfaceProperty(typeBuilder, "CountryID", typeof(int));
+
+            // Create the interface type
+            Type iEmployeeType = typeBuilder.CreateType();
+
+            // Retrieve and print properties (interfaces don't have actual properties, so this will only show the declared signatures)
+            var methods = iEmployeeType.GetMethods();
+            foreach (var method in methods)
+            {
+                AppLogger.WriteInfo($"Method: {method.Name}, Return Type: {method.ReturnType}");
+            }
+        }
+
+        private static void DefineClassProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+            FieldBuilder fieldBuilder = typeBuilder.DefineField($"_{propertyName.ToLower()}", propertyType, FieldAttributes.Private);
+            PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+
+            MethodBuilder getPropMthdBldr = typeBuilder.DefineMethod($"get_{propertyName}",
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                propertyType, Type.EmptyTypes);
+
+            ILGenerator getIl = getPropMthdBldr.GetILGenerator();
+            getIl.Emit(OpCodes.Ldarg_0);
+            getIl.Emit(OpCodes.Ldfld, fieldBuilder);
+            getIl.Emit(OpCodes.Ret);
+
+            MethodBuilder setPropMthdBldr = typeBuilder.DefineMethod($"set_{propertyName}",
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                null, new Type[] { propertyType });
+
+            ILGenerator setIl = setPropMthdBldr.GetILGenerator();
+            setIl.Emit(OpCodes.Ldarg_0);
+            setIl.Emit(OpCodes.Ldarg_1);
+            setIl.Emit(OpCodes.Stfld, fieldBuilder);
+            setIl.Emit(OpCodes.Ret);
+
+            propertyBuilder.SetGetMethod(getPropMthdBldr);
+            propertyBuilder.SetSetMethod(setPropMthdBldr);
+        }
+
+        private static void DefineInterfaceProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+            PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+
+            // Define the getter method signature
+            MethodBuilder getPropMthdBldr = typeBuilder.DefineMethod($"get_{propertyName}",
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Abstract | MethodAttributes.Virtual,
+                propertyType, Type.EmptyTypes);
+
+            // Define the setter method signature
+            MethodBuilder setPropMthdBldr = typeBuilder.DefineMethod($"set_{propertyName}",
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Abstract | MethodAttributes.Virtual,
+                null, new Type[] { propertyType });
+
+            // Attach getter and setter to the property
+            propertyBuilder.SetGetMethod(getPropMthdBldr);
+            propertyBuilder.SetSetMethod(setPropMthdBldr);
+        }
 
         public void Dispose()
         {

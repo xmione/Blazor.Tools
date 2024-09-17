@@ -190,7 +190,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex) 
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
             
         }
@@ -451,6 +451,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
                 // Create the type before saving it to disk
                 _dynamicType = _typeBuilder?.CreateType();
+                AppLogger.WriteInfo($"_dynamicType {_dynamicType}");
+
+                var typeProps = _dynamicType?.GetProperties() ?? default!;
+                foreach (var prop in typeProps)
+                {
+                    AppLogger.WriteInfo($"prop.Name: {prop.Name}");
+                }
 
                 DeleteAssembly();
 
@@ -495,7 +502,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex)
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
                 throw;
             }
 

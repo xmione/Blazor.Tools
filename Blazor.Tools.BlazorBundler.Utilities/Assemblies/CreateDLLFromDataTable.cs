@@ -166,7 +166,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex)
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
         }
 
@@ -250,7 +250,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex)
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
                 throw;
             }
 
@@ -309,7 +309,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             } 
             catch (Exception ex) 
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
                 throw;
             }
 
@@ -346,7 +346,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex) 
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
                 throw;
             }
 
@@ -427,7 +427,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex)
             {
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
                 throw; // propagate
             }
 

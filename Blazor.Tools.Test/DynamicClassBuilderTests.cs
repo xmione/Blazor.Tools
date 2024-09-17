@@ -131,7 +131,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             catch (Exception ex) 
             {
                 Assert.Fail();
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
             
         }
@@ -208,7 +208,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             catch (Exception ex)
             {
                 Assert.Fail($"Create failed with exception: {ex.Message}");
-                ApplicationExceptionLogger.HandleException(ex);
+                AppLogger.HandleException(ex);
             }
 
             await Task.CompletedTask;
