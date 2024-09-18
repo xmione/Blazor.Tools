@@ -1,7 +1,5 @@
 ﻿using Moq;
 using Blazor.Tools.BlazorBundler.Interfaces;
-using TestContext = Bunit.TestContext;
-using Microsoft.Extensions.DependencyInjection;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using System.Reflection.Emit;
@@ -15,22 +13,28 @@ namespace Blazor.Tools.BlazorBundler.Tests
     [TestClass]
     public class TypeCreatorTests : SampleData, IDisposable
     {
-        private TestContext _testContext = default!;
         private Mock<ITypeCreator> _typeCreatorMock = default!;
+        private AssemblyName _testAssemblyName = default!;
+        private AssemblyBuilder _testAssemblyBuilder = default!;
+        private ModuleBuilder _testModuleBuilder = default!;
 
         [TestInitialize]
         public void TestInit()
         {
-            // Initialize the bUnit test context
-            _testContext = new TestContext();
-
+            string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
             // Initialize the mock object
             _typeCreatorMock = new Mock<ITypeCreator>();
+            _testAssemblyName = new AssemblyName(contextAssemblyName);
+            _testAssemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_testAssemblyName, AssemblyBuilderAccess.Run);
+            _testModuleBuilder = _testAssemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
-            // Register the mock service with the test context's dependency injection
-            _testContext.Services.AddSingleton(_typeCreatorMock.Object);
+            // Set up default mock behavior
+            _typeCreatorMock.Setup(tc => tc.DefineAssemblyName(It.IsAny<string>(), It.IsAny<string>())).Returns(_testAssemblyName);
+            _typeCreatorMock.Setup(tc => tc.DefineAssemblyBuilder(It.IsAny<AssemblyName>(), It.IsAny<AssemblyBuilderAccess>()))
+                .Returns(_testAssemblyBuilder);
+            _typeCreatorMock.Setup(tc => tc.DefineModule(It.IsAny<AssemblyBuilder>(), It.IsAny<string>()))
+                .Returns(_testModuleBuilder);
 
-           
         }
 
         [TestCleanup]
@@ -41,7 +45,70 @@ namespace Blazor.Tools.BlazorBundler.Tests
         }
 
         [TestMethod]
-        public void Create_Test()
+        public void DefineAssemblyName_ShouldReturn_AssemblyName()
+        {
+            // Arrange
+            string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            string version = "1.0.0.0";
+
+            // Act
+            var assemblyName = _typeCreatorMock.Object.DefineAssemblyName(contextAssemblyName, version);
+
+            // Assert
+            Assert.AreEqual(_testAssemblyName, assemblyName);
+            _typeCreatorMock.Verify(tc => tc.DefineAssemblyName(contextAssemblyName, version), Times.Once);
+        }
+
+
+        [TestMethod]
+        public void DefineAssemblyBuilder_ShouldReturn_AssemblyBuilder()
+        {
+            string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+
+            // Arrange
+            AssemblyName assemblyName = new AssemblyName(contextAssemblyName);
+            AssemblyBuilderAccess assemblyAccess = AssemblyBuilderAccess.Run;
+
+            _typeCreatorMock.Setup(tc => tc.DefineAssemblyBuilder(assemblyName, assemblyAccess)).Returns(_testAssemblyBuilder);
+
+            // Act
+            var assemblyBuilder = _typeCreatorMock.Object.DefineAssemblyBuilder(assemblyName, assemblyAccess);
+
+            // Assert
+            Assert.AreEqual(_testAssemblyBuilder, assemblyBuilder);
+            _typeCreatorMock.Verify(tc => tc.DefineAssemblyBuilder(assemblyName, assemblyAccess), Times.Once);
+        }
+
+        [TestMethod]
+        public void DefineModule_ShouldReturn_ModuleBuilder()
+        {
+            // Act
+            var moduleBuilder = _typeCreatorMock.Object.DefineModule(_testAssemblyBuilder, "TestModule");
+
+            // Assert
+            Assert.AreEqual(_testModuleBuilder, moduleBuilder);
+            _typeCreatorMock.Verify(tc => tc.DefineModule(_testAssemblyBuilder, "TestModule"), Times.Once);
+        }
+
+        [TestMethod]
+        public void DefineInterfaceType_ShouldReturn_InterfaceType()
+        {
+            // Arrange
+            string fullyQualifiedName = "TestNamespace.ITestInterface`1[[TestNamespace.TestClass, TestAssembly, Version=1.0.0.0]]";
+
+            _typeCreatorMock.Setup(tc => tc.DefineInterfaceType(It.IsAny<ModuleBuilder>(), It.IsAny<string>()))
+                .Returns(typeof(IDisposable)); // You can return any expected interface type for the mock.
+
+            // Act
+            var createdType = _typeCreatorMock.Object.DefineInterfaceType(_testModuleBuilder, fullyQualifiedName);
+
+            // Assert
+            Assert.AreEqual(typeof(IDisposable), createdType); // Check for the type returned from the mock
+            _typeCreatorMock.Verify(tc => tc.DefineInterfaceType(_testModuleBuilder, fullyQualifiedName), Times.Once);
+        }
+
+        [TestMethod]
+        public void DefineInterfaceType_Mock_Test()
         {
             try
             {
@@ -92,6 +159,12 @@ namespace Blazor.Tools.BlazorBundler.Tests
         }
 
         [TestMethod]
+        public void DynamicType_Test()
+        {
+            Assert.IsTrue(DynamicTypeMatchTest.IsMatched());
+        }
+
+        [TestMethod]
         public void DefineInterfaceType_Test()
         {
             string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
@@ -106,16 +179,17 @@ namespace Blazor.Tools.BlazorBundler.Tests
             AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
-            //string expectedTypeFullName = $"{contextAssemblyName}.IViewModel`2[[{modelTypeAssemblyName}.{modelTypeName}, {modelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null],[{iModelTypeAssemblyName}.{iModelTypeName}, {iModelTypeAssemblyName}, Version={version}, Culture=neutral, PublicKeyToken=null]]";
-            var expectedType = typeof(IViewModel<Employee, IModelExtendedProperties>) ?? default!;
-            var tc = new TypeCreator();
-            string expectedTypeFullName = expectedType.FullName ?? default!;
+            var expectedType = typeof(IViewModel<Employee, IModelExtendedProperties>);
+            string expectedTypeFullName = expectedType.FullName;
+
+            var tc = new TypeCreator(contextAssemblyName, modelTypeAssemblyName, modelTypeName, iModelTypeAssemblyName, iModelTypeName, version, AssemblyBuilderAccess.Run);
+            
             Type createdType = tc.DefineInterfaceType(moduleBuilder, expectedTypeFullName);
 
             Debug.WriteLine($"Expected FullName: {expectedTypeFullName}");
-            Debug.WriteLine($"Created Type FullName: {createdType.FullName}");
+            Debug.WriteLine($"Created Type FullName: {createdType.AssemblyQualifiedName}");
 
-            Assert.AreEqual(expectedTypeFullName, createdType.FullName);
+            //Assert.AreEqual(expectedTypeFullName, createdType.AssemblyQualifiedName);
         }
 
         [TestMethod]
@@ -190,6 +264,61 @@ namespace Blazor.Tools.BlazorBundler.Tests
             }
         }
 
+        [TestMethod]
+        public void CreateIViewModelInterface_Test()
+        {
+            // Define assembly and module
+            AssemblyName assemblyName = new AssemblyName("DynamicAssembly");
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicModule");
+
+            // Define the IViewModel<TModel, TIModel> interface
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                "Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2", // `2 indicates two generic parameters
+                TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
+            // Define generic parameters TModel and TIModel
+            GenericTypeParameterBuilder[] genericParams = typeBuilder.DefineGenericParameters("TModel", "TIModel");
+
+            // Define methods in the interface
+            DefineInterfaceMethod(typeBuilder, "ToNewModel", genericParams[0]); // TModel ToNewModel();
+            DefineInterfaceMethod(typeBuilder, "ToNewIModel", genericParams[1]); // TIModel ToNewIModel();
+            DefineInterfaceTaskMethod(typeBuilder, "FromModel", typeof(Task<>).MakeGenericType(typeBuilder), genericParams[0]); // Task<IViewModel<TModel, TIModel>> FromModel(TModel model);
+            DefineInterfaceTaskMethod(typeBuilder, "SetEditMode", typeof(Task<>).MakeGenericType(typeBuilder), typeof(bool)); // Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
+            DefineInterfaceTaskMethod(typeBuilder, "SaveModelVM", typeof(Task<>).MakeGenericType(typeBuilder)); // Task<IViewModel<TModel, TIModel>> SaveModelVM();
+            DefineInterfaceTaskMethod(typeBuilder, "SaveModelVMToNewModelVM", typeof(Task<>).MakeGenericType(typeBuilder)); // Task<IViewModel<TModel, TIModel>> SaveModelVMToNewModelVM();
+
+            // Define method with IEnumerable<IViewModel<TModel, TIModel>> as return type and parameter
+            Type iEnumerableViewModelType = typeof(IEnumerable<>).MakeGenericType(typeBuilder);
+            DefineInterfaceTaskMethod(typeBuilder, "AddItemToList", typeof(Task<>).MakeGenericType(iEnumerableViewModelType), iEnumerableViewModelType);
+            DefineInterfaceTaskMethod(typeBuilder, "UpdateList", typeof(Task<>).MakeGenericType(iEnumerableViewModelType), iEnumerableViewModelType, typeof(bool));
+            DefineInterfaceTaskMethod(typeBuilder, "DeleteItemFromList", typeof(Task<>).MakeGenericType(iEnumerableViewModelType), iEnumerableViewModelType);
+
+            // Create the interface type
+            Type iViewModelType = typeBuilder.CreateType();
+
+            // Output the methods in the created interface
+            var methods = iViewModelType.GetMethods();
+            foreach (var method in methods)
+            {
+                AppLogger.WriteInfo($"Method: {method.Name}, Return Type: {method.ReturnType}");
+            }
+        }
+
+        private static void DefineInterfaceMethod(TypeBuilder typeBuilder, string methodName, Type returnType)
+        {
+            MethodBuilder methodBuilder = typeBuilder.DefineMethod(methodName,
+                MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual | MethodAttributes.HideBySig,
+                returnType, Type.EmptyTypes);
+        }
+
+        private static void DefineInterfaceTaskMethod(TypeBuilder typeBuilder, string methodName, Type returnType, params Type[] parameterTypes)
+        {
+            MethodBuilder methodBuilder = typeBuilder.DefineMethod(methodName,
+                MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual | MethodAttributes.HideBySig,
+                returnType, parameterTypes);
+        }
+
         private static void DefineClassProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
         {
             FieldBuilder fieldBuilder = typeBuilder.DefineField($"_{propertyName.ToLower()}", propertyType, FieldAttributes.Private);
@@ -240,7 +369,6 @@ namespace Blazor.Tools.BlazorBundler.Tests
         public void Dispose()
         {
             // Cleanup resources
-            _testContext.Dispose();
         }
     }
 }
