@@ -251,7 +251,8 @@ if($Publish -eq $true)
     Write-Host "Pushing changes to GitHub Repository..."
     git add .
     git commit -m $GitComment
-    git push origin master
+    git push
+    #git push origin master
 
     Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
     # Dockerize
