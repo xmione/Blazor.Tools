@@ -18,6 +18,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <IncludeSymbols>False</IncludeSymbols>
+	<IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.10.1">

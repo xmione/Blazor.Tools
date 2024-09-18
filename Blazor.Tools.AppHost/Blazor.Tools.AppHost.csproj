@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>ade38166-7965-4d98-8928-dfd4fe92ec14</UserSecretsId>
+	<IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="8.2.0" />
