@@ -265,7 +265,7 @@ if($Publish -eq $true)
 
     Write-Host "Publishing the Package to nuget.org..."
     # Publish the package to nuget.org (replace with your publish command)
-    dotnet nuget push Blazor.Tools.BlazorBundler/bin/Release/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+    dotnet nuget push packages/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
 }
 
 [console]::beep(777,7777)  
