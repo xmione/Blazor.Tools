@@ -31,10 +31,11 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.0.8"
+$PackageVersion = "3.1.0"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
+$changelogPath = "Blazor.Tools.BlazorBundler/changelog_$PackageVersion.md"
 
 # Determine the configuration based on the IsRelease parameter
 $Configuration = if ($IsRelease) { "Release" } else { "Debug" }
@@ -62,23 +63,21 @@ File Version: $FileVersion
 - None
 
 ### Minor Changes
-- None.
+- Added missing projects nuget packages.
 
 ### Patches
-- Fixed compilation errors.
-- Added instructions on README document
+- None.
 
 ### Revisions
 - None.
 "@
 
 # Save change log to file
-$changelogPath = "changelog_$PackageVersion.md"
 Write-Host "Saving change log to file $changelogPath"
 Set-Content -Path $changelogPath -Value $changelogContent
 
 # List all change log files in the directory
-$changeLogFiles = Get-ChildItem -Filter "changelog_*.md" | Sort-Object
+$changeLogFiles = Get-ChildItem -Filter "Blazor.Tools.BlazorBundler/changelog_*.md" | Sort-Object
 
 # Generate Markdown content for README.md with version information
 $readmeContent = @"
@@ -235,12 +234,12 @@ foreach ($file in $changeLogFiles) {
 }
 
 # Save updated README.md
-$readmePath = "README.md"
+$readmePath = "Blazor.Tools.BlazorBundler/README.md"
 Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
 # Save updated readme.txt
-$readmePath = "readme.txt"
+$readmePath = "Blazor.Tools.BlazorBundler/readme.txt"
 Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 

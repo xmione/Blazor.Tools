@@ -6,7 +6,8 @@
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
-	<IsPackable>true</IsPackable>
+	  <IsPackable>true</IsPackable>
+	  <PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.65" />

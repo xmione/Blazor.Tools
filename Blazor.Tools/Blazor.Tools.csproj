@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
 	<IsPackable>true</IsPackable>
+	<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Docs\~%24ep-by-Step Implementation.docx" />
@@ -34,8 +35,6 @@
     <PackageReference Include="system.diagnostics.performancecounter" Version="9.0.0-preview.7.24405.7" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
   <ItemGroup>
