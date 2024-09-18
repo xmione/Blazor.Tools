@@ -20,7 +20,7 @@
 #   4.2. To build project and compose README and Change log files and publish to docker hub 
 #       and nuget.org, run:
 #
-#       .\publish -Publish $true -GitComment "Update project with the latest changes"
+#       .\publish -Publish $true -GitComment "Updated project with the latest changes"
 #
 #============================================================================================
 
