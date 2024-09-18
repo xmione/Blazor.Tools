@@ -7,12 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
-using BlazorBootstrap;
-using System.Reflection;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using System.Data;
 using Blazor.Tools.BlazorBundler.Extensions;
-using DocumentFormat.OpenXml.EMMA;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 
 namespace Blazor.Tools.BlazorBundler.Tests
