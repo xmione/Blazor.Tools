@@ -15,12 +15,12 @@
 #   Examples:
 #   4.1. To build project and compose README and Change log files, run:
 #
-#       .\publish -Publish $false
+#       .\publish -Publish $false -IsRelease $true
 #
 #   4.2. To build project and compose README and Change log files and publish to docker hub 
 #       and nuget.org, run:
 #
-#       .\publish -Publish $true -GitComment "Updated project with the latest changes"
+#       .\publish -Publish $true -IsRelease $true -GitComment "Updated project with the latest changes"
 #
 #============================================================================================
 

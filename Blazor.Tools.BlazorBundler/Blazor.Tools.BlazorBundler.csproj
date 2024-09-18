@@ -20,6 +20,7 @@
     <IncludeSymbols>False</IncludeSymbols>
     <NoDefaultExcludes>true</NoDefaultExcludes>
     <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <!-- None items in the root -->
