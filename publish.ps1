@@ -40,7 +40,7 @@ $nugetApiKey = $Env:MY_NUGET_API_KEY
 $Configuration = if ($IsRelease) { "Release" } else { "Debug" }
 
 # Update project file - using dotnet msbuild
-$projectFile = "Blazor.Tools.BlazorBundler.csproj"
+$projectFile = "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj"
 
 Write-Host "Building project with the updated PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
 # Update AssemblyVersion and FileVersion
@@ -253,6 +253,8 @@ if($Publish -eq $true)
     git commit -m $GitComment
     git push
     #git push origin master
+    
+    Write-Host "Copying the project files..."
 
     Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
     # Dockerize
@@ -264,5 +266,7 @@ if($Publish -eq $true)
 
     Write-Host "Publishing the Package to nuget.org..."
     # Publish the package to nuget.org (replace with your publish command)
-    dotnet nuget push bin/Release/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+    dotnet nuget push Blazor.Tools.BlazorBundler/bin/Release/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
 }
+
+[console]::beep(777,7777)  

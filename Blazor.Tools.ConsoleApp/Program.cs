@@ -13,7 +13,6 @@ using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
-using System.Text;
 
 namespace Blazor.Tools.ConsoleApp
 {
@@ -188,8 +187,18 @@ namespace Blazor.Tools.ConsoleApp
 
                         break; 
                     case "20":
+                        // Use the actual class instead of a mock
                         var cdft = new CreateDLLFromDataTable();
-                        cdft.Run();
+
+                        // Delete file if exists
+                        if (File.Exists(cdft.DLLPath))
+                        {
+                            File.Delete(cdft.DLLPath);
+                        }
+
+                        var sampleData = new SampleData();
+                        // Execute the method
+                        cdft.BuildAndSaveAssembly(sampleData.EmployeeDataTable);
                         break; 
                     case "21":
                         return; 

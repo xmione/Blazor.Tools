@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.0.7
-- **Assembly Version**: 3.0.7.0
-- **File Version**: 3.0.7.0
+- **Package Version**: 3.0.8
+- **Assembly Version**: 3.0.8.0
+- **File Version**: 3.0.8.0
 
 ## Features
 
@@ -33,12 +33,7 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
 You can install BlazorBundler via NuGet Package Manager, Package Manager Console or from a terminal:
 
 ### Nuget Package Manager
-- Search for Blazor.Tools.BlazorBundler in nuget.org.
-
-
-`
-dotnet add package Blazor.Tools.BlazorBundler
-`
+- Search for Blazor.Tools.BlazorBundler in nuget.org and click Install.
 
 ### Package Manager Console
 `
@@ -50,31 +45,62 @@ Install-Package Blazor.Tools.BlazorBundler
 dotnet add package Blazor.Tools.BlazorBundler
 `
 
-## Install Pre-requesites
-Note: After installing the package, you have to manually run the Install.ps1 file to install required nuget packages.
+## After-Install Setup Commands
 
-In the BlazorBundler folder, run: 
-    .\Install.ps1 -SourcePath "C:\Users\{user}\.nuget\packages\blazor.tools.blazorbundler\{version}" -TargetProjectPath "{TargetProjectPath}"
-    .\Install.ps1 -SourcePath "C:\Users\solom\.nuget\packages\blazor.tools.blazorbundler\3.0.5" -TargetProjectPath "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
+      First replace the values of the $userProfileName and $targetPath variables.
+      
+      $userProfileName should contain your Windows UserProfile Name
+      $sourcePath should not be changed
+      $targetPath should contain the full path of your project file
 
-## Setup your App.razor stylesheets and javascripts
+### Open PowerShell and run: 
+
+```
+    $version = "3.0.8"
+    $userProfileName = "solom"
+    $sourcePath = "C:\Users\$userProfileName\.nuget\packages\blazor.tools.blazorbundler\$version"
+    $targetPath = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
+    Install-Pkgs -SourcePath $sourcePath -TargetProjectPath $targetPath
+```
+### Setup your App.razor stylesheets and javascripts
 
 Add these to your <head> section:
-`
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="bootstrap-icons/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="blazor-bootstrap/blazor.bootstrap.css" />
 
-    <script src="blazored-typeahead/blazored-typeahead.js"></script>
-    <script src="js/site.js"></script>
-`
+```
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="bundler/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="bundler/blazor-bootstrap/blazor.bootstrap.css" />
+    <link rel="stylesheet" href="bundler/css/bundler.css" />
+    
+    <!-- This is the <ASSEMBLY_NAME>.styles.css file-->
+    <link rel="stylesheet" href="Blazor.Tools.styles.css" /> 
+
+    <script src="bundler/blazored-typeahead/blazored-typeahead.js"></script>
+    <script src="bundler/js/site.js"></script>
+    
+    <!-- It needs to be in InteractiveServer mode to work -->
+    <HeadOutlet @rendermode="@InteractiveServer" />
+```
 
 Add these to your <body> section:
-`
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="blazor-bootstrap/blazor.bootstrap.js"></script>
-`
+```
+    <!-- Once again, this is needed -->
+    <Routes @rendermode="@InteractiveServer" />
     
+    <!-- The script initializes the Blazor runtime, which is essential for a Blazor application to run -->
+    <script src="_framework/blazor.web.js"></script>
+
+    <!-- Use local Bootstrap JS -->
+    <script src="bundler/js/bootstrap.bundle.min.js"></script>
+    <script src="bundler/blazor-bootstrap/blazor.bootstrap.js"></script>
+```
+
+### Add this to your Program.cs file:
+`
+builder.Services.AddBlazorBootstrap();
+`
+
 ## Uninstallation
 
 First, uninstall the package from the Nuget Package Manager, Package Manager Console or from a terminal.
@@ -83,18 +109,33 @@ First, uninstall the package from the Nuget Package Manager, Package Manager Con
 - Search Blazor.Tools.BlazorBundler and uninstall it.
 
 ### Package Manager Console
+
 `
 Uninstall-Package Blazor.Tools.BlazorBundler
 `
 
 ### Terminal console
+
 `
 dotnet remove package Blazor.Tools.BlazorBundler
 `
 
-There is an Uninstall.ps1 file you can run from the /BlazorBundler folder.
+## Clean-up
+Note: After uninstalling the package, you have to manually run the Uninstall module file to uninstall the packages.
+      First replace the values of the $userProfileName and $targetPath variables.
 
+      $projectPath should contain the path to your project folder
+      $projectName should contain the name of your project
+
+Open PowerShell and run:
+
+```
+    $projectPath = "C:\repo\Blazor.Tools\Blazor.Tools\"
+    $projectName = "Blazor.Tools.csproj"
+    Uninstall-Pkgs -ProjectPath  $projectPath -ProjectName $projectName
+```
 
 ## Change Logs
 - [changelog_3.0.7.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.7.md)
+- [changelog_3.0.8.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.8.md)
 
