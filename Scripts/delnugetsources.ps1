@@ -1,5 +1,5 @@
 <#
-    delnugetsources.ps1
+    C:\repo\Blazor.Tools\Scripts\delnugetsources.ps1
 #>
 dotnet nuget remove source "Nuget.org"
 dotnet nuget remove source "Microsoft Visual Studio Offline Packages"

@@ -15,14 +15,14 @@
 #   Examples:
 #   4.1. To build project and compose README and Change log files, run:
 #
-#       .\publish -Publish $false -IsRelease $false
-#       .\publish -Publish $false -IsRelease $true
+#       C:\repo\Blazor.Tools\Scripts\publish -Publish $false -IsRelease $false
+#       C:\repo\Blazor.Tools\Scripts\publish -Publish $false -IsRelease $true
 #
 #   4.2. To build project and compose README and Change log files and publish to docker hub 
 #       and nuget.org, run:
 #
-#       .\publish -Publish $true -IsRelease $false -GitComment "Updated project with the latest Debug changes"
-#       .\publish -Publish $true -IsRelease $true -GitComment "Updated project with the latest Release changes"
+#       C:\repo\Blazor.Tools\Scripts\publish -Publish $true -IsRelease $false -GitComment "Updated project with the latest Debug changes"
+#       C:\repo\Blazor.Tools\Scripts\publish -Publish $true -IsRelease $true -GitComment "Updated project with the latest Release changes"
 #
 #============================================================================================
 
@@ -48,21 +48,39 @@ $projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBu
 $packagesOutputFolderPath = "${SolutionRoot}\packages"
 
 Write-Host "Deleting solution packages..."
-.\delnugetpackages
+& "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
 
 Write-Host "Deleting bin and obj folders..."
-.\delbinobj
+& "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
 
+# This command should only be manually run
+#Write-Host "Clearing nuget local cache..."
+#dotnet nuget locals all --clear
+<#
+Write-Host "==========================================================================================="
+Write-Host "Using Configuration ${Configuration}, cleaning the solution..."
+Write-Host "==========================================================================================="
+dotnet clean Blazor.Tools.sln
+
+Write-Host "==========================================================================================="
+Write-Host "Using Configuration ${Configuration}, building the solution..."
+Write-Host "==========================================================================================="
+dotnet build Blazor.Tools.sln
+#>
+Write-Host "==========================================================================================="
 Write-Host "Restoring NuGet packages using solution file..."
+Write-Host "==========================================================================================="
 # Restore NuGet packages using solution file
-dotnet restore $solutionFile
+dotnet restore $solutionFile --verbosity detailed
 <#
 Write-Host "Restoring NuGet packages using project file..."
 # Restore NuGet packages using project file
-dotnet restore $projectFile
+dotnet restore $projectFile  
 #>
 
+Write-Host "==========================================================================================="
 Write-Host "Building solution with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+Write-Host "==========================================================================================="
 # Update AssemblyVersion and FileVersion using the solution file
 dotnet msbuild $solutionFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
 <#
@@ -70,8 +88,9 @@ Write-Host "Building project with the updated Configuration ($Configuration) Pac
 # Update AssemblyVersion and FileVersion using the project file
 dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
 #>
-
+Write-Host "==========================================================================================="
 Write-Host "Packing the project..."
+Write-Host "==========================================================================================="
 # Pack the project
 # Test it in the terminal window
 # dotnet pack "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj" -c "Debug" /p:PackageVersion="3.1.1" /p:PackageReleaseNotesFile="Blazor.Tools.BlazorBundler/changelog_3.1.1.md" -v detailed /p:NoDefaultExcludes=true --output "C:\repo\Blazor.Tools\packages"
@@ -100,7 +119,9 @@ File Version: $FileVersion
 "@
 
 # Save change log to file
+Write-Host "==========================================================================================="
 Write-Host "Saving change log to file $changelogPath"
+Write-Host "==========================================================================================="
 Set-Content -Path $changelogPath -Value $changelogContent
 
 # Define the changelog directory and filter pattern
@@ -254,7 +275,9 @@ Open PowerShell and run:
 
 $changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/"
 # Append change log files to README.md
+Write-Host "==========================================================================================="
 Write-Host "Appending change log files to README.md..."
+Write-Host "==========================================================================================="
 $readmeContent += "`n"
 foreach ($file in $changeLogFiles) {
     $fileName = $file.Name
@@ -266,7 +289,9 @@ foreach ($file in $changeLogFiles) {
 
 # Save updated README.md
 $readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\README.md"
+Write-Host "==========================================================================================="
 Write-Host "Saving updated $readmePath..."
+Write-Host "==========================================================================================="
 Set-Content -Path $readmePath -Value $readmeContent
 
 # Save updated readme.txt
