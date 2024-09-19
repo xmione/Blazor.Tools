@@ -2,8 +2,8 @@
     Deletes the bin and obj folders of the specified list of folders.
     To run: 
 
-        [Script Folder]\DeleteBinObj.ps1
-        C:\repo\Blazor.Tools\Scripts\DeleteBinObj.ps1
+        [Script Folder]\delbinobj.ps1
+        C:\repo\Blazor.Tools\Scripts\delbinobj.ps1
 
 #>
 # Define the list of paths where you want to delete bin and obj folders

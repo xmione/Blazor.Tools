@@ -15,12 +15,14 @@
 #   Examples:
 #   4.1. To build project and compose README and Change log files, run:
 #
+#       .\publish -Publish $false -IsRelease $false
 #       .\publish -Publish $false -IsRelease $true
 #
 #   4.2. To build project and compose README and Change log files and publish to docker hub 
 #       and nuget.org, run:
 #
-#       .\publish -Publish $true -IsRelease $true -GitComment "Updated project with the latest changes"
+#       .\publish -Publish $true -IsRelease $false -GitComment "Updated project with the latest Debug changes"
+#       .\publish -Publish $true -IsRelease $true -GitComment "Updated project with the latest Release changes"
 #
 #============================================================================================
 
@@ -30,20 +32,26 @@ param(
     [bool] $IsRelease = $false,
     [string] $GitComment = "Update project with the latest changes"
 )
-
+$SolutionRoot = "C:\repo\Blazor.Tools"
 $PackageVersion = "3.1.1"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
-$changelogPath = "Blazor.Tools.BlazorBundler/changelog_$PackageVersion.md"
+$changelogPath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\changelog_$PackageVersion.md"
 
 # Determine the configuration based on the IsRelease parameter
 $Configuration = if ($IsRelease) { "Release" } else { "Debug" }
 
 # Update project file - using dotnet msbuild
-$solutionFile = "Blazor.Tools.sln"
-$projectFile = "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj"
-$packagesOutputFolderPath = "C:\repo\Blazor.Tools\packages"
+$solutionFile = "${SolutionRoot}\Blazor.Tools.sln"
+$projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
+$packagesOutputFolderPath = "${SolutionRoot}\packages"
+
+Write-Host "Deleting solution packages..."
+.\delnugetpackages
+
+Write-Host "Deleting bin and obj folders..."
+.\delbinobj
 
 Write-Host "Restoring NuGet packages using solution file..."
 # Restore NuGet packages using solution file
@@ -95,8 +103,12 @@ File Version: $FileVersion
 Write-Host "Saving change log to file $changelogPath"
 Set-Content -Path $changelogPath -Value $changelogContent
 
+# Define the changelog directory and filter pattern
+$changelogDir = Join-Path -Path $SolutionRoot -ChildPath "Blazor.Tools.BlazorBundler"
+$filterPattern = "changelog_*.md"
+
 # List all change log files in the directory
-$changeLogFiles = Get-ChildItem -Filter "Blazor.Tools.BlazorBundler/changelog_*.md" | Sort-Object
+$changeLogFiles = Get-ChildItem -Path $changelogDir -Filter $filterPattern | Sort-Object
 
 # Generate Markdown content for README.md with version information
 $readmeContent = @"
@@ -253,12 +265,12 @@ foreach ($file in $changeLogFiles) {
 }
 
 # Save updated README.md
-$readmePath = "Blazor.Tools.BlazorBundler/README.md"
+$readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\README.md"
 Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
 # Save updated readme.txt
-$readmePath = "Blazor.Tools.BlazorBundler/readme.txt"
+$readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\readme.txt"
 Write-Host "Saving updated $readmePath..."
 Set-Content -Path $readmePath -Value $readmeContent
 
@@ -269,8 +281,8 @@ if($Publish -eq $true)
     Write-Host "Pushing changes to GitHub Repository..."
     git add .
     git commit -m $GitComment
-    git push
-    #git push origin master
+    git push # pushes to current branch
+    #git push origin master 
     
     Write-Host "Copying the project files..."
 
