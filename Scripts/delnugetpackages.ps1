@@ -1,5 +1,9 @@
 <#
 	delnugetpackages.ps1
+    To run:
+
+        [Script Folder]\delnugetpackages.ps1
+        C:\repo\Blazor.Tools\Scripts\delnugetpackages.ps1
 #>
 
 function Remove-AllFilesFromFolder {

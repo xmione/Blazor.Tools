@@ -1,101 +1,102 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Version>3.1.1</Version>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>Blazor Bundler</Title>
-    <Authors>$(AssemblyName), Solomio Sisante</Authors>
-    <Description>A Blazor package that bundles bootstraps and Icons</Description>
-    <Copyright>2024</Copyright>
-    <PackageId>Blazor.Tools.BlazorBundler</PackageId>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageProjectUrl>https://github.com/xmione/Blazor.Tools/tree/master/Blazor.Tools.BlazorBundler</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/xmione/Blazor.Tools.git</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <IncludeSymbols>False</IncludeSymbols>
-    <NoDefaultExcludes>true</NoDefaultExcludes>
-    <OutputType>Library</OutputType>
-    <IsPackable>true</IsPackable>
-	<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>	  
-  </PropertyGroup>
-  <ItemGroup>
-    <!-- None items in the root -->
-    <None Include="changelog_*.md;icon.png;README.md;readme.txt">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <!-- None item for MSBuild targets file -->
-    <None Include="build\Blazor.Tools.BlazorBundler.targets">
-      <Pack>True</Pack>
-      <PackagePath>\build\</PackagePath>
-    </None>
-    <!-- None items in the packages folder -->
-    <None Include="packages\*.*">
-      <Pack>True</Pack>
-      <PackagePath>\packages\</PackagePath>
-    </None>
-    <!-- None items in the tools folder -->
-    <None Include=" tools\install-nupkg.ps1">
-      <Pack>True</Pack>
-      <PackagePath>\tools\</PackagePath>
-    </None>
-    <!-- Add Get-Tools.ps1 -->
-    <None Include="tools\Get-Tools.ps1">
-      <Pack>True</Pack>
-      <PackagePath>\tools\</PackagePath>
-    </None>
-    <!-- Add Install-Pkgs.psm1 -->
-    <None Include="tools\Install-Pkgs.psm1">
-      <Pack>True</Pack>
-      <PackagePath>\tools\</PackagePath>
-    </None>
-    <!-- Add Print-Folder-Structure.psm1 -->
-    <None Include="tools\Print-Folder-Structure.psm1">
-      <Pack>True</Pack>
-      <PackagePath>\tools\</PackagePath>
-    </None>
-    <!-- Add Uninstall-Pkgs.psm1 -->
-    <None Include="tools\Uninstall-Pkgs.psm1">
-      <Pack>True</Pack>
-      <PackagePath>\tools\</PackagePath>
-    </None>
-    <!-- Add blazor-bootstrap files -->
-    <Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.*">
-      <Pack>true</Pack>
-      <PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <!-- Add blazored-typeahead files -->
-    <Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bundler\blazored-typeahead\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <!-- Add bootstrap-icons files -->
-    <Content Include="wwwroot\bundler\bootstrap-icons\**\*">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <!-- Add the bundler.css file-->
-    <Content Include="wwwroot\bundler\css\bundler.css">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bundler\css\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <!-- Add files in the js folder-->
-    <Content Include="wwwroot\bundler\js\*.js">
-      <Pack>True</Pack>
-      <PackagePath>\wwwroot\bundler\js\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <!-- Add files in the Components folder-->
-    <!--<Content Include="Components\AI\AITables.sql">
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Version>3.1.2</Version>
+		<FileVersion>3.1.2.0</FileVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>Blazor Bundler</Title>
+		<Authors>$(AssemblyName), Solomio Sisante</Authors>
+		<Description>A Blazor package that bundles bootstraps and Icons</Description>
+		<Copyright>2024</Copyright>
+		<PackageId>Blazor.Tools.BlazorBundler</PackageId>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageProjectUrl>https://github.com/xmione/Blazor.Tools/tree/master/Blazor.Tools.BlazorBundler</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/xmione/Blazor.Tools.git</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<IncludeSymbols>False</IncludeSymbols>
+		<NoDefaultExcludes>true</NoDefaultExcludes>
+		<OutputType>Library</OutputType>
+		<IsPackable>true</IsPackable>
+		<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- None items in the root -->
+		<None Include="changelog_*.md;icon.png;README.md;readme.txt">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<!-- None item for MSBuild targets file -->
+		<None Include="build\Blazor.Tools.BlazorBundler.targets">
+			<Pack>True</Pack>
+			<PackagePath>\build\</PackagePath>
+		</None>
+		<!-- None items in the packages folder -->
+		<None Include="packages\*.*">
+			<Pack>True</Pack>
+			<PackagePath>\packages\</PackagePath>
+		</None>
+		<!-- None items in the tools folder -->
+		<None Include=" tools\install-nupkg.ps1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add Get-Tools.ps1 -->
+		<None Include="tools\Get-Tools.ps1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add Install-Pkgs.psm1 -->
+		<None Include="tools\Install-Pkgs.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add Print-Folder-Structure.psm1 -->
+		<None Include="tools\Print-Folder-Structure.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add Uninstall-Pkgs.psm1 -->
+		<None Include="tools\Uninstall-Pkgs.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add blazor-bootstrap files -->
+		<Content Include="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.*">
+			<Pack>true</Pack>
+			<PackagePath>\wwwroot\bundler\blazor-bootstrap\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Add blazored-typeahead files -->
+		<Content Include="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js">
+			<Pack>True</Pack>
+			<PackagePath>\wwwroot\bundler\blazored-typeahead\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Add bootstrap-icons files -->
+		<Content Include="wwwroot\bundler\bootstrap-icons\**\*">
+			<Pack>True</Pack>
+			<PackagePath>\wwwroot\bundler\bootstrap-icons\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Add the bundler.css file-->
+		<Content Include="wwwroot\bundler\css\bundler.css">
+			<Pack>True</Pack>
+			<PackagePath>\wwwroot\bundler\css\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Add files in the js folder-->
+		<Content Include="wwwroot\bundler\js\*.js">
+			<Pack>True</Pack>
+			<PackagePath>\wwwroot\bundler\js\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Add files in the Components folder-->
+		<!--<Content Include="Components\AI\AITables.sql">
       <Pack>True</Pack>
       <PackagePath>\Components\AI\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -112,13 +113,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>-->
-    <!--<Content Include="Components\Grid\TableColumn.razor.cs">
+		<!--<Content Include="Components\Grid\TableColumn.razor.cs">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>-->
-    <!--<Content Include="Components\Grid\TestComponent.razor.cs">
+		<!--<Content Include="Components\Grid\TestComponent.razor.cs">
       <Pack>True</Pack>
       <PackagePath>\Components\Grid\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -127,35 +128,96 @@
     <RazorComponent Include="Components\**\*.razor" />
     
     -->
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
-    <PackageReference Include="Bogus" Version="35.6.0" />
-    <PackageReference Include="ClosedXML" Version="0.102.3" />
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
-    <PackageReference Include="Humanizer" Version="2.14.1" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="9.0.0-preview.7.24406.2" />
-    <PackageReference Include="Microsoft.Build" Version="17.11.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0-preview.7.24405.7" />
-    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
-    <PackageReference Include="System.Data.OleDb" Version="9.0.0-preview.7.24405.7" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Extensions\Blazor.Tools.BlazorBundler.Extensions.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Factories\Blazor.Tools.BlazorBundler.Factories.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Models\Blazor.Tools.BlazorBundler.Models.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.SessionManagement\Blazor.Tools.BlazorBundler.SessionManagement.csproj" />
-    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
-  </ItemGroup>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Blazor.Bootstrap" Version="1.11.1" />
+		<PackageReference Include="Bogus" Version="35.6.0" />
+		<PackageReference Include="ClosedXML" Version="0.102.3" />
+		<PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
+		<PackageReference Include="Humanizer" Version="2.14.1" />
+		<PackageReference Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
+		<PackageReference Include="Microsoft.AspNetCore.Components" Version="9.0.0-preview.7.24406.2" />
+		<PackageReference Include="Microsoft.Build" Version="17.11.4" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0-preview.7.24405.7" />
+		<PackageReference Include="Microsoft.ML" Version="3.0.1" />
+		<PackageReference Include="Mono.Cecil" Version="0.11.5" />
+		<PackageReference Include="System.Data.OleDb" Version="9.0.0-preview.7.24405.7" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+	</ItemGroup>
+	
+	<!-- Project-to-Project references for development -->
+	<ItemGroup>
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Extensions\Blazor.Tools.BlazorBundler.Extensions.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Factories\Blazor.Tools.BlazorBundler.Factories.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Models\Blazor.Tools.BlazorBundler.Models.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.SessionManagement\Blazor.Tools.BlazorBundler.SessionManagement.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
+	</ItemGroup>
+
+	<!-- NuGet Package Dependencies for when the package is created -->
+	<ItemGroup>
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities" Version="1.0.0" />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data" Version="1.0.0" />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models" Version="1.0.0" />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels" Version="1.0.0" />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Extensions" Version="1.0.0"  />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Factories" Version="1.0.0"  />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Interfaces" Version="1.0.0"  />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Models" Version="1.0.0"  />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.SessionManagement" Version="1.0.0"  />
+		<PackageReference Include="Blazor.Tools.BlazorBundler.Utilities" Version="1.0.0"  />
+	</ItemGroup>
+
+	<ItemGroup>
+		  
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Entities.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Extensions.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Factories.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Interfaces.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Models.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.SessionManagement.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+		<Content Include="bin\$(Configuration)\net9.0\Blazor.Tools.BlazorBundler.Utilities.dll">
+			<Pack>True</Pack>
+			<PackagePath>\lib\net9.0\</PackagePath>
+		</Content>
+	</ItemGroup>
+
 </Project>

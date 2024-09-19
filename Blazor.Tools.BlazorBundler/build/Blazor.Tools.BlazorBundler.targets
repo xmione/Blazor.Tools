@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
-    <BlazorBundlerPackageVersion>3.0.8</BlazorBundlerPackageVersion>
+    <BlazorBundlerPackageVersion>3.1.2</BlazorBundlerPackageVersion>
     <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)</SourcePath>
     <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
     <PackagesPath>$(SourcePath)\packages</PackagesPath>
@@ -11,6 +11,7 @@
     <Message Text="Executing CustomInstall target" Importance="high" />
     <Message Text="BlazorBundlerPackageName: $(BlazorBundlerPackageName)" Importance="high" />
     <Message Text="BlazorBundlerPackageVersion: $(BlazorBundlerPackageVersion)" Importance="high" />
+	
     <Message Text="SourcePath: $(SourcePath)" Importance="high" />
     <Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
     

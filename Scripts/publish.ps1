@@ -33,7 +33,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 $SolutionRoot = "C:\repo\Blazor.Tools"
-$PackageVersion = "3.1.1"
+$PackageVersion = "3.1.2"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -52,6 +52,12 @@ Write-Host "Deleting solution packages..."
 
 Write-Host "Deleting bin and obj folders..."
 & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
+
+$globalNugetPackagesFolderPath = "${env:UserProfile}\.nuget\packages\blazor.tools.blazorbundler"
+Write-Host "Deleting ${globalNugetPackagesFolderPath} folder..."
+
+Remove-Item -Path $globalNugetPackagesFolderPath -Recurse -Force
+
 
 # This command should only be manually run
 #Write-Host "Clearing nuget local cache..."
