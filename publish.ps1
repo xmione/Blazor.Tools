@@ -41,15 +41,34 @@ $changelogPath = "Blazor.Tools.BlazorBundler/changelog_$PackageVersion.md"
 $Configuration = if ($IsRelease) { "Release" } else { "Debug" }
 
 # Update project file - using dotnet msbuild
+$solutionFile = "Blazor.Tools.sln"
 $projectFile = "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj"
+$packagesOutputFolderPath = "C:\repo\Blazor.Tools\packages"
 
-Write-Host "Building project with the updated PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
-# Update AssemblyVersion and FileVersion
+Write-Host "Restoring NuGet packages using solution file..."
+# Restore NuGet packages using solution file
+dotnet restore $solutionFile
+<#
+Write-Host "Restoring NuGet packages using project file..."
+# Restore NuGet packages using project file
+dotnet restore $projectFile
+#>
+
+Write-Host "Building solution with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+# Update AssemblyVersion and FileVersion using the solution file
+dotnet msbuild $solutionFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+<#
+Write-Host "Building project with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+# Update AssemblyVersion and FileVersion using the project file
 dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+#>
 
 Write-Host "Packing the project..."
 # Pack the project
-dotnet pack -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true
+# Test it in the terminal window
+# dotnet pack "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj" -c "Debug" /p:PackageVersion="3.1.1" /p:PackageReleaseNotesFile="Blazor.Tools.BlazorBundler/changelog_3.1.1.md" -v detailed /p:NoDefaultExcludes=true --output "C:\repo\Blazor.Tools\packages"
+
+dotnet pack $projectFile -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true --output $packagesOutputFolderPath
 
 # Generate Changelog with dynamic version information
 $changelogContent = @"
