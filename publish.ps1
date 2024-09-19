@@ -31,7 +31,7 @@ param(
     [string] $GitComment = "Update project with the latest changes"
 )
 
-$PackageVersion = "3.1.0"
+$PackageVersion = "3.1.1"
 $AssemblyVersion = "$PackageVersion.0"
 $FileVersion = "$PackageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -63,10 +63,10 @@ File Version: $FileVersion
 - None
 
 ### Minor Changes
-- Added missing projects nuget packages.
+- None.
 
 ### Patches
-- None.
+- Added missing project references.
 
 ### Revisions
 - None.

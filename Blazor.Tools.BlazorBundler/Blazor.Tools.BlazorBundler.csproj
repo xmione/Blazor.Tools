@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <Version>3.0.8</Version>
+    <Version>3.1.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -147,11 +147,14 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Extensions\Blazor.Tools.BlazorBundler.Extensions.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Factories\Blazor.Tools.BlazorBundler.Factories.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Models\Blazor.Tools.BlazorBundler.Models.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.SessionManagement\Blazor.Tools.BlazorBundler.SessionManagement.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
   </ItemGroup>
