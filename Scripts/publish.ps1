@@ -381,11 +381,12 @@ Try {
      
         Write-Host "==========================================================================================="
         Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
+        Write-Host "docker build --build-arg BUILD_CONFIGURATION=$configuration NUGET_API_KEY=$nugetApiKey -t solomiosisante/blazor-bundler:latest ."
         Write-Host "==========================================================================================="
 
         # Dockerize
         #docker build -t solomiosisante/blazor-bundler:latest .
-        docker build --build-arg BUILD_CONFIGURATION=$configuration -t solomiosisante/blazor-bundler:latest .
+        docker build --build-arg BUILD_CONFIGURATION=$configuration NUGET_API_KEY=$nugetApiKey -t solomiosisante/blazor-bundler:latest .
 
         # Check the exit code of the msbuild command
         if ($LASTEXITCODE -ne 0) {
@@ -394,6 +395,7 @@ Try {
 
         Write-Host "==========================================================================================="
         Write-Host "Publishing the Docker image to Docker Hub..."
+        Write-Host "docker push solomiosisante/blazor-bundler:latest"
         Write-Host "==========================================================================================="
         # Publish the Docker image to Docker Hub (replace with your publish command)
         docker push solomiosisante/blazor-bundler:latest
