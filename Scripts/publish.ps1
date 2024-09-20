@@ -356,18 +356,16 @@ $projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBu
 $packagesOutputFolderPath = "${SolutionRoot}\packages"
 $colors = @("Cyan", "Magenta", "Yellow", "Green")
 Try {
-
-    RestoreNugetPackages $solutionFile    
-    BuildSolution $configuration $packageVersion $assemblyVersion $fileVersion
-    PackProject $projectFile $configuration $packageVersion $changeLogPath $packagesOutputFolderPath   
     
-
     & "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
     & "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
     & "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
     & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
     & "${SolutionRoot}\Scripts\delglobalpackages.ps1" -Verbose
 
+    RestoreNugetPackages $solutionFile    
+    BuildSolution $configuration $packageVersion $assemblyVersion $fileVersion
+    PackProject $projectFile $configuration $packageVersion $changeLogPath $packagesOutputFolderPath   
     SaveChangeLogAndReadMe $SolutionRoot  $packageVersion  $assemblyVersion  $fileVersion  $changelogPath
 
     <# Run the following codes only if boolean parameter Publish is true #>
