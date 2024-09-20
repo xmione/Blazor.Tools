@@ -8,6 +8,7 @@
 	<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.1.2" />
     <PackageReference Include="Bogus" Version="35.6.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
