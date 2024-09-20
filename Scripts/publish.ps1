@@ -73,6 +73,11 @@ Try {
     dotnet restore $projectFile  
     #>
 
+    # Check the exit code of the msbuild command
+    if ($LASTEXITCODE -ne 0) {
+        throw "Build failed with exit code $LASTEXITCODE"
+    }
+    
     Write-Host "==========================================================================================="
     Write-Host "Building solution with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
     Write-Host "==========================================================================================="
@@ -83,6 +88,12 @@ Try {
     # Update AssemblyVersion and FileVersion using the project file
     dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
     #>
+
+    # Check the exit code of the msbuild command
+    if ($LASTEXITCODE -ne 0) {
+        throw "Build failed with exit code $LASTEXITCODE"
+    }
+
     Write-Host "==========================================================================================="
     Write-Host "Packing the project..."
     Write-Host "==========================================================================================="
@@ -92,13 +103,17 @@ Try {
 
     dotnet pack $projectFile -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true --output $packagesOutputFolderPath
 
+    # Check the exit code of the msbuild command
+    if ($LASTEXITCODE -ne 0) {
+        throw "Build failed with exit code $LASTEXITCODE"
+    }
+
     & "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
     & "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
     & "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
     & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
     & "${SolutionRoot}\Scripts\delglobalpackages.ps1" -Verbose
-
-    
+        
     # Generate Changelog with dynamic version information
     $changelogContent = @"
 Version $PackageVersion
