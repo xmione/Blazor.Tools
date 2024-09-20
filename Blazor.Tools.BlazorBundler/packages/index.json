@@ -81,9 +81,44 @@
       "path": "microsoft.aspnetcore.metadata.6.0.26.nupkg"
     },
     {
-      "version": "17.10.4",
+      "version": "17.11.4",
       "id": "microsoft.build",
-      "path": "microsoft.build.17.10.4.nupkg"
+      "path": "microsoft.build.17.11.4.nupkg"
+    },
+    {
+      "version": "17.11.4",
+      "id": "microsoft.build.utilities.core",
+      "path": "microsoft.build.utilities.core.17.11.4.nupkg"
+    },
+    {
+      "version": "4.8.0",
+      "id": "microsoft.codeanalysis.common",
+      "path": "microsoft.codeanalysis.common.4.8.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.common",
+      "path": "microsoft.codeanalysis.common.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.csharp",
+      "path": "microsoft.codeanalysis.csharp.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.csharp.workspaces",
+      "path": "microsoft.codeanalysis.csharp.workspaces.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.workspaces.msbuild",
+      "path": "microsoft.codeanalysis.workspaces.msbuild.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.workspaces.common.msbuild",
+      "path": "microsoft.codeanalysis.workspaces.common.4.11.0.nupkg"
     },
     {
       "version": "8.0.6",

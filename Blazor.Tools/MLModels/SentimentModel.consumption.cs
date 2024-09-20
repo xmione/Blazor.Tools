@@ -17,7 +17,7 @@ namespace Blazor_Tools
         {
             [LoadColumn(0)]
             [ColumnName(@"SentimentText")]
-            public string SentimentText { get; set; }
+            public string SentimentText { get; set; } = default!;
 
             [LoadColumn(1)]
             [ColumnName(@"Sentiment")]
@@ -34,19 +34,19 @@ namespace Blazor_Tools
         public class ModelOutput
         {
             [ColumnName(@"SentimentText")]
-            public float[] SentimentText { get; set; }
+            public float[] SentimentText { get; set; } = default!;
 
             [ColumnName(@"Sentiment")]
             public uint Sentiment { get; set; }
 
             [ColumnName(@"Features")]
-            public float[] Features { get; set; }
+            public float[] Features { get; set; } = default!;
 
             [ColumnName(@"PredictedLabel")]
             public float PredictedLabel { get; set; }
 
             [ColumnName(@"Score")]
-            public float[] Score { get; set; }
+            public float[] Score { get; set; } = default!;
 
         }
 

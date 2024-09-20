@@ -163,18 +163,6 @@
 	</ItemGroup>
 
 	<!-- NuGet Package Dependencies for when the package is created -->
-	<ItemGroup>
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities" Version="1.0.0" />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data" Version="1.0.0" />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models" Version="1.0.0" />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels" Version="1.0.0" />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Extensions" Version="1.0.0"  />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Factories" Version="1.0.0"  />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Interfaces" Version="1.0.0"  />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Models" Version="1.0.0"  />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.SessionManagement" Version="1.0.0"  />
-		<PackageReference Include="Blazor.Tools.BlazorBundler.Utilities" Version="1.0.0"  />
-	</ItemGroup>
 
 	<ItemGroup>
 		  

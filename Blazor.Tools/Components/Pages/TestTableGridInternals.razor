@@ -1,7 +1,7 @@
 ﻿@page "/test-table-grid-internals"
 @rendermode InteractiveServer
  
-@using Blazor.Tools.BlazorBundler.Entities
+@* @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 @using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models
 @using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
@@ -40,13 +40,13 @@
             }
         }
     </TableHeader>
-    <RowTemplate>
+    <RowTemplate> *@
         @* 
             Note: This should be the format for the td ids:
             id="TableID-row-col" 
             <td id="employee-1-1">
         *@
-
+@* 
         <td id="@($"{TableID}-{employee.RowID}-1")" onclick="CellClick('@JsonSerializer.Serialize(employee)', 1, '@TableID', @TotalRows, @TotalCols)" class="cursor-pointer">
             <NumberInput ColumnName="ID" 
                 Value="@(employee.GetProperty("ID"))"
@@ -98,3 +98,4 @@
 </TableGridInternals>
 
  
+ *@

@@ -47,17 +47,31 @@ $solutionFile = "${SolutionRoot}\Blazor.Tools.sln"
 $projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
 $packagesOutputFolderPath = "${SolutionRoot}\packages"
 
+Write-Host "==========================================================================================="
+Write-Host "Deleting nuget sources..."
+Write-Host "==========================================================================================="
+& "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
+
+Write-Host "==========================================================================================="
+Write-Host "Adding required nuget sources..."
+Write-Host "==========================================================================================="
+& "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
+
+Write-Host "==========================================================================================="
 Write-Host "Deleting solution packages..."
+Write-Host "==========================================================================================="
 & "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
 
+Write-Host "==========================================================================================="
 Write-Host "Deleting bin and obj folders..."
+Write-Host "==========================================================================================="
 & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
 
 $globalNugetPackagesFolderPath = "${env:UserProfile}\.nuget\packages\blazor.tools.blazorbundler"
+Write-Host "==========================================================================================="
 Write-Host "Deleting ${globalNugetPackagesFolderPath} folder..."
-
+Write-Host "==========================================================================================="
 Remove-Item -Path $globalNugetPackagesFolderPath -Recurse -Force
-
 
 # This command should only be manually run
 #Write-Host "Clearing nuget local cache..."
