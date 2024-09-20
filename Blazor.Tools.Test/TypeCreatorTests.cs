@@ -180,7 +180,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
             var expectedType = typeof(IViewModel<Employee, IModelExtendedProperties>);
-            string expectedTypeFullName = expectedType.FullName;
+            string expectedTypeFullName = expectedType.FullName ?? string.Empty;
 
             var tc = new TypeCreator(contextAssemblyName, modelTypeAssemblyName, modelTypeName, iModelTypeAssemblyName, iModelTypeName, version, AssemblyBuilderAccess.Run);
             

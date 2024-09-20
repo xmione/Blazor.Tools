@@ -121,11 +121,11 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                                     case "long_answer_candidates":
                                     case "document_url":
                                     case "example_id":
-                                        trainingData.Context += kvpValue; + "\n";
+                                        trainingData.Context += kvpValue + "\n";
                                         break;
                                     default:
                                         // Add to Context if not directly related to annotations or question_text
-                                        trainingData.Context += kvpValue; + "\n";
+                                        trainingData.Context += kvpValue + "\n";
                                         break;
                                 }
                             }

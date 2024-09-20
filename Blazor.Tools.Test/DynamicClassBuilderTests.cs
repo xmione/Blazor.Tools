@@ -61,7 +61,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _tempFolderPath = Path.GetTempPath();
             _modelTempDllPath = Path.Combine(_tempFolderPath, $"{ModelsAssemblyName}.dll");
             _modelVMTempDllPath = Path.Combine(_tempFolderPath, $"{ViewModelsAssemblyName}.dll");
-            
+            _modelType = typeof(Employee);
             var tiModelType = typeof(IModelExtendedProperties);
             Type iViewModelGenericType = typeof(IViewModel<,>);
             var iViewModelTypes = new Type[] { iViewModelGenericType.MakeGenericType(_modelType, tiModelType), tiModelType };
@@ -107,7 +107,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             try
             {
                 // Act: Call the method that interacts with IDynamicClassBuilder
-                _dataTableGridComponent = _testContext.RenderComponent<DataTableGrid>(parameters => parameters
+                _dataTableGridComponent = _testContext?.RenderComponent<DataTableGrid>(parameters => parameters
                     .Add(p => p.Title, EmployeeDataTable.TableName) // Set component parameters using bUnit's parameter helper
                     .Add(p => p.SelectedTable, EmployeeDataTable)
                     .Add(p => p.ModelsAssemblyName, ModelsAssemblyName)
@@ -119,11 +119,14 @@ namespace Blazor.Tools.BlazorBundler.Tests
                     .Add(p => p.TableList, TableList)
                 );
 
-                await _dataTableGridComponent.Instance.CreateDynamicBundlerDLL();
+                if (_dataTableGridComponent != null)
+                {
+                    await _dataTableGridComponent.Instance.CreateDynamicBundlerDLL();
+                }
 
                 // Assert
                 // Verify that CreateDynamicBundlerDLL was called
-                _dataTableGridMock.Verify(m => m.CreateDynamicBundlerDLL(), Times.Once);
+                _dataTableGridMock?.Verify(m => m.CreateDynamicBundlerDLL(), Times.Once);
             }
             catch (Exception ex) 
             {
@@ -139,14 +142,14 @@ namespace Blazor.Tools.BlazorBundler.Tests
             try
             {
                 // Setup the mock to simulate behavior
-                _dynamicClassBuilderMock.Setup(m => m.CreateClassFromDataTable(EmployeeDataTable)).Verifiable();
-                _dynamicClassBuilderMock.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
+                _dynamicClassBuilderMock?.Setup(m => m.CreateClassFromDataTable(EmployeeDataTable)).Verifiable();
+                _dynamicClassBuilderMock?.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
 
                 // Create an instance of DynamicClassBuilder for TModel
-                _dynamicClassBuilderMock.Object.CreateClassFromDataTable(EmployeeDataTable);
-                _dynamicClassBuilderMock.Object.SaveAssembly();
+                _dynamicClassBuilderMock?.Object.CreateClassFromDataTable(EmployeeDataTable);
+                _dynamicClassBuilderMock?.Object.SaveAssembly();
 
-                _modelType = _dynamicClassBuilderMock.Object.DynamicType;
+                _modelType = _dynamicClassBuilderMock?.Object.DynamicType;
 
                 if (_modelType == null)
                 {
@@ -159,22 +162,22 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 var iViewModelTypes = new Type[] { iViewModelGenericType.MakeGenericType(_modelType, tiModelType), tiModelType };
 
                 // Setup mock for methods
-                _dynamicClassBuilderMock.Setup(m => m.CreateClassFromDataTable(EmployeeDataTable)).Verifiable();
-                _dynamicClassBuilderMock.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
+                _dynamicClassBuilderMock?.Setup(m => m.CreateClassFromDataTable(EmployeeDataTable)).Verifiable();
+                _dynamicClassBuilderMock?.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
 
-                _dynamicClassBuilderMock.Object.CreateClassFromDataTable(EmployeeDataTable);
+                _dynamicClassBuilderMock?.Object.CreateClassFromDataTable(EmployeeDataTable);
                 //await DefineConstructors(_dynamicClassBuilderMock.Object, _modelTempDllPath);
                 //await DefineMethods(_dynamicClassBuilderMock.Object, _modelType, tiModelType);
 
-                var vmAssembly = _dynamicClassBuilderMock.Object.Assembly;
-                _modelVMType = _dynamicClassBuilderMock.Object.DynamicType;
+                var vmAssembly = _dynamicClassBuilderMock?.Object.Assembly;
+                _modelVMType = _dynamicClassBuilderMock?.Object.DynamicType;
 
                 if (_modelVMType == null)
                 {
                     Assert.Fail("Failed to retrieve the type from the model view instance.");
                 }
 
-                var tIModelTypeFullName = tiModelType.FullName;
+                var tIModelTypeFullName = tiModelType.FullName ?? string.Empty;
                 _interfaceType = _modelVMType.GetInterface(tIModelTypeFullName);
 
                 if (_interfaceType == null)
@@ -226,7 +229,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
         public void Dispose()
         {
             // Cleanup resources
-            _testContext.Dispose();
+            _testContext?.Dispose();
         }
     }
 }
