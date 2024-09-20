@@ -5,7 +5,6 @@
     Purpose     : To provide extension methods for classes that use System.Reflection.
   ====================================================================================================*/
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Text;
 using MethodBody = System.Reflection.MethodBody;
 
@@ -74,12 +73,12 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             if (method.ReturnType == typeof(Task))
             {
                 // Async method with no result
-                await (Task)method.Invoke(instance, parameters);
+                await (Task)(method.Invoke(instance, parameters) ?? default!);
             }
             else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
             {
                 // Async method with a result
-                var task = (Task)method.Invoke(instance, parameters);
+                Task task = (Task)(method.Invoke(instance, parameters) ?? default!);
                 // Await the task but capture the result if needed
                 await task;
             }

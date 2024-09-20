@@ -39,9 +39,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private List<TargetTableColumn>? _targetTableColumnList;
         private List<string>? _columnProperties;
         private string? _uniqueField;
-        private bool _isRetrieved = false;
+        //private bool _isRetrieved = false;
         private bool _showForeignTableSearchFieldsModal = false;
-        private DataTable? _searchFieldsTable;
+        private DataTable? _searchFieldsTable = null;
         //private IList<SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
@@ -321,7 +321,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         }
 
-        private IEnumerable<DataRow> ApplyFilterSelectedData()
+        private IEnumerable<DataRow>? ApplyFilterSelectedData()
         {
             if (string.IsNullOrWhiteSpace(_searchQuerySelectedData))
             {
@@ -329,7 +329,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
 
             // Assuming SelectedData is DataRow[]
-            return SelectedData.Where(row =>
+            return SelectedData?.Where(row =>
             {
                 // Check each column in the row for the search query
                 foreach (DataColumn column in row.Table.Columns)
@@ -481,7 +481,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                         dt = BuildRowsForTargetTable(dt, targetTableColumns, SelectedData);
 
                         // Lastly, before adding the targetTable serialize the dt again and store in targetTable.DT
-                        targetTable.DT = await dt.SerializeAsync();
+                        targetTable.DT = dt != null ? await dt.SerializeAsync() : default!;
+
 
                         targetTables.Add(targetTable);
                     }
@@ -496,9 +497,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await OnClose.InvokeAsync();
         }
 
-        private DataTable BuildColumnsForTargetTable(DataTable targetTable, List<TargetTableColumn> targetTableColumns, DataRow[] selectedData)
+        private DataTable BuildColumnsForTargetTable(DataTable targetTable, List<TargetTableColumn> targetTableColumns, DataRow[]? selectedData)
         {
-            if (selectedData.Length > 0)
+            if (selectedData?.Length > 0)
             {
                 foreach (var targetColumn in targetTableColumns)
                 {
@@ -517,24 +518,27 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             return targetTable;
         }
 
-        private DataTable BuildRowsForTargetTable(DataTable targetTable, List<TargetTableColumn> targetTableColumns, DataRow[] selectedData)
+        private DataTable? BuildRowsForTargetTable(DataTable targetTable, List<TargetTableColumn> targetTableColumns, DataRow[]? selectedData)
         {
-            foreach (var selectedRow in selectedData)
+            if (selectedData != null)
             {
-                var tableRow = targetTable.NewRow();
-
-                foreach (var targetColumn in targetTableColumns)
+                foreach (var selectedRow in selectedData)
                 {
-                    var sourceFieldName = targetColumn.SourceFieldName;
-                    var targetFieldName = targetColumn.TargetFieldName;
+                    var tableRow = targetTable.NewRow();
 
-                    if (selectedRow.Table.Columns.Contains(sourceFieldName))
+                    foreach (var targetColumn in targetTableColumns)
                     {
-                        tableRow[targetFieldName] = selectedRow[sourceFieldName];
-                    }
-                }
+                        var sourceFieldName = targetColumn.SourceFieldName;
+                        var targetFieldName = targetColumn.TargetFieldName;
 
-                targetTable.Rows.Add(tableRow);
+                        if (selectedRow.Table.Columns.Contains(sourceFieldName))
+                        {
+                            tableRow[targetFieldName] = selectedRow[sourceFieldName];
+                        }
+                    }
+
+                    targetTable.Rows.Add(tableRow);
+                }
             }
 
             return targetTable;

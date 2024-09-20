@@ -31,8 +31,9 @@ namespace Blazor.Tools.ConsoleApp.Extensions
         }
 
         // Read
-        public QuestionAnsweringData Read(int id)
+        public QuestionAnsweringData? Read(int id)
         {
+            QuestionAnsweringData? data = null;
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 string query = "SELECT * FROM QuestionAnsweringData WHERE ID = @ID";
@@ -46,7 +47,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                     {
                         if (reader.Read())
                         {
-                            return new QuestionAnsweringData
+                            data = new QuestionAnsweringData
                             {
                                 ID = reader.GetInt32(reader.GetOrdinal("ID")),
                                 Question = reader.GetString(reader.GetOrdinal("Question")),
@@ -58,7 +59,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                 }
             }
 
-            return null;
+            return data;
         }
 
         // Update

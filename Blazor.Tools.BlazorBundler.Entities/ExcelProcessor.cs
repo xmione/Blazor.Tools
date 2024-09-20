@@ -29,6 +29,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
             {
                 var sheetNames = await GetSheetNamesAsync(filePath);
 
+#pragma warning disable CA1416 // Validate platform compatibility
                 using (var connection = new OleDbConnection(excelConnectionString))
                 {
                     await connection.OpenAsync();
@@ -50,6 +51,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
                         dataSet.Tables.Add(dataTable);
                     }
                 }
+#pragma warning restore CA1416 // Validate platform compatibility
             }
             catch (OleDbException ex)
             {
@@ -128,7 +130,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
         private async Task<string> GenerateInsertCommandAsync(DataTable table, DataRow row)
         {
             var columns = string.Join(",", table.Columns.Cast<DataColumn>().Select(c => $"[{c.ColumnName}]"));
-            var values = string.Join(",", row.ItemArray.Select(v => $"'{v.ToString().Replace("'", "''")}'"));
+            var values = string.Join(",", row.ItemArray.Select(v => $"'{v?.ToString()?.Replace("'", "''")}'"));
             var commandText = $"INSERT INTO {table.TableName} ({columns}) VALUES ({values})";
 
             await Task.CompletedTask;

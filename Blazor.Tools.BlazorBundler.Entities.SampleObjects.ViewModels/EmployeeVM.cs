@@ -120,6 +120,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             _endCell = 0;
             _isFirstCellClicked = false;
         }
+
         public EmployeeVM(IContextProvider contextProvider)
         {
             _contextProvider = contextProvider;

@@ -41,7 +41,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private bool _isAdding;
         private IViewModel<TModel, IModelExtendedProperties>? _editedRow;
         private IViewModel<TModel, IModelExtendedProperties>? _editedRowSaved;
-        private IViewModel<TModel, IModelExtendedProperties>? _newRowData;
+        //private IViewModel<TModel, IModelExtendedProperties>? _newRowData;
         private string _startCell = string.Empty;
         private string _endCell = string.Empty;
         private bool _isFirstCellClicked;
@@ -871,8 +871,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             List<DataRow> dataInRange = new List<DataRow>();
 
-            var tModelList = Items.Select(item => item as TModel).ToList();
-            _dataTable = tModelList?.ToDataTable() ?? default!;
+            var tModelList = Items.OfType<TModel>().ToList();
+            _dataTable = tModelList.Any() ? tModelList.ToDataTable() : default!;
 
             if (_dataTable != null)
             {

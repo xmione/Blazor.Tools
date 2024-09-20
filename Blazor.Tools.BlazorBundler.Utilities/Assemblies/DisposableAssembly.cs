@@ -47,7 +47,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 throw new ArgumentException("Parameter typeName is required.");
             }
 
-            return _assembly.GetType(typeName);
+            return _assembly?.GetType(typeName) ?? default!;
         }
 
         // Implement IDisposable to clean up resources
@@ -65,7 +65,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 if (disposing)
                 {
                     // Perform any necessary cleanup here
-                    _assembly = null;
+                    _assembly = null!;
 
                     // Unload the assembly
                     _context.Unload();

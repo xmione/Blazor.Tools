@@ -281,7 +281,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 foreach (var assembly in _referencedAssemblies)
                 {
                     // Get assembly name
-                    var assemblyName = assembly.GetName().Name;
+                    var assemblyName = assembly.GetName().Name ?? string.Empty;
 
                     // Add assembly reference
                     var assemblyRef = metadataBuilder.AddAssemblyReference(
@@ -347,7 +347,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     var newType = Type.GetType(typeName); // Resolve type by name
                     if (newType != null)
                     {
-                        instructions.Add(new ILInstruction { OpCode = OpCodes.Newobj, Operand = newType.GetConstructor(Type.EmptyTypes) });
+                        instructions.Add(new ILInstruction { OpCode = OpCodes.Newobj, Operand = newType.GetConstructor(Type.EmptyTypes) ?? default! });
                     }
                 }
                 // Handle conditionals and loops (expand this logic based on your needs)
@@ -369,17 +369,17 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         public class ModuleDefinition
         {
-            public string ModuleName { get; set; }
-            public string ModuleFileName { get; set; }
-            public List<Assembly> AssemblyReferences { get; set; }
-            public List<TypeDefinition> TypeDefinitions { get; set; }
+            public string ModuleName { get; set; } = default!;
+            public string ModuleFileName { get; set; } = default!;
+            public List<Assembly> AssemblyReferences { get; set; } = default!;
+            public List<TypeDefinition> TypeDefinitions { get; set; } = default!;
         }
 
         public class TypeDefinition
         {
-            public string TypeName { get; set; }
-            public Type BaseType { get; set; }
-            public TypeAttributes TypeAttributes { get; set; }
+            public string TypeName { get; set; } = default!;
+            public Type BaseType { get; set; } = default!;  
+            public TypeAttributes TypeAttributes { get; set; } = default!;
             public List<FieldDefinition> Fields { get; set; } = new List<FieldDefinition>();
             public List<PropertyDefinition> Properties { get; set; } = new List<PropertyDefinition>();
             public List<EventDefinition> Events { get; set; } = new List<EventDefinition>();
@@ -389,57 +389,57 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         public class FieldDefinition
         {
-            public string Name { get; set; }
-            public Type Type { get; set; }
-            public FieldAttributes Attributes { get; set; }
+            public string Name { get; set; } = default!;
+            public Type Type { get; set; } = default!;
+            public FieldAttributes Attributes { get; set; } = default!;
         }
 
         public class PropertyDefinition
         {
-            public string Name { get; set; }
-            public Type Type { get; set; }
-            public object DefaultValue { get; set; }
-            public PropertyAttributes Attributes { get; set; }
-            public string Getter { get; set; }
-            public string Setter { get; set; }
+            public string Name { get; set; } = default!;
+            public Type Type { get; set; } = default!;
+            public object DefaultValue { get; set; } = default!;
+            public PropertyAttributes Attributes { get; set; } = default!;
+            public string Getter { get; set; } = default!;
+            public string Setter { get; set; } = default!;
         }
 
         public class EventDefinition
         {
-            public string Name { get; set; }
-            public Type Type { get; set; }
+            public string Name { get; set; } = default!;
+            public Type Type { get; set; } = default!;
             public EventAttributes Attributes { get; set; }
         }
 
         public class MethodDefinition
         {
-            public TypeBuilder TB { get; set; }    
-            public string Name { get; set; }
+            public TypeBuilder TB { get; set; } = default!;
+            public string Name { get; set; } = default!;
             public MethodAttributes Attributes { get; set; }
-            public Type ReturnType { get; set; }
-            public Type[] ParameterTypes { get; set; }
-            public string Body { get; set; } 
+            public Type ReturnType { get; set; } = default!;
+            public Type[] ParameterTypes { get; set; } = default!;
+            public string Body { get; set; } = default!;
         }
 
         public class ConstructorDefinition
         {
             public MethodAttributes Attributes { get; set; }
             public CallingConventions CallingConvention { get; set; }
-            public Type[] ParameterTypes { get; set; }
-            public string Body { get; set; }  // Add this property
-            public List<ParameterDefinition> Parameters { get; set; }  // Add this property
+            public Type[] ParameterTypes { get; set; } = default!;
+            public string Body { get; set; } = default!;  // Add this property
+            public List<ParameterDefinition> Parameters { get; set; } = default!;  // Add this property
         }
 
         public class ParameterDefinition
         {
-            public string Name { get; set; }
-            public Type Type { get; set; }
+            public string Name { get; set; } = default!;
+            public Type Type { get; set; } = default!;
         }
 
         public class ILInstruction
         {
             public OpCode OpCode { get; set; }
-            public object Operand { get; set; }
+            public object Operand { get; set; } = default!;
         }
     }
 }

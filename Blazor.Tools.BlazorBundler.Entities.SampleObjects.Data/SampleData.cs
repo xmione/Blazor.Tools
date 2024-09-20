@@ -14,8 +14,6 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
     {
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
 
-        private Dictionary<string, object> _dataSources = default!;
-
         private bool _isFirstCellClicked = true;
         private string _startCell = string.Empty;
         private string _endCell = string.Empty;

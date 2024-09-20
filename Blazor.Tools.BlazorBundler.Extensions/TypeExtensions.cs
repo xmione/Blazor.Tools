@@ -5,7 +5,6 @@
     Purpose     : To provide a helper class for type extenstions.
   ====================================================================================================*/
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 
@@ -84,13 +83,13 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             // Handle value types (including structs and enums)
             if (type.IsValueType)
             {
-                return Activator.CreateInstance(type);
+                return Activator.CreateInstance(type) ?? default!;
             }
 
             // Handle nullable types by getting the underlying type and returning its default value
             if (Nullable.GetUnderlyingType(type) != null)
             {
-                return null;
+                return null!;
             }
 
             // Handle special cases for common types
@@ -100,7 +99,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
 
             // If it's a reference type, the default value is null
-            return null;
+            return null!;
         }
 
         public static string GenerateDefaultValueAsString(this Type type)

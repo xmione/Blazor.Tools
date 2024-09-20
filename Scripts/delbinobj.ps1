@@ -6,6 +6,11 @@
         C:\repo\Blazor.Tools\Scripts\delbinobj.ps1
 
 #>
+
+Write-Host "==========================================================================================="
+Write-Host "Deleting bin and obj folders..."
+Write-Host "==========================================================================================="
+
 # Define the list of paths where you want to delete bin and obj folders
 $paths = @(
     "C:\repo\Blazor.Tools\Blazor.Tools\",

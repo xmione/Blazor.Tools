@@ -21,6 +21,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
             _assemblyPath = assemblyPath;
         }
 
+        [Obsolete]
         public string DecompileWholeAssembly()
         {
             var decompiledCode = string.Empty;
@@ -56,7 +57,9 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 var assemblyResolver = new AssemblyResolver();
                 var typeSystem = new DecompilerTypeSystem(module, assemblyResolver);
 
+#pragma warning disable CS0612 // Type or member is obsolete
                 var decompilerSettings = GetDecompilerSettings();
+#pragma warning restore CS0612 // Type or member is obsolete
 
                 var decompiler = new CSharpDecompiler(typeSystem, decompilerSettings);
 
@@ -165,6 +168,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
             return cleanedCode;
         }
 
+        [Obsolete]
         public static DecompilerSettings GetDecompilerSettings()
         {
             var decompilerSettings = new DecompilerSettings

@@ -267,7 +267,7 @@ namespace Blazor.Tools.BlazorBundler.Components.AI
             builder.OpenElement(sequence++, "input");
             builder.AddAttribute(sequence++, "type", "text");
             builder.AddAttribute(sequence++, "value", _userInput);
-            builder.AddAttribute(sequence++, "oninput", EventCallback.Factory.CreateBinder(this, value => _userInput = value, _userInput));
+            builder.AddAttribute(sequence++, "oninput", EventCallback.Factory.CreateBinder(this, value => _userInput = value ?? default!, _userInput));
             builder.AddAttribute(sequence++, "class", "form-control");
             builder.CloseElement();
 

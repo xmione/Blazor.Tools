@@ -82,7 +82,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             ilProcessor.Append(ilProcessor.Create(OpCodes.Call,
                 assemblyDefinition.MainModule.ImportReference(typeof(Type).GetMethod("GetTypeFromHandle"))));
             ilProcessor.Append(ilProcessor.Create(OpCodes.Call,
-                assemblyDefinition.MainModule.ImportReference(typeof(Task).GetMethod("FromResult").MakeGenericMethod(typeof(Type)))));
+                assemblyDefinition.MainModule.ImportReference(typeof(Task).GetMethod("FromResult")?.MakeGenericMethod(typeof(Type)))));
             ilProcessor.Append(ilProcessor.Create(OpCodes.Ret));
             employeeVMType.Methods.Add(methodImpl);
             assemblyDefinition.MainModule.Types.Add(employeeVMType);
@@ -110,7 +110,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
                 foreach (var loaderException in ex.LoaderExceptions)
                 {
-                    Console.WriteLine(loaderException.Message);
+                    Console.WriteLine(loaderException?.Message);
                 }
 
                 foreach (var type in ex.Types)
@@ -121,6 +121,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     }
                 }
             }
+
+            await Task.CompletedTask;
         }
     }
 }

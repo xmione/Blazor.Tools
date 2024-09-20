@@ -94,15 +94,20 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
                 var serializedObject = serialize ? await value.SerializeAsync() : value.ToString() ?? string.Empty;
 
-                // Check first if Name exists
-                var foundSessionItem = await _sessionTableService.GetByNameAsync(name) as SessionTable;
-                var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
-                _sessionTable = foundSessionItem ?? new SessionTable();
-                _sessionTable.Name = name;
-                _sessionTable.Value = byteArray;
-                _sessionTable.ExpiresAtTime = DateTimeOffset.Now.AddMinutes(5);
+                if (_sessionTableService != null)
+                {
+                    // Check first if Name exists
+                    var foundSessionItem = await _sessionTableService.GetByNameAsync(name) as SessionTable ?? default!;
+                    var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
+                    _sessionTable = foundSessionItem ?? new SessionTable();
+                    _sessionTable.Name = name;
+                    _sessionTable.Value = byteArray;
+                    _sessionTable.ExpiresAtTime = DateTimeOffset.Now.AddMinutes(5);
 
-                _sessionTable = await _sessionTableService.SaveAsync(_sessionTable) ?? new SessionTable();
+                    _sessionTable = await _sessionTableService.SaveAsync(_sessionTable) ?? new SessionTable();
+                }
+                
+                
             }
             catch (Exception ex)
             {
@@ -126,11 +131,19 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
                 {
                     if (sessionItem != null)
                     {
-                        var serializedObject = sessionItem.Serialize ? await sessionItem.Value.SerializeAsync() : sessionItem?.Value?.ToString() ?? string.Empty;
+                        string serializedObject = string.Empty;
+
+                        if (sessionItem.Value != null)
+                        {
+                            serializedObject = sessionItem.Serialize
+                                ? (await sessionItem.Value.SerializeAsync() ?? string.Empty)
+                                : sessionItem.Value.ToString() ?? string.Empty;
+                        }
+
                         if (_sessionTableService != null)
                         {
                             // Check first if Name exists
-                            var foundSessionItem = await _sessionTableService.GetByNameAsync(sessionItem?.Key) ?? default!;
+                            var foundSessionItem = await _sessionTableService.GetByNameAsync(sessionItem.Key) ?? default!;
                             var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
                             _sessionTable = foundSessionItem ?? new SessionTable();
                             _sessionTable.Name = sessionItem?.Key;

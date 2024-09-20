@@ -24,6 +24,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return components;
         }
 
+        #pragma warning disable BL0006 // Suppress warning for using types not recommended for external use
         private static void ParseComponents<T>(RenderTreeBuilder builder, Dictionary<string, T> components, Func<T, string> keySelector) where T : class, IComponent
         {
             var frames = builder.GetFrames();

@@ -10,7 +10,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
             var totalStopwatch = Stopwatch.StartNew();
             var jsonlReadStopwatch = Stopwatch.StartNew();
             var dateToday = DateTime.Now.ToString("yyyy-dd-MM_HH-mm-ss");
-            var logFilePath = Path.Combine(Path.GetDirectoryName(filePath), $"parsing_log-{dateToday}.txt");
+            var logFilePath = Path.Combine(Path.GetDirectoryName(filePath) ?? default!, $"parsing_log-{dateToday}.txt");
 
             List<QuestionAnsweringData> qaDataList = new List<QuestionAnsweringData>();
 
@@ -48,25 +48,30 @@ namespace Blazor.Tools.ConsoleApp.Extensions
 
                         // Create QuestionAnsweringData object
                         QuestionAnsweringData qaData = new QuestionAnsweringData();
-
-                        // Map properties from jsonData to qaData
-                        foreach (var kvp in jsonData)
+                        if (jsonData != null)
                         {
-                            switch (kvp.Key)
+                            // Map properties from jsonData to qaData
+                            foreach (var kvp in jsonData)
                             {
-                                case "question_text":
-                                    qaData.Question = kvp.Value.ToString();
-                                    break;
-                                case "document_text":
-                                    qaData.Answer = kvp.Value.ToString();
-                                    break;
-                                default:
-                                    if (qaData.Context == null)
-                                        qaData.Context = kvp.Value.ToString() + "\n";
-                                    else
-                                        qaData.Context += kvp.Value.ToString() + "\n";
-                                    break;
+                                var kvpKey = kvp.Key;
+                                var kvpValue = kvp.Value?.ToString() ?? string.Empty;
+                                switch (kvpKey)
+                                {
+                                    case "question_text":
+                                        qaData.Question = kvpValue;
+                                        break;
+                                    case "document_text":
+                                        qaData.Answer = kvpValue;
+                                        break;
+                                    default:
+                                        if (qaData.Context == null)
+                                            qaData.Context = kvpValue + "\n";
+                                        else
+                                            qaData.Context += kvpValue + "\n";
+                                        break;
+                                }
                             }
+
                         }
 
                         // Add the constructed QuestionAnsweringData to the list
@@ -99,7 +104,8 @@ namespace Blazor.Tools.ConsoleApp.Extensions
             var totalStopwatch = Stopwatch.StartNew();
             var jsonlReadStopwatch = Stopwatch.StartNew();
             var dateToday = DateTime.Now.ToString("yyyy-dd-MM_HH-mm-ss");
-            var logFilePath = Path.Combine(Path.GetDirectoryName(filePath), $"parsing_log-{dateToday}.txt");
+            var fileFolderName = Path.GetDirectoryName(filePath) ?? string.Empty;
+            var logFilePath = Path.Combine(fileFolderName, $"parsing_log-{dateToday}.txt");
 
             List<OriginalQuestionAnsweringData> qaDataList = new List<OriginalQuestionAnsweringData>();
 
@@ -138,38 +144,43 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                         // Create QuestionAnsweringData object
                         OriginalQuestionAnsweringData qaData = new OriginalQuestionAnsweringData();
 
-                        // Map properties from jsonData to qaData
-                        foreach (var kvp in jsonData)
+                        if (jsonData != null)
                         {
-                            switch (kvp.Key)
+                            // Map properties from jsonData to qaData
+                            foreach (var kvp in jsonData)
                             {
-                                case "annotations":
-                                    qaData.Annotations = kvp.Value.ToString();
-                                    break;
-                                case "example_id":
-                                    qaData.ExampleId = kvp.Value.ToString();
-                                    break;
-                                case "long_answer_candidates":
-                                    qaData.LongAnswerCandidates = kvp.Value.ToString();
-                                    break;
-                                case "question_text":
-                                    qaData.QuestionText = kvp.Value.ToString();
-                                    break;
-                                case "document_url":
-                                    qaData.DocumentUrl = kvp.Value.ToString();
-                                    break;
-                                case "document_html":
-                                    qaData.DocumentHtml = kvp.Value.ToString();
-                                    break;
-                                case "document_title":
-                                    qaData.DocumentTitle = kvp.Value.ToString();
-                                    break;
-                                case "document_tokens":
-                                    qaData.DocumentTokens = kvp.Value.ToString();
-                                    break;
-                                case "questions_tokens":
-                                    qaData.QuestionTokens = kvp.Value.ToString();
-                                    break;
+                                var kvpKey = kvp.Key;
+                                var kvpValue = kvp.Value.ToString() ?? string.Empty;
+                                switch (kvpKey)
+                                {
+                                    case "annotations":
+                                        qaData.Annotations = kvpValue;
+                                        break;
+                                    case "example_id":
+                                        qaData.ExampleId = kvpValue;
+                                        break;
+                                    case "long_answer_candidates":
+                                        qaData.LongAnswerCandidates = kvpValue;
+                                        break;
+                                    case "question_text":
+                                        qaData.QuestionText = kvpValue;
+                                        break;
+                                    case "document_url":
+                                        qaData.DocumentUrl = kvpValue;
+                                        break;
+                                    case "document_html":
+                                        qaData.DocumentHtml = kvpValue;
+                                        break;
+                                    case "document_title":
+                                        qaData.DocumentTitle = kvpValue;
+                                        break;
+                                    case "document_tokens":
+                                        qaData.DocumentTokens = kvpValue;
+                                        break;
+                                    case "questions_tokens":
+                                        qaData.QuestionTokens = kvpValue;
+                                        break;
+                                }
                             }
                         }
 

@@ -542,7 +542,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             {
                 //var assembly = type.Assembly;
                 var assembly = System.Reflection.Assembly.GetAssembly(type);
-                location = assembly.Location;
+                location = assembly?.Location ?? default!;
             }
 
 

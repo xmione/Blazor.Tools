@@ -5,6 +5,7 @@ using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using BlazorBootstrap;
 using ICSharpCode.Decompiler.CSharp.Syntax;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
@@ -35,7 +36,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private DataRow[]? _selectedData = default!;
         private string _selectedFieldValue = string.Empty;
         //private SessionManager _sessionManager = SessionManager.Instance;
-        private bool _isRetrieved = false;
+        //private bool _isRetrieved = false;
         private Type? _tableGridType = default!;
 
         private List<TargetTable>? _targetTables;
@@ -54,7 +55,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private int _startCol;
         private int _endCol;
         private IEnumerable<object> _items = Enumerable.Empty<object>();
-        private object? _tableGridInstance;
+        //private object? _tableGridInstance;
         private object? _tableGridComponentReference;
         private string _tableID = string.Empty;
 
@@ -458,7 +459,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     throw new InvalidOperationException("IsEditMode property not found.");
                 }
 
-                ilg.Emit(OpCodes.Callvirt, isEditModeProperty.GetSetMethod());
+                ilg.Emit(OpCodes.Callvirt, isEditModeProperty?.GetSetMethod() ?? default!);
 
                 // Emit async completion
                 var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
@@ -467,7 +468,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     throw new InvalidOperationException("CompletedTask property not found.");
                 }
 
-                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ret);
             });
@@ -485,7 +486,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
 
                 ilg.Emit(OpCodes.Ldc_I4_0);
-                ilg.Emit(OpCodes.Callvirt, isEditModeProperty.GetSetMethod());
+                ilg.Emit(OpCodes.Callvirt, isEditModeProperty?.GetSetMethod() ?? default!);
 
                 // Emit async completion
                 var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
@@ -494,7 +495,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     throw new InvalidOperationException("CompletedTask property not found.");
                 }
 
-                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ret);
             });
@@ -541,10 +542,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     // Load property value from 'this'
                     ilg.Emit(OpCodes.Ldarg_0);
-                    ilg.Emit(OpCodes.Callvirt, property.GetGetMethod());
+                    ilg.Emit(OpCodes.Callvirt, property?.GetGetMethod() ?? default! );
 
                     // Set the property on the new instance
-                    ilg.Emit(OpCodes.Callvirt, property.GetSetMethod());
+                    ilg.Emit(OpCodes.Callvirt, property?.GetSetMethod() ?? default!);
                 }
 
                 // Emit async completion
@@ -554,7 +555,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     throw new InvalidOperationException("CompletedTask property not found.");
                 }
 
-                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
 
                 // Load the new instance and return it as Task<IViewModel<TModel, TIModel>>
                 ilg.Emit(OpCodes.Ldloc, newInstance);
@@ -572,13 +573,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                  // Create a list from the argument
                  var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)
-                     .MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType));
+                     ?.MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) ?? default!;
                  ilg.Emit(OpCodes.Call, toListMethod);
 
                  // Add 'this' to the list
                  ilg.Emit(OpCodes.Ldloc_0);
                  ilg.Emit(OpCodes.Ldarg_0);
-                 var addMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)).GetMethod("Add");
+                 var addMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>)
+                     .MakeGenericType(tModelType, tiModelType))
+                 .GetMethod("Add") ?? default!;
                  ilg.Emit(OpCodes.Callvirt, addMethod);
 
                  // Emit async completion
@@ -588,7 +591,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                      throw new InvalidOperationException("CompletedTask property not found.");
                  }
 
-                 ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                 ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
                  ilg.Emit(OpCodes.Ldloc_0);
                  ilg.Emit(OpCodes.Ret);
              });
@@ -603,7 +606,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                  // Convert modelVMList to List
                  ilg.Emit(OpCodes.Ldarg_1);
                  var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)
-                     .MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType));
+                     ?.MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) ?? default!;
                  ilg.Emit(OpCodes.Call, toListMethod);
 
                  // Store the list in a local variable
@@ -618,7 +621,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                  // Remove 'this' from the list
                  ilg.Emit(OpCodes.Ldloc, listLocal);
                  ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
-                 var removeMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)).GetMethod("Remove");
+                 var removeMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>)
+                     .MakeGenericType(tModelType, tiModelType)).GetMethod("Remove") ?? default!;
                  ilg.Emit(OpCodes.Callvirt, removeMethod);
 
                  // Assign list back to modelVMList (mimics modelVMList = list)
@@ -633,7 +637,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                      throw new InvalidOperationException("CompletedTask property not found.");
                  }
 
-                 ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                 ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
                  ilg.Emit(OpCodes.Ret);
              });
 
@@ -649,13 +653,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 // Convert to list
                 var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)
-                    .MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType));
+                    ?.MakeGenericMethod(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)) ?? default!;
                 ilg.Emit(OpCodes.Call, toListMethod);
 
                 // Remove 'this' from the list
                 ilg.Emit(OpCodes.Ldloc_0);
                 ilg.Emit(OpCodes.Ldarg_0);
-                var removeMethod = typeof(List<>).MakeGenericType(typeof(IViewModel<,>).MakeGenericType(tModelType, tiModelType)).GetMethod("Remove");
+                var listType = typeof(List<>);
+                var iViewModelType = typeof(IViewModel<,>);
+                var removeMethod = listType.MakeGenericType(iViewModelType.MakeGenericType(tModelType, tiModelType))?.GetMethod("Remove") ?? default!;
                 ilg.Emit(OpCodes.Callvirt, removeMethod);
 
                 // Emit async completion
@@ -665,7 +671,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     throw new InvalidOperationException("CompletedTask property not found.");
                 }
 
-                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod());
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
                 ilg.Emit(OpCodes.Ldloc_0);
                 ilg.Emit(OpCodes.Ret);
             });
@@ -676,7 +682,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         public async Task DefineTableColumns(string dllPath, string modelTypeName, string modelVMTypeName)
         {
             var modelExtendedProperties = new ModelExtendedProperties();
-            var excludedColumns = modelExtendedProperties.GetProperties();
+            var excludedColumns = modelExtendedProperties.GetProperties() ?? default!;
             // TableColumnDefinition should be based on model type, e.g.: Employee class and not EmployeeVM
             var props = _modelType.GetProperties();
             if (props != null)
@@ -845,7 +851,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task SaveToTargetTableAsync(List<TargetTable>? targetTables)
         {
-            CloseSetTargetTableModalAsync();
+            await CloseSetTargetTableModalAsync();
 
             _targetTables = targetTables;
             //await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTables", _targetTables, serialize: true);

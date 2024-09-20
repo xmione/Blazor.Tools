@@ -6,6 +6,8 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 {
     public static class RenderFragmentExtensions
     {
+        #pragma warning disable BL0006 // Suppress warning for using types not recommended for external use
+
         public static string RenderToHtmlString(this RenderFragment fragment)
         {
             var result = string.Empty;

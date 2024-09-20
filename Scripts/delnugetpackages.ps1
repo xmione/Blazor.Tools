@@ -35,4 +35,8 @@ function Remove-AllFilesFromFolder {
 }
 
 # Example usage
+
+Write-Host "==========================================================================================="
+Write-Host "Deleting solution packages..."
+Write-Host "==========================================================================================="
 Remove-AllFilesFromFolder -folderPath "C:\repo\Blazor.Tools\packages"

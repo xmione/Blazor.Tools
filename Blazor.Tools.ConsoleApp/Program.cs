@@ -18,6 +18,7 @@ namespace Blazor.Tools.ConsoleApp
 {
     public class Program
     {
+        [Obsolete]
         public static void Main(string[] args)
         {
             var answerConfig = new AnswerConfig();
@@ -216,7 +217,8 @@ namespace Blazor.Tools.ConsoleApp
             var totalStopwatch = Stopwatch.StartNew();
             var jsonlReadStopwatch = Stopwatch.StartNew();
             var dateToday = DateTime.Now.ToString("yyyy-dd-MM_HH-mm-ss");
-            var logFilePath = Path.Combine(Path.GetDirectoryName(jsonlFilePath), $"parsing_log-{dateToday}.txt");
+            var folderFileName = Path.GetDirectoryName(jsonlFilePath) ?? string.Empty;
+            var logFilePath = Path.Combine(folderFileName, $"parsing_log-{dateToday}.txt") ?? default!;
 
             using (var logWriter = new StreamWriter(logFilePath, append: false))
             {
@@ -240,16 +242,16 @@ namespace Blazor.Tools.ConsoleApp
 
         private static void ConvertTabDelimitedFileToCsv(string folder)
         {
-            string tabDelimitedFilePath = Path.Combine(folder, "yelp_labelled.txt");
-            string csvFilePath = Path.Combine(folder, "yelp_labelled.csv");  
+            string tabDelimitedFilePath = Path.Combine(folder, "yelp_labelled.txt") ?? default!;
+            string csvFilePath = Path.Combine(folder, "yelp_labelled.csv") ?? default!;  
 
             tabDelimitedFilePath.ConvertTabDelimitedFileToCsv(csvFilePath);
         }
 
         public static void DecompressAndParseJsonlFile(string folder, string fileName, AnswerConfig config)
         {
-            string gzipFilePath = Path.Combine(folder, fileName + ".gz");
-            string outputFilePath = Path.Combine(folder, fileName);
+            string gzipFilePath = Path.Combine(folder, fileName + ".gz") ?? default!;
+            string outputFilePath = Path.Combine(folder, fileName) ?? default!;
 
             var entry = new NqEntry();
             entry.DecompressAndParseJsonlFile(gzipFilePath, outputFilePath, config);
@@ -259,7 +261,7 @@ namespace Blazor.Tools.ConsoleApp
                                    IEnumerable<OriginalQuestionAnsweringData> originalQuestionAnswerList,
                                    IEnumerable<QuestionAnsweringData> questionAnswerList,
                                    JsonlParser jsonParser, string trainingFilePath,
-                                   IProgress<double> progress = null)
+                                   IProgress<double> progress = null!)
         {
             // Fetch total record count
             int totalRecords = originalDataAccess.GetTotalRecordCount();
@@ -291,7 +293,7 @@ namespace Blazor.Tools.ConsoleApp
         public static void TrainQuestionAnswers(string folder, string fileName)
         {
             var mlContext = new MLContext();
-            var dataFile = Path.Combine(folder, fileName);
+            var dataFile = Path.Combine(folder, fileName) ?? default!;
 
             // Load the data
             var data = mlContext.Data.LoadFromTextFile<QuestionAnswer>(dataFile, hasHeader: true, separatorChar: '\t');
@@ -314,7 +316,7 @@ namespace Blazor.Tools.ConsoleApp
                 .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Label", maximumNumberOfIterations: 100));
 
             // Train the model
-            var model = pipeline.Fit(preprocessedDataView);
+            var model = pipeline.Fit(preprocessedDataView) ?? default!;
 
             Console.WriteLine("Model training complete.");
         }
@@ -331,13 +333,14 @@ namespace Blazor.Tools.ConsoleApp
             string ilCodeString = "02 03 6F 2A 00 00 0A 28 2B 00 00 0A 02 2A";
 
             var ilDecoder = new ILDecoder();
-            byte[] ilCode = ilDecoder.ConvertHexStringToByteArray(ilCodeString);
+            byte[] ilCode = ilDecoder.ConvertHexStringToByteArray(ilCodeString) ?? default!;
             ilDecoder.DecodeIL(ilCode);
         }
 
         /// <summary>
         /// Option 13:
         /// </summary>
+        [Obsolete]
         private static void DecompileEmployeeVM()
         {
             string blazorBundlerPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\";
@@ -394,7 +397,7 @@ namespace Blazor.Tools.ConsoleApp
                 Console.WriteLine("Decompiling {0} [{1}]", assemblyPath, typeName);
                 //string decompiledCode = assemblyPath.DecompileType(typeName);
 
-                string decompiledCode = assemblyPath.DecompileWholeModuleToClass(outputCodePath);
+                string decompiledCode = assemblyPath.DecompileWholeModuleToClass(outputCodePath) ?? default!;
 
                 Console.WriteLine(decompiledCode);
             }
@@ -408,8 +411,8 @@ namespace Blazor.Tools.ConsoleApp
         private static void DecompileEmployeeVMSetEditModeMethod()
         {
             string vmDllFileName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.dll";
-            string tempPath = Path.Combine(Path.GetTempPath(), vmDllFileName);
-            string bundlerPath = Path.Combine(@"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\", vmDllFileName);
+            string tempPath = Path.Combine(Path.GetTempPath(), vmDllFileName) ?? default!;
+            string bundlerPath = Path.Combine(@"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\", vmDllFileName) ?? default!;
             string assemblyPath = string.Empty;
 
             bool continueLoop = true;
@@ -438,7 +441,7 @@ namespace Blazor.Tools.ConsoleApp
             string methodName = "SetEditMode";
 
             // Using extension method
-            string decompiledCodeFromExtension = assemblyPath.DecompileMethod(typeName, methodName);
+            string decompiledCodeFromExtension = assemblyPath.DecompileMethod(typeName, methodName) ?? default!;
             Console.WriteLine(decompiledCodeFromExtension);
             Console.WriteLine("Decompiled assembly: {0}", assemblyPath);
 
@@ -457,10 +460,10 @@ namespace Blazor.Tools.ConsoleApp
             string vmNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             
             string baseClassName = "Employee";
-            string baseClassDllPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
+            string baseClassDllPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
             
             string vmClassName = "EmployeeVM";
-            string vmDllPath = Path.Combine(tempFolderPath, $"{vmAssemblyName}.dll");
+            string vmDllPath = Path.Combine(tempFolderPath, $"{vmAssemblyName}.dll") ?? default!;
 
             // Read the code for all relevant classes and interfaces
             string employeeClassFilePath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models\Employee.cs";
@@ -476,14 +479,14 @@ namespace Blazor.Tools.ConsoleApp
         {
             var employeeVMClassGenerator = new ClassGenerator(assemblyName);
 
-            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) ?? default!;
             var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
             var systemRuntimeFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Runtime.dll";
             var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
 
-            var systemLocation = Path.Combine(programFilesPath, systemFilePath);
-            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath);
-            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath);
+            var systemLocation = Path.Combine(programFilesPath, systemFilePath) ?? default!;
+            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath) ?? default!;
+            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath) ?? default!;
 
             // Add references to existing assemblies that contain types used in the dynamic class
             employeeVMClassGenerator.AddReference(systemLocation);  // System.dll
@@ -503,7 +506,7 @@ namespace Blazor.Tools.ConsoleApp
         {
             var employeeVMClassGenerator = new ClassGenerator(assemblyName);
 
-            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) ?? default!;
             var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
             var systemRuntimeFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Runtime.dll";
             var systemCollectionsFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Collections.dll";
@@ -512,13 +515,13 @@ namespace Blazor.Tools.ConsoleApp
             var systemThreadingTasksFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Threading.Tasks.dll";
             var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
 
-            var systemLocation = Path.Combine(programFilesPath, systemFilePath);
-            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath);
-            var systemCollectionsLocation = Path.Combine(programFilesPath, systemCollectionsFilePath);
-            var systemConsoleLocation = Path.Combine(programFilesPath, systemConsoleFilePath);
-            var systemLinqLocation = Path.Combine(programFilesPath, systemLinqFilePath);
-            var systemThreadingTasksLocation = Path.Combine(programFilesPath, systemThreadingTasksFilePath);
-            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath);
+            var systemLocation = Path.Combine(programFilesPath, systemFilePath) ?? default!;
+            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath) ?? default!;
+            var systemCollectionsLocation = Path.Combine(programFilesPath, systemCollectionsFilePath) ?? default!;
+            var systemConsoleLocation = Path.Combine(programFilesPath, systemConsoleFilePath) ?? default!;
+            var systemLinqLocation = Path.Combine(programFilesPath, systemLinqFilePath) ?? default!;
+            var systemThreadingTasksLocation = Path.Combine(programFilesPath, systemThreadingTasksFilePath) ?? default!;
+            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath) ?? default!;
 
             // Add references to existing assemblies that contain types used in the dynamic class
             employeeVMClassGenerator.AddReference(systemLocation);  // System.dll
@@ -552,13 +555,13 @@ namespace Blazor.Tools.ConsoleApp
             var moduleDefinition = assemblyDefinition.MainModule;
 
             // Import necessary references
-            var baseTypeRef = moduleDefinition.ImportReference(typeof(Employee));
-            var typeDefinition = nameSpace.CreateTypeDefinition(className, baseTypeRef);
+            var baseTypeRef = moduleDefinition.ImportReference(typeof(Employee)) ?? default!;
+            var typeDefinition = nameSpace.CreateTypeDefinition(className, baseTypeRef) ?? default!;
 
             // Implement interfaces
-            var iViewModelRef = moduleDefinition.ImportReference(typeof(IViewModel<,>));
-            var iValidatableObjectRef = moduleDefinition.ImportReference(typeof(IValidatableObject));
-            var iCloneableRef = moduleDefinition.ImportReference(typeof(ICloneable<>));
+            var iViewModelRef = moduleDefinition.ImportReference(typeof(IViewModel<,>)) ?? default!;
+            var iValidatableObjectRef = moduleDefinition.ImportReference(typeof(IValidatableObject)) ?? default!;
+            var iCloneableRef = moduleDefinition.ImportReference(typeof(ICloneable<>)) ?? default!;
 
             var iViewModelGeneric = new GenericInstanceType(iViewModelRef);
             iViewModelGeneric.GenericArguments.Add(baseTypeRef);
@@ -612,7 +615,7 @@ namespace Blazor.Tools.ConsoleApp
             {
                 // Handle generic types like List<Employee>
                 var genericTypeDef = type.GetGenericTypeDefinition(); // e.g., List`1
-                var genericTypeRef = moduleDefinition.ImportReference(genericTypeDef); // Import the generic type definition
+                var genericTypeRef = moduleDefinition.ImportReference(genericTypeDef) ?? default!; // Import the generic type definition
 
                 var genericInstanceType = new GenericInstanceType(genericTypeRef); // Create an instance of the generic type
 
@@ -630,7 +633,7 @@ namespace Blazor.Tools.ConsoleApp
 
             if (iType != null)
             {
-                var iTypeRef = moduleDefinition.ImportReference(iType);
+                var iTypeRef = moduleDefinition.ImportReference(iType) ?? default!;
                 typeDefinition.AddFieldWithInitializer(fieldName, type, iTypeRef, moduleDefinition, isReadOnly);
             }
             else
@@ -724,7 +727,7 @@ namespace Blazor.Tools.ConsoleApp
             string bundlerDLLPath = @"C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels\bin\Debug\net8.0\";
             string assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-            string dllPath = Path.Combine(bundlerDLLPath, $"{assemblyName}.dll");
+            string dllPath = Path.Combine(bundlerDLLPath, $"{assemblyName}.dll") ?? default!;
 
             // Load the assembly
             var assembly = dllPath.LoadAssemblyFromDLLFile();
@@ -734,7 +737,7 @@ namespace Blazor.Tools.ConsoleApp
             string typeName = $"{nameSpace}.EmployeeVM";
 
             // Create an instance of the type
-            Type type = assembly.GetType(typeName);
+            Type type = assembly.GetType(typeName) ?? default!;
             object instance = Activator.CreateInstance(type)
                               ?? throw new InvalidOperationException($"Cannot create an instance of type '{typeName}'.");
 
@@ -742,7 +745,7 @@ namespace Blazor.Tools.ConsoleApp
             Console.WriteLine("Trying to set IsEditMode to false");
             await assembly.InvokeMethodAsync(typeName, methodName, instance, false); // Pass parameters as needed
 
-            object isEditModeValue = instance.GetProperty("IsEditMode");
+            object isEditModeValue = instance.GetProperty("IsEditMode") ?? default!;
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
 
             Console.WriteLine("Trying to set IsEditMode to true");
@@ -756,6 +759,7 @@ namespace Blazor.Tools.ConsoleApp
         /// <summary>
         /// Option 16: Decompile dll file using ICSharpCode.Decompiler.
         /// </summary>
+        [Obsolete]
         public static void DecompileDLLFile()
         {
             // Define the paths in the Temp folder
@@ -796,8 +800,8 @@ namespace Blazor.Tools.ConsoleApp
             }
 
             Console.WriteLine("Assembly To Decompile: {0}", assemblyName);
-            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}");
-            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs");
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}") ?? default!;
+            var outputPath = Path.Combine(tempFolderPath, "DecompiledCode.cs") ?? default!;
 
             dllPath.DecompileWholeModuleToClass(outputPath);
 
@@ -820,7 +824,7 @@ namespace Blazor.Tools.ConsoleApp
 
             var selectedTable = sampleData.EmployeeDataTable;
             var tableName = selectedTable.TableName;
-            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll");
+            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
 
             var usingStatements = new List<string>
             {
@@ -839,7 +843,7 @@ namespace Blazor.Tools.ConsoleApp
             }
 
             string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll");
+            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
 
             var vmClassName = $"{tableName}VM";
             Type vmClassType = default!;
@@ -915,7 +919,7 @@ namespace Blazor.Tools.ConsoleApp
             if (implementsViewModelInterface)
             {
                 // Cast the instance to the interface type
-                var viewModelInterfaceInstance = Convert.ChangeType(viewModelInstance, specificIViewModelType);
+                var viewModelInterfaceInstance = Convert.ChangeType(viewModelInstance, specificIViewModelType) ?? default!;
                 Console.WriteLine("Successfully casted to the interface type.");
             }
             else
@@ -932,7 +936,7 @@ namespace Blazor.Tools.ConsoleApp
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
             string assemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string nameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll");
+            string dllPath = Path.Combine(tempFolderPath, $"{assemblyName}.dll") ?? default!;
 
             // Load the assembly
             var assembly = dllPath.LoadAssemblyFromDLLFile();
@@ -942,7 +946,7 @@ namespace Blazor.Tools.ConsoleApp
             string typeName = $"{nameSpace}.EmployeeVM";
 
             // Create an instance of the type
-            Type type = assembly.GetType(typeName);
+            Type type = assembly.GetType(typeName) ?? default!;
             object instance = Activator.CreateInstance(type)
                               ?? throw new InvalidOperationException($"Cannot create an instance of type '{typeName}'.");
 
@@ -950,13 +954,13 @@ namespace Blazor.Tools.ConsoleApp
             Console.WriteLine("Trying to set IsEditMode to false");
             await assembly.InvokeMethodAsync(typeName, methodName, instance, false); // Pass parameters as needed
 
-            object isEditModeValue = instance.GetProperty("IsEditMode");
+            object isEditModeValue = instance.GetProperty("IsEditMode") ?? default!;
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
 
             Console.WriteLine("Trying to set IsEditMode to true");
             await assembly.InvokeMethodAsync(typeName, methodName, instance, true); // Pass parameters as needed
 
-            isEditModeValue = instance.GetProperty("IsEditMode");
+            isEditModeValue = instance.GetProperty("IsEditMode") ?? default!;
             Console.WriteLine($"IsEditMode is set to: {isEditModeValue}");
         }
          

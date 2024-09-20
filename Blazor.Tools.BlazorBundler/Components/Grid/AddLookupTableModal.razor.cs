@@ -26,7 +26,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private string? _targetFieldMatchConditionValue = default!;
         //private IList<SessionItem>? _sessionItems;
         private DataTable? _searchFieldsTable;
-        private bool _isRetrieved;
+        //private bool _isRetrieved;
         private string? _title;
         private string? _dataSource;
         private DataTable? _matchConditionsTable;

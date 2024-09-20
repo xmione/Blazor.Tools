@@ -31,12 +31,12 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 
                 string[] resources = { path };
 
-                res = RmRegisterResources(handle, (uint)resources.Length, resources, 0, null, 0, null);
+                res = RmRegisterResources(handle, (uint)resources.Length, resources, 0, null!, 0, null!);
 
                 if (res != 0) throw new Exception("Could not register resource.");
 
                 // Check the size of the result
-                res = RmGetList(handle, out pnProcInfoNeeded, ref pnProcInfo, null, ref lpdwRebootReasons);
+                res = RmGetList(handle, out pnProcInfoNeeded, ref pnProcInfo, null!, ref lpdwRebootReasons);
 
                 if (res == MORE_DATA)
                 {

@@ -132,7 +132,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
             try
             {
                 // Check if the directory exists, create it if not
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? default!);
 
                 // Check if the file exists, handle overwrite scenario
                 if (File.Exists(filePath))

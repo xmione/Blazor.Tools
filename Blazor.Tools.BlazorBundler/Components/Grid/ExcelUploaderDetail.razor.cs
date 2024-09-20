@@ -20,7 +20,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private DataTable? _selectedTable;
         private string? _selectedTableName;
-        private bool _isReceived = false;
+        //private bool _isReceived = false;
         private List<AssemblyTable>? _tableList = null;
         private SessionManager _sessionManager = SessionManager.Instance;
         private bool _isRetrieved = false;
