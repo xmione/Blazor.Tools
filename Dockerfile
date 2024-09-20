@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 LABEL maintainer="solomiosisante@gmail.com"
 ARG BUILD_CONFIGURATION=Release
-ARG NUGET_API_KEY
 
 WORKDIR /src
 COPY ["Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj", "Blazor.Tools.BlazorBundler/"]
