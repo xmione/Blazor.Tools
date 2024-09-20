@@ -9,7 +9,10 @@ Write-Host "Adding required nuget sources..."
 Write-Host "==========================================================================================="
 
 #dotnet nuget add source "https://api.nuget.org/v3/index.json" -n "Nuget.org"
-dotnet nuget add source "C:\Program Files (x86)\Microsoft SDKs\NuGetPackages" -n "Microsoft Visual Studio Offline Packages"
+
+# You do not need to add this because this is automatic when installing VS. You can't remove it.
+#dotnet nuget add source "C:\Program Files (x86)\Microsoft SDKs\NuGetPackages" -n "Microsoft Visual Studio Offline Packages"
+
 dotnet nuget add source "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\packages" -n "BlazorBundlerPackages"
 dotnet nuget add source "C:\repo\Blazor.Tools\packages" -n "Blazor.Tools Packages"
 
