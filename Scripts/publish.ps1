@@ -47,58 +47,60 @@ $solutionFile = "${SolutionRoot}\Blazor.Tools.sln"
 $projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
 $packagesOutputFolderPath = "${SolutionRoot}\packages"
 
-& "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
-& "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
-& "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
-& "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
-& "${SolutionRoot}\Scripts\delglobalpackages.ps1" -Verbose
+Try {
+    # This command should only be manually run
+    #Write-Host "Clearing nuget local cache..."
+    #dotnet nuget locals all --clear
+    <#
+    Write-Host "==========================================================================================="
+    Write-Host "Using Configuration ${Configuration}, cleaning the solution..."
+    Write-Host "==========================================================================================="
+    dotnet clean Blazor.Tools.sln
 
-# This command should only be manually run
-#Write-Host "Clearing nuget local cache..."
-#dotnet nuget locals all --clear
-<#
-Write-Host "==========================================================================================="
-Write-Host "Using Configuration ${Configuration}, cleaning the solution..."
-Write-Host "==========================================================================================="
-dotnet clean Blazor.Tools.sln
+    Write-Host "==========================================================================================="
+    Write-Host "Using Configuration ${Configuration}, building the solution..."
+    Write-Host "==========================================================================================="
+    dotnet build Blazor.Tools.sln
+    #>
+    Write-Host "==========================================================================================="
+    Write-Host "Restoring NuGet packages using solution file..."
+    Write-Host "==========================================================================================="
+    # Restore NuGet packages using solution file
+    dotnet restore $solutionFile --verbosity detailed
+    <#
+    Write-Host "Restoring NuGet packages using project file..."
+    # Restore NuGet packages using project file
+    dotnet restore $projectFile  
+    #>
 
-Write-Host "==========================================================================================="
-Write-Host "Using Configuration ${Configuration}, building the solution..."
-Write-Host "==========================================================================================="
-dotnet build Blazor.Tools.sln
-#>
-Write-Host "==========================================================================================="
-Write-Host "Restoring NuGet packages using solution file..."
-Write-Host "==========================================================================================="
-# Restore NuGet packages using solution file
-dotnet restore $solutionFile --verbosity detailed
-<#
-Write-Host "Restoring NuGet packages using project file..."
-# Restore NuGet packages using project file
-dotnet restore $projectFile  
-#>
+    Write-Host "==========================================================================================="
+    Write-Host "Building solution with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+    Write-Host "==========================================================================================="
+    # Update AssemblyVersion and FileVersion using the solution file
+    dotnet msbuild $solutionFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+    <#
+    Write-Host "Building project with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+    # Update AssemblyVersion and FileVersion using the project file
+    dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+    #>
+    Write-Host "==========================================================================================="
+    Write-Host "Packing the project..."
+    Write-Host "==========================================================================================="
+    # Pack the project
+    # Test it in the terminal window
+    # dotnet pack "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj" -c "Debug" /p:PackageVersion="3.1.1" /p:PackageReleaseNotesFile="Blazor.Tools.BlazorBundler/changelog_3.1.1.md" -v detailed /p:NoDefaultExcludes=true --output "C:\repo\Blazor.Tools\packages"
 
-Write-Host "==========================================================================================="
-Write-Host "Building solution with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
-Write-Host "==========================================================================================="
-# Update AssemblyVersion and FileVersion using the solution file
-dotnet msbuild $solutionFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
-<#
-Write-Host "Building project with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
-# Update AssemblyVersion and FileVersion using the project file
-dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
-#>
-Write-Host "==========================================================================================="
-Write-Host "Packing the project..."
-Write-Host "==========================================================================================="
-# Pack the project
-# Test it in the terminal window
-# dotnet pack "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj" -c "Debug" /p:PackageVersion="3.1.1" /p:PackageReleaseNotesFile="Blazor.Tools.BlazorBundler/changelog_3.1.1.md" -v detailed /p:NoDefaultExcludes=true --output "C:\repo\Blazor.Tools\packages"
+    dotnet pack $projectFile -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true --output $packagesOutputFolderPath
 
-dotnet pack $projectFile -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true --output $packagesOutputFolderPath
+    & "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\delglobalpackages.ps1" -Verbose
 
-# Generate Changelog with dynamic version information
-$changelogContent = @"
+    
+    # Generate Changelog with dynamic version information
+    $changelogContent = @"
 Version $PackageVersion
 -----------------------
 Package Version: $PackageVersion
@@ -118,21 +120,21 @@ File Version: $FileVersion
 - None.
 "@
 
-# Save change log to file
-Write-Host "==========================================================================================="
-Write-Host "Saving change log to file $changelogPath"
-Write-Host "==========================================================================================="
-Set-Content -Path $changelogPath -Value $changelogContent
+    # Save change log to file
+    Write-Host "==========================================================================================="
+    Write-Host "Saving change log to file $changelogPath"
+    Write-Host "==========================================================================================="
+    Set-Content -Path $changelogPath -Value $changelogContent
 
-# Define the changelog directory and filter pattern
-$changelogDir = Join-Path -Path $SolutionRoot -ChildPath "Blazor.Tools.BlazorBundler"
-$filterPattern = "changelog_*.md"
+    # Define the changelog directory and filter pattern
+    $changelogDir = Join-Path -Path $SolutionRoot -ChildPath "Blazor.Tools.BlazorBundler"
+    $filterPattern = "changelog_*.md"
 
-# List all change log files in the directory
-$changeLogFiles = Get-ChildItem -Path $changelogDir -Filter $filterPattern | Sort-Object
+    # List all change log files in the directory
+    $changeLogFiles = Get-ChildItem -Path $changelogDir -Filter $filterPattern | Sort-Object
 
-# Generate Markdown content for README.md with version information
-$readmeContent = @"
+    # Generate Markdown content for README.md with version information
+    $readmeContent = @"
 # BlazorBundler
 
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
@@ -273,55 +275,62 @@ Open PowerShell and run:
 ## Change Logs
 "@
 
-$changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/"
-# Append change log files to README.md
-Write-Host "==========================================================================================="
-Write-Host "Appending change log files to README.md..."
-Write-Host "==========================================================================================="
-$readmeContent += "`n"
-foreach ($file in $changeLogFiles) {
-    $fileName = $file.Name
-    $fileUrl = "$changeLogsUrl$fileName"
-    $link = "- [$($file.Name)]($($fileUrl))`n"
-    Write-Host "Generated link: $link"
-    $readmeContent += $link
-}
+    $changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/"
+    # Append change log files to README.md
+    Write-Host "==========================================================================================="
+    Write-Host "Appending change log files to README.md..."
+    Write-Host "==========================================================================================="
+    $readmeContent += "`n"
+    foreach ($file in $changeLogFiles) {
+        $fileName = $file.Name
+        $fileUrl = "$changeLogsUrl$fileName"
+        $link = "- [$($file.Name)]($($fileUrl))`n"
+        Write-Host "Generated link: $link"
+        $readmeContent += $link
+    }
 
-# Save updated README.md
-$readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\README.md"
-Write-Host "==========================================================================================="
-Write-Host "Saving updated $readmePath..."
-Write-Host "==========================================================================================="
-Set-Content -Path $readmePath -Value $readmeContent
+    # Save updated README.md
+    $readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\README.md"
+    Write-Host "==========================================================================================="
+    Write-Host "Saving updated $readmePath..."
+    Write-Host "==========================================================================================="
+    Set-Content -Path $readmePath -Value $readmeContent
 
-# Save updated readme.txt
-$readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\readme.txt"
-Write-Host "Saving updated $readmePath..."
-Set-Content -Path $readmePath -Value $readmeContent
+    # Save updated readme.txt
+    $readmePath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\readme.txt"
+    Write-Host "Saving updated $readmePath..."
+    Set-Content -Path $readmePath -Value $readmeContent
 
-<# Run the following codes only if boolean parameter Publish is true #>
-if($Publish -eq $true)
-{
+    <# Run the following codes only if boolean parameter Publish is true #>
+    if($Publish -eq $true)
+    {
 
-    Write-Host "Pushing changes to GitHub Repository..."
-    git add .
-    git commit -m $GitComment
-    git push # pushes to current branch
-    #git push origin master 
+        Write-Host "Pushing changes to GitHub Repository..."
+        git add .
+        git commit -m $GitComment
+        git push # pushes to current branch
+        #git push origin master 
     
-    Write-Host "Copying the project files..."
+        Write-Host "Copying the project files..."
 
-    Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
-    # Dockerize
-    docker build -t solomiosisante/blazor-bundler:latest .
+        Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
+        # Dockerize
+        docker build -t solomiosisante/blazor-bundler:latest .
 
-    Write-Host "Publishing the Docker image to Docker Hub..."
-    # Publish the Docker image to Docker Hub (replace with your publish command)
-    docker push solomiosisante/blazor-bundler:latest
+        Write-Host "Publishing the Docker image to Docker Hub..."
+        # Publish the Docker image to Docker Hub (replace with your publish command)
+        docker push solomiosisante/blazor-bundler:latest
 
-    Write-Host "Publishing the Package to nuget.org..."
-    # Publish the package to nuget.org (replace with your publish command)
-    dotnet nuget push packages/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+        Write-Host "Publishing the Package to nuget.org..."
+        # Publish the package to nuget.org (replace with your publish command)
+        dotnet nuget push packages/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+    }
+
+
+}
+Catch {
+    Write-Host "An error occurred: $_"
+    throw  # Stops script execution
 }
 
 [console]::beep(777,7777)  
