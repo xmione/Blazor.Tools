@@ -4,7 +4,7 @@ LABEL maintainer="solomiosisante@gmail.com"
 ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
-COPY ["Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj", "Blazor.Tools.BlazorBundler.API/"]
+COPY ["Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj", "Blazor.Tools.BlazorBundler/"]
 COPY ["Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models/Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.csproj", "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models/"]
 COPY ["Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels/Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels.csproj", "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels/"]
 COPY ["Blazor.Tools.BlazorBundler.Entities/Blazor.Tools.BlazorBundler.Entities.csproj", "Blazor.Tools.BlazorBundler.Entities/"]
