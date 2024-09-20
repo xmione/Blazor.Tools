@@ -32,23 +32,16 @@ param(
     [bool] $IsRelease = $false,
     [string] $GitComment = "Update project with the latest changes"
 )
-$SolutionRoot = "C:\repo\Blazor.Tools"
-$PackageVersion = "3.1.2"
-$AssemblyVersion = "$PackageVersion.0"
-$FileVersion = "$PackageVersion.0"
-$nugetApiKey = $Env:MY_NUGET_API_KEY
-$changelogPath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\changelog_$PackageVersion.md"
 
-# Determine the configuration based on the IsRelease parameter
-$Configuration = if ($IsRelease) { "Release" } else { "Debug" }
+<#==========================================================================================================
+                        S T A R T  O F  F U N C T I O N  D E L A C R A T I O N S
+===========================================================================================================#>
 
-# Update project file - using dotnet msbuild
-$solutionFile = "${SolutionRoot}\Blazor.Tools.sln"
-$projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
-$packagesOutputFolderPath = "${SolutionRoot}\packages"
-
-Try {
-    # This command should only be manually run
+function RestoreNugetPackages {
+    param(
+        [string]$solutionFile
+    )
+# This command should only be manually run
     #Write-Host "Clearing nuget local cache..."
     #dotnet nuget locals all --clear
     <#
@@ -64,6 +57,7 @@ Try {
     #>
     Write-Host "==========================================================================================="
     Write-Host "Restoring NuGet packages using solution file..."
+    Write-Host " dotnet restore $solutionFile --verbosity detailed"
     Write-Host "==========================================================================================="
     # Restore NuGet packages using solution file
     dotnet restore $solutionFile --verbosity detailed
@@ -77,16 +71,25 @@ Try {
     if ($LASTEXITCODE -ne 0) {
         throw "Build failed with exit code $LASTEXITCODE"
     }
-    
+}
+
+function BuildSolution {
+    param(
+        [string]$configuration, 
+        [string]$packageVersion, 
+        [string]$assemblyVersion, 
+        [string]$fileVersion
+    )
     Write-Host "==========================================================================================="
-    Write-Host "Building solution with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+    Write-Host "Building solution with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
+    Write-Host "dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion "
     Write-Host "==========================================================================================="
     # Update AssemblyVersion and FileVersion using the solution file
-    dotnet msbuild $solutionFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+    dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion 
     <#
-    Write-Host "Building project with the updated Configuration ($Configuration) PackageVersion ($PackageVersion), AssemblyVersion ($AssemblyVersion) and FileVersion ($FileVersion)"
+    Write-Host "Building project with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
     # Update AssemblyVersion and FileVersion using the project file
-    dotnet msbuild $projectFile  /p:Configuration=$Configuration /p:AssemblyVersion=$AssemblyVersion /p:FileVersion=$FileVersion 
+    dotnet msbuild $projectFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion 
     #>
 
     # Check the exit code of the msbuild command
@@ -94,6 +97,17 @@ Try {
         throw "Build failed with exit code $LASTEXITCODE"
     }
 
+}
+
+function PackProject { 
+    param(
+        [string]$projectFile, 
+        [string]$configuration, 
+        [string]$packageVersion, 
+        [string]$changeLogPath, 
+        [string]$packagesOutputFolderPath
+    )
+ 
     Write-Host "==========================================================================================="
     Write-Host "Packing the project..."
     Write-Host "==========================================================================================="
@@ -101,26 +115,30 @@ Try {
     # Test it in the terminal window
     # dotnet pack "Blazor.Tools.BlazorBundler/Blazor.Tools.BlazorBundler.csproj" -c "Debug" /p:PackageVersion="3.1.1" /p:PackageReleaseNotesFile="Blazor.Tools.BlazorBundler/changelog_3.1.1.md" -v detailed /p:NoDefaultExcludes=true --output "C:\repo\Blazor.Tools\packages"
 
-    dotnet pack $projectFile -c $Configuration /p:PackageVersion=$PackageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true --output $packagesOutputFolderPath
+    dotnet pack $projectFile -c $configuration /p:PackageVersion=$packageVersion /p:PackageReleaseNotesFile=$changelogPath -v detailed /p:NoDefaultExcludes=true --output $packagesOutputFolderPath
 
     # Check the exit code of the msbuild command
     if ($LASTEXITCODE -ne 0) {
         throw "Build failed with exit code $LASTEXITCODE"
     }
+}
 
-    & "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
-    & "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
-    & "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
-    & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
-    & "${SolutionRoot}\Scripts\delglobalpackages.ps1" -Verbose
-        
+function SaveChangeLogAndReadMe {
+    param(
+        [string]$SolutionRoot, 
+        [string]$packageVersion, 
+        [string]$assemblyVersion, 
+        [string]$fileVersion, 
+        [string]$changelogPath
+    )
+            
     # Generate Changelog with dynamic version information
     $changelogContent = @"
-Version $PackageVersion
+Version $packageVersion
 -----------------------
-Package Version: $PackageVersion
-Assembly Version: $AssemblyVersion
-File Version: $FileVersion
+Package Version: $packageVersion
+Assembly Version: $assemblyVersion
+File Version: $fileVersion
 
 ### Major Changes
 - None
@@ -155,9 +173,9 @@ File Version: $FileVersion
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: $PackageVersion
-- **Assembly Version**: $AssemblyVersion
-- **File Version**: $FileVersion
+- **Package Version**: $packageVersion
+- **Assembly Version**: $assemblyVersion
+- **File Version**: $fileVersion
 
 ## Features
 
@@ -209,7 +227,7 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
 ### Open PowerShell and run: 
 
 ```````
-    `$version` = "$PackageVersion"
+    `$version` = "$packageVersion"
     `$userProfileName` = "solom"
     `$sourcePath` = "C:\Users\`$userProfileName`\.nuget\packages\blazor.tools.blazorbundler\`$version`"
     `$targetPath` = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
@@ -316,29 +334,86 @@ Open PowerShell and run:
     Write-Host "Saving updated $readmePath..."
     Set-Content -Path $readmePath -Value $readmeContent
 
+}
+
+<#==========================================================================================================
+                        E N D  O F  F U N C T I O N  D E L A C R A T I O N S
+===========================================================================================================#>
+
+$SolutionRoot = "C:\repo\Blazor.Tools"
+$packageVersion = "3.1.2"
+$assemblyVersion = "$packageVersion.0"
+$fileVersion = "$packageVersion.0"
+$nugetApiKey = $Env:MY_NUGET_API_KEY
+$changelogPath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\changelog_$packageVersion.md"
+
+# Determine the configuration based on the IsRelease parameter
+$configuration = if ($IsRelease) { "Release" } else { "Debug" }
+
+# Update project file - using dotnet msbuild
+$solutionFile = "${SolutionRoot}\Blazor.Tools.sln"
+$projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
+$packagesOutputFolderPath = "${SolutionRoot}\packages"
+$colors = @("Cyan", "Magenta", "Yellow", "Green")
+Try {
+
+    RestoreNugetPackages $solutionFile    
+    BuildSolution $configuration $packageVersion $assemblyVersion $fileVersion
+    PackProject $projectFile $configuration $packageVersion $changeLogPath $packagesOutputFolderPath   
+    
+
+    & "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\delnugetpackages.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\delbinobj.ps1" -Verbose
+    & "${SolutionRoot}\Scripts\delglobalpackages.ps1" -Verbose
+
+    SaveChangeLogAndReadMe $SolutionRoot  $packageVersion  $assemblyVersion  $fileVersion  $changelogPath
+
     <# Run the following codes only if boolean parameter Publish is true #>
     if($Publish -eq $true)
     {
-
+        Write-Host "==========================================================================================="
         Write-Host "Pushing changes to GitHub Repository..."
+        Write-Host "==========================================================================================="
         git add .
         git commit -m $GitComment
         git push # pushes to current branch
         #git push origin master 
-    
-        Write-Host "Copying the project files..."
-
+     
+        Write-Host "==========================================================================================="
         Write-Host "Dockerizing the project solomiosisante/blazor-bundler:latest..."
+        Write-Host "==========================================================================================="
+
         # Dockerize
         docker build -t solomiosisante/blazor-bundler:latest .
 
+        # Check the exit code of the msbuild command
+        if ($LASTEXITCODE -ne 0) {
+            throw "Build failed with exit code $LASTEXITCODE"
+        }
+
+        Write-Host "==========================================================================================="
         Write-Host "Publishing the Docker image to Docker Hub..."
+        Write-Host "==========================================================================================="
         # Publish the Docker image to Docker Hub (replace with your publish command)
         docker push solomiosisante/blazor-bundler:latest
 
+        # Check the exit code of the msbuild command
+        if ($LASTEXITCODE -ne 0) {
+            throw "Build failed with exit code $LASTEXITCODE"
+        }
+
+        Write-Host "==========================================================================================="
         Write-Host "Publishing the Package to nuget.org..."
+        Write-Host "==========================================================================================="
         # Publish the package to nuget.org (replace with your publish command)
-        dotnet nuget push packages/Blazor.Tools.BlazorBundler.$PackageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+        dotnet nuget push packages/Blazor.Tools.BlazorBundler.$packageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+
+        # Check the exit code of the msbuild command
+        if ($LASTEXITCODE -ne 0) {
+            throw "Build failed with exit code $LASTEXITCODE"
+        }
     }
 
 
@@ -349,3 +424,4 @@ Catch {
 }
 
 [console]::beep(777,7777)  
+
