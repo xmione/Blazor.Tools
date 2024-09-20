@@ -356,6 +356,11 @@ $projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBu
 $packagesOutputFolderPath = "${SolutionRoot}\packages"
 $colors = @("Cyan", "Magenta", "Yellow", "Green")
 Try {
+
+    # Check if the $nugetApiKey variable is empty
+    if ([string]::IsNullOrWhiteSpace($nugetApiKey)) {
+        throw "NuGet API Key environment variable is empty. In a terminal, run: `$Env:MY_NUGET_API_KEY = 'YOUR_API_KEY'"
+    }
     
     & "${SolutionRoot}\Scripts\delnugetsources.ps1" -Verbose
     & "${SolutionRoot}\Scripts\addnugetsources.ps1" -Verbose
