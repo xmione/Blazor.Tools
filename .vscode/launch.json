@@ -14,35 +14,35 @@
     }
   ],
   "configurations": [
-    {
-      "name": "API",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build backend",
-      "program": "${workspaceFolder}/AccSol.API/bin/Debug/net8.0/AccSol.API.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}/AccSol.API",
-      "stopAtEntry": false,
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
-        "uriFormat": "%s/swagger"
-      },
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "sourceFileMap": {
-        "/Views": "${workspaceFolder}/Views"
-      }
-    },
+    //{
+    //  "name": "API",
+    //  "type": "coreclr",
+    //  "request": "launch",
+    //  "preLaunchTask": "build backend",
+    //  "program": "${workspaceFolder}/AccSol.API/bin/Debug/net8.0/AccSol.API.dll",
+    //  "args": [],
+    //  "cwd": "${workspaceFolder}/AccSol.API",
+    //  "stopAtEntry": false,
+    //  "serverReadyAction": {
+    //    "action": "openExternally",
+    //    "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+    //    "uriFormat": "%s/swagger"
+    //  },
+    //  "env": {
+    //    "ASPNETCORE_ENVIRONMENT": "Development"
+    //  },
+    //  "sourceFileMap": {
+    //    "/Views": "${workspaceFolder}/Views"
+    //  }
+    //},
     {
       "name": "Blazor Web App",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build frontend",
-      "program": "${workspaceFolder}/AccSol/bin/Debug/net8.0/AccSol.dll",
+      "program": "${workspaceFolder}/Blazor.Tools/bin/Debug/net9.0/Blazor.Tools.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/AccSol",
+      "cwd": "${workspaceFolder}/Blazor.Tools",
       "stopAtEntry": false,
       "serverReadyAction": {
         "action": "openExternally",
