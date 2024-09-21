@@ -1,0 +1,75 @@
+{
+  "name": "Blazor.Tools",
+  "image": "mcr.microsoft.com/dotnet/sdk:9.0",
+  "containerEnv": {
+    "ASPNETCORE_ENVIRONMENT": "Codespace"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "2"
+    },
+    "ghcr.io/devcontainers/features/powershell:1": {
+      "version": "latest"
+    },
+    "ghcr.io/azure/azure-dev/azd:0": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "none",
+      "dotnetRuntimeVersions": "9.0",
+      "aspNetCoreRuntimeVersions": "9.0"
+    }
+  },
+  "postCreateCommand": "bash -c 'cd /workspaces/Blazor.Tools/.devContainers/ && chmod +x initializebashfiles.sh && ./initializebashfiles.sh'",
+  "postStartCommand": "bash -c 'cd /workspaces/Blazor.Tools/Database/ && ./wait_for_mssql.sh && ./attachmdf.sh'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-node-azure-pack",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp"
+      ]
+    }
+  },
+  "forwardPorts": [
+    1433
+  ],
+  "hostRequirements": {
+    "memory": "8gb",
+    "cpus": 4
+  },
+  "remoteEnv": {
+    "DOTNET_MULTILEVEL_LOOKUP": "0",
+    "TARGET": "net9.0"
+  },
+  "portsAttributes": {
+    "1433": {
+      "label": "SQL Server",
+      "onAutoForward": "notify",
+      "protocol": "https",
+      "requireLocalPort": true,
+      "public": true
+    },
+    //"7040": {
+    //  "label": "AccSol API",
+    //  "onAutoForward": "notify",
+    //  "protocol": "https",
+    //  "requireLocalPort": true,
+    //  "public": true
+    //},
+    "7031": {
+      "label": "Blazor.Tools",
+      "onAutoForward": "notify",
+      "protocol": "https",
+      "requireLocalPort": true,
+      "public": true
+    }
+  },
+  "runArgs": [
+    "--volume",
+    "${localWorkspaceFolder}/Database:/var/opt/mssql/Database"
+  ]
+}

@@ -49,11 +49,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Scripts\addnugetsources.ps1 = Scripts\addnugetsources.ps1
+		.devcontainer\br.sh = .devcontainer\br.sh
 		Scripts\delbinobj.ps1 = Scripts\delbinobj.ps1
-		Scripts\delnugetpackages.ps1 = Scripts\delnugetpackages.ps1
 		Scripts\delglobalpackages.ps1 = Scripts\delglobalpackages.ps1
+		Scripts\delnugetpackages.ps1 = Scripts\delnugetpackages.ps1
 		Scripts\delnugetsources.ps1 = Scripts\delnugetsources.ps1
+		.devcontainer\devcontainer.json = .devcontainer\devcontainer.json
+		.devcontainer\gencerts.sh = .devcontainer\gencerts.sh
+		.devcontainer\initializebashfiles.sh = .devcontainer\initializebashfiles.sh
 		Scripts\publish.ps1 = Scripts\publish.ps1
+		.devcontainer\rundocker.sh = .devcontainer\rundocker.sh
+		.devcontainer\runprojects.sh = .devcontainer\runprojects.sh
+		.devcontainer\setup.sh = .devcontainer\setup.sh
 	EndProjectSection
 EndProject
 Global
