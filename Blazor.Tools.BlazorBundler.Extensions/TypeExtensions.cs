@@ -111,16 +111,17 @@ namespace Blazor.Tools.BlazorBundler.Extensions
         public static void DisplayTypeDifferences(this Type type1, Type type2)
         {
             bool isEqual = true;
+            var type1Name = type1.Name;
+            var type2Name = type2.Name;
             Debug.WriteLine(new string('=', 222));
 
-            Debug.WriteLine("FullName differs:");
+            Debug.WriteLine("type1 FullName: " + type1.FullName);
+            Debug.WriteLine("type2 FullName: " + type2.FullName);
             // Compare and print only the properties that differ
             if (type1.FullName != type2.FullName)
             {
                Debug.WriteLine("FullName differs:");
-               Debug.WriteLine("type1 FullName: " + type1.FullName);
-               Debug.WriteLine("type2 FullName: " + type2.FullName);
-                isEqual = false;
+               isEqual = false;
             }
 
             if (type1.Assembly.FullName != type2.Assembly.FullName)
@@ -128,7 +129,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Assembly differs:");
                Debug.WriteLine("type1 Assembly: " + type1.Assembly.FullName);
                Debug.WriteLine("type2 Assembly: " + type2.Assembly.FullName);
-                isEqual = false;
+               isEqual = false;
             }
 
             if (type1.Namespace != type2.Namespace)
@@ -136,7 +137,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Namespace differs:");
                Debug.WriteLine("type1 Namespace: " + type1.Namespace);
                Debug.WriteLine("type2 Namespace: " + type2.Namespace);
-                isEqual = false;
+               isEqual = false;
             }
 
             if (type1.Module.Name != type2.Module.Name)
@@ -144,7 +145,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Module differs:");
                Debug.WriteLine("type1 Module: " + type1.Module.Name);
                Debug.WriteLine("type2 Module: " + type2.Module.Name);
-                isEqual = false;
+               isEqual = false;
             }
 
             // Check if the types are loaded from different locations
@@ -153,7 +154,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Assembly Location differs:");
                Debug.WriteLine("type1 Assembly Location: " + type1.Assembly.Location);
                Debug.WriteLine("type2 Assembly Location: " + type2.Assembly.Location);
-                isEqual = false;
+               isEqual = false;
             }
 
             // Check if the types are loaded in different contexts
@@ -162,7 +163,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Assembly Load Context differs:");
                Debug.WriteLine("type1 Assembly Load Context: " + AssemblyLoadContext.GetLoadContext(type1.Assembly));
                Debug.WriteLine("type2 Assembly Load Context: " + AssemblyLoadContext.GetLoadContext(type2.Assembly));
-                isEqual = false;
+               isEqual = false;
             }
 
             // Compare the runtime type handles
@@ -171,7 +172,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("TypeHandle differs:");
                Debug.WriteLine("type1 TypeHandle: " + type1.TypeHandle);
                Debug.WriteLine("type2 TypeHandle: " + type2.TypeHandle);
-                isEqual = false;
+               isEqual = false;
             }
 
             // Check if either of the types are generic and compare generic arguments
@@ -181,7 +182,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Generic Type Arguments differ:");
                Debug.WriteLine("type1 Generic Type Arguments: " + string.Join(", ", type1.GetGenericArguments().Cast<Type>()));
                Debug.WriteLine("type2 Generic Type Arguments: " + string.Join(", ", type2.GetGenericArguments().Cast<Type>()));
-                isEqual = false;
+               isEqual = false;
             }
 
             // Check if either of the assemblies are loaded in reflection-only mode
@@ -190,7 +191,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("ReflectionOnly mode differs:");
                Debug.WriteLine("type1 ReflectionOnly: " + type1.Assembly.ReflectionOnly);
                Debug.WriteLine("type2 ReflectionOnly: " + type2.Assembly.ReflectionOnly);
-                isEqual = false;
+               isEqual = false;
             }
 
             // Compare custom attributes of both types
@@ -202,7 +203,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("Custom Attributes differ:");
                Debug.WriteLine("type1 Attributes: " + string.Join(", ", type1Attributes.Select(attr => attr.GetType().Name)));
                Debug.WriteLine("type2 Attributes: " + string.Join(", ", type2Attributes.Select(attr => attr.GetType().Name)));
-                isEqual = false;
+               isEqual = false;
             }
 
             // Check if types are dynamically generated (like proxies or reflection emit types)
@@ -211,7 +212,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("IsConstructedGenericType differs:");
                Debug.WriteLine("type1 IsConstructedGenericType: " + type1.IsConstructedGenericType);
                Debug.WriteLine("type2 IsConstructedGenericType: " + type2.IsConstructedGenericType);
-                isEqual = false;
+               isEqual = false;
             }
 
             if (type1.IsDefined(typeof(CompilerGeneratedAttribute), false) != type2.IsDefined(typeof(CompilerGeneratedAttribute), false))
@@ -219,7 +220,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
                Debug.WriteLine("IsDefinedFromReflectionEmit differs:");
                Debug.WriteLine("type1 IsDefinedFromReflectionEmit: " + type1.IsDefined(typeof(CompilerGeneratedAttribute), false));
                Debug.WriteLine("type2 IsDefinedFromReflectionEmit: " + type2.IsDefined(typeof(CompilerGeneratedAttribute), false));
-                isEqual = false;
+               isEqual = false;
             }
 
             if (isEqual)

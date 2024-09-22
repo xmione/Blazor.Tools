@@ -136,5 +136,22 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return table;
         }
 
+        public static List<(string TableName, string ColumnName, Type ColumnType)>? GetColumnDefinitions(this DataTable source)
+        {
+            List<(string TableName, string ColumnName, Type ColumnType)>? columns = null!;
+
+            var sourceColumns = source.Columns;
+            if (sourceColumns != null)
+            {
+                columns = new List<(string TableName, string ColumnName, Type ColumnType)>();
+                foreach (DataColumn dc in source.Columns)
+                {
+                    columns.Add((source.TableName, dc.ColumnName, dc.DataType));
+                }
+            }
+            
+            return columns;
+        }
+
     }
 }

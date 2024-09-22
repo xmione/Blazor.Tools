@@ -7,6 +7,12 @@ using System.Reflection;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using System.Diagnostics;
+using System.ComponentModel.DataAnnotations;
+using ICSharpCode.Decompiler.CSharp.Syntax;
+using Blazor.Tools.BlazorBundler.Entities;
+using static Blazor.Tools.BlazorBundler.Utilities.Assemblies.AssemblyGenerator;
+using System.Management;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Blazor.Tools.BlazorBundler.Tests
 {
@@ -14,25 +20,25 @@ namespace Blazor.Tools.BlazorBundler.Tests
     public class TypeCreatorTests : SampleData, IDisposable
     {
         private Mock<ITypeCreator> _typeCreatorMock = default!;
-        private AssemblyName _testAssemblyName = default!;
-        private AssemblyBuilder _testAssemblyBuilder = default!;
+        private AssemblyName _assemblyName = default!;
+        private PersistedAssemblyBuilder _assemblyBuilder = default!;
         private ModuleBuilder _testModuleBuilder = default!;
-
+        
         [TestInitialize]
         public void TestInit()
         {
             string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
             // Initialize the mock object
             _typeCreatorMock = new Mock<ITypeCreator>();
-            _testAssemblyName = new AssemblyName(contextAssemblyName);
-            _testAssemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(_testAssemblyName, AssemblyBuilderAccess.Run);
-            _testModuleBuilder = _testAssemblyBuilder.DefineDynamicModule(contextAssemblyName);
+            _assemblyName = new AssemblyName(contextAssemblyName);
+            _assemblyBuilder = new PersistedAssemblyBuilder(_assemblyName, typeof(object).Assembly); 
+            _testModuleBuilder = _assemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
             // Set up default mock behavior
-            _typeCreatorMock.Setup(tc => tc.DefineAssemblyName(It.IsAny<string>(), It.IsAny<string>())).Returns(_testAssemblyName);
+            _typeCreatorMock.Setup(tc => tc.DefineAssemblyName(It.IsAny<string>(), It.IsAny<string>())).Returns(_assemblyName);
             _typeCreatorMock.Setup(tc => tc.DefineAssemblyBuilder(It.IsAny<AssemblyName>(), It.IsAny<AssemblyBuilderAccess>()))
-                .Returns(_testAssemblyBuilder);
-            _typeCreatorMock.Setup(tc => tc.DefineModule(It.IsAny<AssemblyBuilder>(), It.IsAny<string>()))
+                .Returns(_assemblyBuilder);
+            _typeCreatorMock.Setup(tc => tc.DefineModule(It.IsAny<PersistedAssemblyBuilder>(), It.IsAny<string>()))
                 .Returns(_testModuleBuilder);
 
         }
@@ -49,16 +55,15 @@ namespace Blazor.Tools.BlazorBundler.Tests
         {
             // Arrange
             string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
-            string version = "1.0.0.0";
+            string version = "3.1.2.0";
 
             // Act
             var assemblyName = _typeCreatorMock.Object.DefineAssemblyName(contextAssemblyName, version);
 
             // Assert
-            Assert.AreEqual(_testAssemblyName, assemblyName);
+            Assert.AreEqual(_assemblyName, assemblyName);
             _typeCreatorMock.Verify(tc => tc.DefineAssemblyName(contextAssemblyName, version), Times.Once);
         }
-
 
         [TestMethod]
         public void DefineAssemblyBuilder_ShouldReturn_AssemblyBuilder()
@@ -69,13 +74,13 @@ namespace Blazor.Tools.BlazorBundler.Tests
             AssemblyName assemblyName = new AssemblyName(contextAssemblyName);
             AssemblyBuilderAccess assemblyAccess = AssemblyBuilderAccess.Run;
 
-            _typeCreatorMock.Setup(tc => tc.DefineAssemblyBuilder(assemblyName, assemblyAccess)).Returns(_testAssemblyBuilder);
+            _typeCreatorMock.Setup(tc => tc.DefineAssemblyBuilder(assemblyName, assemblyAccess)).Returns(_assemblyBuilder);
 
             // Act
             var assemblyBuilder = _typeCreatorMock.Object.DefineAssemblyBuilder(assemblyName, assemblyAccess);
 
             // Assert
-            Assert.AreEqual(_testAssemblyBuilder, assemblyBuilder);
+            Assert.AreEqual(_assemblyBuilder, assemblyBuilder);
             _typeCreatorMock.Verify(tc => tc.DefineAssemblyBuilder(assemblyName, assemblyAccess), Times.Once);
         }
 
@@ -83,11 +88,11 @@ namespace Blazor.Tools.BlazorBundler.Tests
         public void DefineModule_ShouldReturn_ModuleBuilder()
         {
             // Act
-            var moduleBuilder = _typeCreatorMock.Object.DefineModule(_testAssemblyBuilder, "TestModule");
+            var moduleBuilder = _typeCreatorMock.Object.DefineModule(_assemblyBuilder, "TestModule");
 
             // Assert
             Assert.AreEqual(_testModuleBuilder, moduleBuilder);
-            _typeCreatorMock.Verify(tc => tc.DefineModule(_testAssemblyBuilder, "TestModule"), Times.Once);
+            _typeCreatorMock.Verify(tc => tc.DefineModule(_assemblyBuilder, "TestModule"), Times.Once);
         }
 
         [TestMethod]
@@ -161,7 +166,135 @@ namespace Blazor.Tools.BlazorBundler.Tests
         [TestMethod]
         public void DynamicType_Test()
         {
-            Assert.IsTrue(DynamicTypeMatchTest.IsMatched());
+            var dynamicTypeMatchTest = new DynamicTypeMatchTest();
+            Assert.IsTrue(dynamicTypeMatchTest.IsMatched());
+            Assert.IsTrue(dynamicTypeMatchTest.IsAssignable());
+        }
+
+        [TestMethod]
+        public void Create_Bundler_Test()
+        {
+            var contextAssemblyName = "Blazor.Tools.BlazorBundler";
+            var employeeTypeNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            var iModelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            var employeeTypeName = "Employee";
+            var version = "3.1.2.0";
+            var employeeFullyQualifiedTypeName = $"{employeeTypeNameSpace}.{employeeTypeName}";
+            var employeeVMNameSpace = employeeTypeNameSpace.Replace("Models", "ViewModels");
+            var employeeVMTypeName = employeeTypeName + "VM";
+            var employeeVMFullyQualifiedTypeName = $"{employeeVMNameSpace}.{employeeVMTypeName}";
+            var dllPath = Path.Combine(Path.GetTempPath(), $"{contextAssemblyName}.dll" );
+            var typeCreator = new TypeCreator();
+            var assemblyName = typeCreator.DefineAssemblyName(contextAssemblyName, version);
+            typeCreator.DefineAssemblyBuilder(assemblyName, AssemblyBuilderAccess.Run);
+            var moduleBuilder = typeCreator.DefineModule(moduleName: contextAssemblyName);
+
+            var modelProperties = typeCreator.GetDataTableColumnDefinitions(EmployeeDataTable)
+                .Where(i => i.TableName == employeeTypeName)
+                .Select(p => new PropertyDefinition
+                {
+                    Name = p.ColumnName,
+                    Type = p.ColumnType
+                }).ToList() ?? default!; 
+
+            var employeeType = typeCreator.CreateType(
+                    ref moduleBuilder,
+                    typeName: employeeFullyQualifiedTypeName,
+                    typeAttributes: TypeAttributes.Public | TypeAttributes.Class,
+                    properties: modelProperties
+                    );
+
+            var iValidatableObjectType = typeof(IValidatableObject);
+            var iValidatableTypeMethods = iValidatableObjectType
+                .GetMethods()
+                .Select(i => new MethodDefinition
+                { 
+                    Name = i.Name,
+                    Attributes = i.Attributes,
+                    ReturnType = i.ReturnType,
+                    ParameterTypes = Array.ConvertAll(i.GetParameters(), p => p.ParameterType)
+                });
+
+            var iValidatableObjectCreatedType = typeCreator.CreateType(
+                ref moduleBuilder,
+                typeName: iValidatableObjectType?.FullName ?? default!,
+                typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
+                methodDefinitions: iValidatableTypeMethods
+                );
+
+            var iCloneableType = typeof(ICloneable<>);
+            var iCloneableTypeMethods = iCloneableType
+                .GetMethods()
+                .Select(i => new MethodDefinition
+                {
+                    Name = i.Name,
+                    Attributes = i.Attributes,
+                    ReturnType = i.ReturnType,
+                    ParameterTypes = Array.ConvertAll(i.GetParameters(), p => p.ParameterType)
+                });
+
+            var iCloneableProperties = iCloneableType.GetProperties()?.Select(p => new PropertyDefinition
+            {
+                Name = p.Name,
+                Type = p.PropertyType
+            }).ToList() ?? default!;
+
+            var iCloneableCreatedType = typeCreator.CreateType(
+                ref moduleBuilder,
+                typeName: iCloneableType?.FullName ?? default!,
+                typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
+                methodDefinitions: iCloneableTypeMethods,
+                properties: iCloneableProperties,
+                genericParameterNames: new[] { "T" }
+                );
+
+            var iModelExtendedProperties = typeof(IModelExtendedProperties).GetProperties()?.Select(p => new PropertyDefinition
+            {
+                Name = p.Name,
+                Type = p.PropertyType
+            }).ToList() ?? default!;
+
+            var iModelExtendedPropertiesType = typeCreator.CreateType(
+                    ref moduleBuilder,
+                    typeName: $"{iModelTypeAssemblyName}.IModelExtendedProperties",
+                    typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
+                    properties: iModelExtendedProperties
+                    );
+
+            //var iViewModelCreatedType = typeof(IViewModel<,>).MakeGenericType(employeeType, iModelExtendedPropertiesType);
+            var iViewModelCreatedType = typeCreator.CreateType(
+                ref moduleBuilder,
+                typeName: $"{iModelTypeAssemblyName}.IViewModel",
+                typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
+                interfaces: new Type[] { iModelExtendedPropertiesType },
+                genericParameterNames: new[] { "TModel", "TIModel" },  // Define <TModel, TIModel>
+                defineMethodsAction: tb => DefineViewModelMethods(typeCreator, tb)
+                );
+
+            //var genericType = typeof(List<>).MakeGenericType(iViewModelType);
+            //var removeMethod = genericType.GetMethod("Remove", BindingFlags.Instance | BindingFlags.Public, Type.DefaultBinder, new[] { iViewModelType }, null) ?? default!;
+            var iImplementations = new List<(Type InterfaceType, bool isTypeUsed)>()
+            {
+                new (iValidatableObjectType, false),
+                new (iCloneableType, true),
+                new (iViewModelCreatedType, false),
+            };
+
+            var vmType = typeCreator.CreateType
+                (
+                ref moduleBuilder,
+                typeName: employeeVMFullyQualifiedTypeName,
+                typeAttributes: TypeAttributes.Public | TypeAttributes.Class,
+                baseType: employeeType,
+                interfaces: new Type[] { iValidatableObjectType, iCloneableType, iViewModelCreatedType, iModelExtendedPropertiesType },
+                properties: modelProperties,
+                defineConstructorsAction: tb => DefineConstructors(typeCreator, tb, employeeType),
+                defineMethodsAction: tb => DefineMethods(typeCreator, tb, iViewModelCreatedType, employeeType, iModelExtendedPropertiesType),
+                iImplementations: iImplementations
+                );
+
+            // Save the assembly to a file
+            typeCreator.Save(dllPath);
         }
 
         [TestMethod]
@@ -304,66 +437,603 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 AppLogger.WriteInfo($"Method: {method.Name}, Return Type: {method.ReturnType}");
             }
         }
+        
+        private ModuleBuilder CreateEmployeeType(ModuleBuilder moduleBuilder)
+        {
+            var contextAssemblyName = "Blazor.Tools.BlazorBundler";
+            var modelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            var iModelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            var modelTypeName = "Employee";
+            var iModelTypeName = "IEmployee";
+            var version = "3.1.2.0";
 
-        private static void DefineInterfaceMethod(TypeBuilder typeBuilder, string methodName, Type returnType)
+            var tc = new TypeCreator(contextAssemblyName, modelTypeAssemblyName, modelTypeName, iModelTypeAssemblyName, iModelTypeName, version, AssemblyBuilderAccess.Run );
+
+            // Define the Employee class
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models.Employee",
+                TypeAttributes.Public | TypeAttributes.Class);
+
+            // Define fields
+            FieldBuilder idField = typeBuilder.DefineField("ID", typeof(int), FieldAttributes.Public);
+            FieldBuilder firstNameField = typeBuilder.DefineField("FirstName", typeof(string), FieldAttributes.Public);
+            FieldBuilder middleNameField = typeBuilder.DefineField("MiddleName", typeof(string), FieldAttributes.Public);
+            FieldBuilder lastNameField = typeBuilder.DefineField("LastName", typeof(string), FieldAttributes.Public);
+            FieldBuilder dateOfBirthField = typeBuilder.DefineField("DateOfBirth", typeof(DateOnly), FieldAttributes.Public);
+            FieldBuilder countryIdField = typeBuilder.DefineField("CountryID", typeof(int), FieldAttributes.Public);
+
+            // Define properties
+            DefineClassProperty(typeBuilder, "ID", typeof(int));
+            DefineClassProperty(typeBuilder, "FirstName", typeof(string));
+            DefineClassProperty(typeBuilder, "MiddleName", typeof(string));
+            DefineClassProperty(typeBuilder, "LastName", typeof(string));
+            DefineClassProperty(typeBuilder, "DateOfBirth", typeof(DateOnly));
+            DefineClassProperty(typeBuilder, "CountryID", typeof(int));
+
+            // Create the type
+            var employeeType = typeBuilder.CreateType();
+
+            // Retrieve and print properties
+            var properties = employeeType.GetProperties();
+            foreach (var prop in properties)
+            {
+                AppLogger.WriteInfo($"Property: {prop.Name}, Type: {prop.PropertyType}");
+            }
+
+            return moduleBuilder;
+        }
+
+        private ModuleBuilder CreateIViewModelType(ModuleBuilder moduleBuilder, string typeName)
+        {
+
+            // Define the generic type
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                typeName,
+                TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
+                null
+            );
+
+            // Define the generic parameters (without earlier techniques that did not work)
+            //GenericTypeParameterBuilder[] genericParamBuilders = typeBuilder.DefineGenericParameters(
+            //    $"{employeeTypeName}",
+            //    $"{iModelExtendedPropertiesTypeName}"
+            //);
+
+            GenericTypeParameterBuilder[] genericParamBuilders = typeBuilder.DefineGenericParameters(
+                "TModel",
+                $"TIModel"
+            );
+
+            // Create the type
+            var iViewModelCreatedType = typeBuilder.CreateTypeInfo().AsType();
+
+            return moduleBuilder;
+        }
+
+        private void DefineInterfaceMethod(TypeBuilder typeBuilder, string methodName, Type returnType)
         {
             MethodBuilder methodBuilder = typeBuilder.DefineMethod(methodName,
                 MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 returnType, Type.EmptyTypes);
         }
 
-        private static void DefineInterfaceTaskMethod(TypeBuilder typeBuilder, string methodName, Type returnType, params Type[] parameterTypes)
+        private void DefineInterfaceTaskMethod(TypeBuilder typeBuilder, string methodName, Type returnType, params Type[] parameterTypes)
         {
             MethodBuilder methodBuilder = typeBuilder.DefineMethod(methodName,
                 MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 returnType, parameterTypes);
         }
 
-        private static void DefineClassProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        private void DefineClassProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
         {
             FieldBuilder fieldBuilder = typeBuilder.DefineField($"_{propertyName.ToLower()}", propertyType, FieldAttributes.Private);
             PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
 
-            MethodBuilder getPropMthdBldr = typeBuilder.DefineMethod($"get_{propertyName}",
+            MethodBuilder getPropMethodBuilder = typeBuilder.DefineMethod($"get_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
                 propertyType, Type.EmptyTypes);
 
-            ILGenerator getIl = getPropMthdBldr.GetILGenerator();
+            ILGenerator getIl = getPropMethodBuilder.GetILGenerator();
             getIl.Emit(OpCodes.Ldarg_0);
             getIl.Emit(OpCodes.Ldfld, fieldBuilder);
             getIl.Emit(OpCodes.Ret);
 
-            MethodBuilder setPropMthdBldr = typeBuilder.DefineMethod($"set_{propertyName}",
+            MethodBuilder setPropMethodBuilder = typeBuilder.DefineMethod($"set_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual,
                 null, new Type[] { propertyType });
 
-            ILGenerator setIl = setPropMthdBldr.GetILGenerator();
+            ILGenerator setIl = setPropMethodBuilder.GetILGenerator();
             setIl.Emit(OpCodes.Ldarg_0);
             setIl.Emit(OpCodes.Ldarg_1);
             setIl.Emit(OpCodes.Stfld, fieldBuilder);
             setIl.Emit(OpCodes.Ret);
 
-            propertyBuilder.SetGetMethod(getPropMthdBldr);
-            propertyBuilder.SetSetMethod(setPropMthdBldr);
+            propertyBuilder.SetGetMethod(getPropMethodBuilder);
+            propertyBuilder.SetSetMethod(setPropMethodBuilder);
         }
 
-        private static void DefineInterfaceProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        private void DefineInterfaceProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
         {
             PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
 
             // Define the getter method signature
-            MethodBuilder getPropMthdBldr = typeBuilder.DefineMethod($"get_{propertyName}",
+            MethodBuilder getPropMethodBuilder = typeBuilder.DefineMethod($"get_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Abstract | MethodAttributes.Virtual,
                 propertyType, Type.EmptyTypes);
 
             // Define the setter method signature
-            MethodBuilder setPropMthdBldr = typeBuilder.DefineMethod($"set_{propertyName}",
+            MethodBuilder setPropMethodBuilder = typeBuilder.DefineMethod($"set_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Abstract | MethodAttributes.Virtual,
                 null, new Type[] { propertyType });
 
             // Attach getter and setter to the property
-            propertyBuilder.SetGetMethod(getPropMthdBldr);
-            propertyBuilder.SetSetMethod(setPropMthdBldr);
+            propertyBuilder.SetGetMethod(getPropMethodBuilder);
+            propertyBuilder.SetSetMethod(setPropMethodBuilder);
+        }
+
+        // Method to define the iViewModelMethods of IViewModel<TModel, TIModel> interface
+        private TypeBuilder DefineViewModelMethods(TypeCreator typeCreator, TypeBuilder typeBuilder)
+        {
+            // Define the return type and method signature for each method
+
+            // Method: TModel ToNewModel()
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "ToNewModel", typeof(object), Type.EmptyTypes);
+
+            // Method: TIModel ToNewIModel()
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "ToNewIModel", typeof(object), Type.EmptyTypes);
+
+            // Method: Task<IViewModel<TModel, TIModel>> FromModel(TModel model)
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "FromModel", typeof(Task<>).MakeGenericType(typeBuilder), new[] { typeof(object) });
+
+            // Method: Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode)
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SetEditMode", typeof(Task<>).MakeGenericType(typeBuilder), new[] { typeof(bool) });
+
+            // Method: Task<IViewModel<TModel, TIModel>> SaveModelVM()
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SaveModelVM", typeof(Task<>).MakeGenericType(typeBuilder), Type.EmptyTypes);
+
+            // Method: Task<IViewModel<TModel, TIModel>> SaveModelVMToNewModelVM()
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SaveModelVMToNewModelVM", typeof(Task<>).MakeGenericType(typeBuilder), Type.EmptyTypes);
+
+            // Method: Task<IEnumerable<IViewModel<TModel, TIModel>>> AddItemToList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList)
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "AddItemToList", typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeBuilder)), new[] { typeof(IEnumerable<>).MakeGenericType(typeBuilder) });
+
+            // Method: Task<IEnumerable<IViewModel<TModel, TIModel>>> UpdateList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList, bool isAdding)
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "UpdateList", typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeBuilder)), new[] { typeof(IEnumerable<>).MakeGenericType(typeBuilder), typeof(bool) });
+
+            // Method: Task<IEnumerable<IViewModel<TModel, TIModel>>> DeleteItemFromList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList)
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "DeleteItemFromList", typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(typeBuilder)), new[] { typeof(IEnumerable<>).MakeGenericType(typeBuilder) });
+
+            return typeBuilder;
+        }
+
+        public TypeBuilder DefineConstructors(TypeCreator typeCreator, TypeBuilder typeBuilder, Type modelType)
+        {
+            // Define the field for the contextProvider only once
+            FieldBuilder contextProviderField = typeBuilder.DefineField("contextProvider", typeof(IContextProvider), FieldAttributes.Private);
+            // Define constructors
+            // Parameterless constructor
+            typeBuilder = typeCreator.DefineConstructor(typeBuilder, Type.EmptyTypes, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Initialize contextProvider with a new instance of ContextProvider
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Newobj, typeof(ContextProvider).GetConstructor(Type.EmptyTypes)!);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with no parameters defined.");
+            });
+
+            // Constructor with IContextProvider parameter
+            typeBuilder = typeCreator.DefineConstructor(typeBuilder, new[] { typeof(IContextProvider) }, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Set contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with IContextProvider parameter defined.");
+            });
+
+            // Constructor with IContextProvider and Employee parameter
+            typeBuilder = typeCreator.DefineConstructor(typeBuilder, new[] { typeof(IContextProvider), modelType }, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Set contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+
+                // Set _modelProperties from Employee model
+                ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
+
+                if (typeCreator.AddedProperties != null)
+                {
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    {
+                        if (modelType.FullName == typeName)
+                        {
+                            if (prop.CanWrite)
+                            {
+                                ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                                ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
+                                ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                                ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                            }
+
+                        }
+
+                    }
+                }
+
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with IContextProvider and Employee parameter defined.");
+            });
+
+            // Constructor with IContextProvider and EmployeeVM parameter
+            typeBuilder = typeCreator.DefineConstructor(typeBuilder, new[] { typeof(IContextProvider), typeBuilder }, ilg =>
+            {
+                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Call, baseConstructor);
+
+                // Set contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1);
+                ilg.Emit(OpCodes.Stfld, contextProviderField);
+
+                // Set _modelProperties from EmployeeVM modelVM
+                ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
+
+                if (typeCreator.AddedProperties != null)
+                {
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    {
+                        if (typeName == modelType.FullName && prop.CanWrite)
+                        {
+                            ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                            ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
+                            ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                        }
+                    }
+                }
+
+                ilg.Emit(OpCodes.Ret);
+
+                Console.WriteLine("Constructor with IContextProvider and EmployeeVM parameter defined.");
+            });
+
+            //// Verify all constructors
+            //var _vmType = modelVMClassBuilder.CreateType(); // Create the final VM class
+
+            //// Log all constructors to ensure they are defined
+            //var constructors = _vmType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            //foreach (var ctor in constructors)
+            //{
+            //    var parameters = ctor.GetParameters();
+            //    Console.WriteLine($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.ParameterType.Name))}");
+            //}
+
+            return typeBuilder;
+        }
+
+        public TypeBuilder DefineMethods(TypeCreator typeCreator, TypeBuilder typeBuilder, Type iViewModelType, Type modelType, Type iModelType)
+        {
+            // Define methodDefinitions dynamically
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "ToNewModel", modelType, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Check for parameterless constructor
+                ConstructorInfo constructor = modelType.GetConstructor(Type.EmptyTypes)
+                    ?? throw new InvalidOperationException($"No parameterless constructor found for type {modelType.Name}");
+
+                // Emit IL code to call the constructor
+                ilg.Emit(OpCodes.Newobj, constructor);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "ToNewIModel", iModelType, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Get the constructor of modelType
+                ConstructorInfo? constructor = modelType.GetConstructor(Type.EmptyTypes);
+                if (constructor == null)
+                {
+                    throw new InvalidOperationException($"No parameterless constructor found for type {modelType.Name}");
+                }
+
+                // Emit IL to create a new instance of modelType
+                ilg.Emit(OpCodes.Newobj, constructor); // Create new instance of modelType
+                LocalBuilder localBuilderInstance = ilg.DeclareLocal(modelType); // Declare a local variable for the instance
+                ilg.Emit(OpCodes.Stloc, localBuilderInstance); // Store the instance in the local variable
+
+                // Get _modelProperties of modelType
+                if (typeCreator.AddedProperties != null)
+                {
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    {
+                        if (typeName == modelType.FullName && prop.CanWrite)
+                        {
+                            // Load the instance and the value to set
+                            ilg.Emit(OpCodes.Ldloc, localBuilderInstance); // Load instance
+                            ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+
+                            // Load the value of the property from 'this'
+                            if (prop != null)
+                            {
+                                ilg.Emit(OpCodes.Callvirt, prop?.GetGetMethod() ?? default!); // Call property getter
+                                ilg.Emit(OpCodes.Callvirt, prop?.GetSetMethod() ?? default!); // Call property setter
+                            }
+                        }
+                    }
+
+                    // Return the new instance
+                    ilg.Emit(OpCodes.Ldloc, localBuilderInstance);
+                    ilg.Emit(OpCodes.Ret);
+                }
+            });
+
+            // Define the method in the dynamic class builder
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "FromModel", typeof(Task<>).MakeGenericType(iViewModelType), new[] { modelType }, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Load the model argument onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Get the 'FromModel' method from the IViewModel<TModel, TIModel> interface
+                var method = iViewModelType.GetMethod("FromModel");
+
+                if (method == null)
+                {
+                    throw new InvalidOperationException($"No method found with name 'FromModel' in type {typeBuilder.Name}");
+                }
+
+                // Call the 'FromModel' method
+                ilg.Emit(OpCodes.Callvirt, method);
+
+                // Convert the result to Task<IViewModel<TModel, TIModel>>
+                ilg.Emit(OpCodes.Castclass, typeof(Task<>).MakeGenericType(iViewModelType));
+
+                // Return the result
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SetEditMode", typeof(Task<>).MakeGenericType(iViewModelType), new[] { typeof(bool) }, new[] { "isEditMode" }, (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Load the isEditMode argument onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Set the IsEditMode property
+                var isEditModeItem = typeCreator.AddedProperties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
+                var isEditModeProperty = isEditModeItem?.PropertyBuilder;
+                if (isEditModeProperty == null)
+                {
+                    throw new InvalidOperationException("IsEditMode property not found.");
+                }
+
+                ilg.Emit(OpCodes.Callvirt, isEditModeProperty?.GetSetMethod() ?? default!);
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SaveModelVM", typeof(Task<>).MakeGenericType(iViewModelType), Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Set the IsEditMode property to false
+                var isEditModeItem = typeCreator.AddedProperties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
+                var isEditModeProperty = isEditModeItem?.PropertyBuilder;
+                if (isEditModeProperty == null)
+                {
+                    throw new InvalidOperationException("IsEditMode property not found.");
+                }
+
+                ilg.Emit(OpCodes.Ldc_I4_0);
+                ilg.Emit(OpCodes.Callvirt, isEditModeProperty?.GetSetMethod() ?? default!);
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SaveModelVMToNewModelVM", typeof(Task<>).MakeGenericType(iViewModelType), Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0);
+
+                // Get all defined constructors
+                var constructors = typeCreator.GetDefinedConstructors();
+
+                foreach (var (ctor, parameters) in constructors)
+                {
+                    Console.WriteLine($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.Name))}");
+                }
+
+                // Identify the constructor with IContextProvider
+                var constructor = constructors.FirstOrDefault(c =>
+                    c.ParameterTypes.Length == 1 && c.ParameterTypes[0] == typeof(IContextProvider));
+
+                if (constructor == default)
+                {
+                    throw new InvalidOperationException("Constructor with IContextProvider not found.");
+                }
+
+                // Create a new instance of modelType using the identified constructor
+                ilg.Emit(OpCodes.Ldarg_1); // Load the IContextProvider argument
+                ilg.Emit(OpCodes.Newobj, constructor.ConstructorBuilder); // Call the constructor to create a new instance
+
+                // Store the new instance in a local variable
+                var newInstance = ilg.DeclareLocal(modelType);
+                ilg.Emit(OpCodes.Stloc, newInstance);
+
+                // Load _modelProperties from 'this' and set them on the new instance
+                if (typeCreator.AddedProperties != null)
+                {
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    {
+                        if (new[] { modelType.FullName, iModelType.FullName }.Contains(typeName) && prop.CanWrite)
+                        {
+                            // Load the new instance
+                            ilg.Emit(OpCodes.Ldloc, newInstance);
+
+                            // Load property value from 'this'
+                            ilg.Emit(OpCodes.Ldarg_0);
+                            ilg.Emit(OpCodes.Callvirt, prop?.GetGetMethod() ?? default!);
+
+                            // Set the property on the new instance
+                            ilg.Emit(OpCodes.Callvirt, prop?.GetSetMethod() ?? default!);
+                        }
+                    }
+
+                    // Emit async completion
+                    var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                    if (completedTaskProperty == null)
+                    {
+                        throw new InvalidOperationException("CompletedTask property not found.");
+                    }
+
+                    ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
+
+                    // Load the new instance and return it as Task<IViewModel<TModel, TIModel>>
+                    ilg.Emit(OpCodes.Ldloc, newInstance);
+                    ilg.Emit(OpCodes.Ret);
+                }
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "AddItemToList", typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(iViewModelType)), new[] { typeof(IEnumerable<>).MakeGenericType(iViewModelType) }, new[] { "modelVMList" }, (ilg, localBuilder) =>
+            {
+                // Load the modelVMList argument
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Create a list from the argument
+                var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)?.MakeGenericMethod(iViewModelType) ?? default!;
+                ilg.Emit(OpCodes.Call, toListMethod);
+
+                // Add 'this' to the list
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ldarg_0);
+                var method = iViewModelType.GetMethod("FromModel");
+
+                if (method == null)
+                {
+                    throw new InvalidOperationException($"No method found with name 'FromModel' in type {typeBuilder.Name}");
+                }
+                ilg.Emit(OpCodes.Callvirt, method);
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "UpdateList", typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(iViewModelType)), new[] { typeof(IEnumerable<>).MakeGenericType(iViewModelType), typeof(bool) }, new[] { "modelVMList", "isAdding" }, (ilg, localBuilder) =>
+            {
+                // Convert modelVMList to List
+                ilg.Emit(OpCodes.Ldarg_1);
+                var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)?.MakeGenericMethod(iViewModelType) ?? default!;
+                ilg.Emit(OpCodes.Call, toListMethod);
+
+                // Store the list in a local variable
+                var listLocal = ilg.DeclareLocal(typeof(List<>).MakeGenericType(iViewModelType));
+                ilg.Emit(OpCodes.Stloc, listLocal);
+
+                // If isAdding, remove 'this' from the list
+                var addLabel = ilg.DefineLabel();
+                ilg.Emit(OpCodes.Ldarg_2);  // Load isAdding argument
+                ilg.Emit(OpCodes.Brtrue_S, addLabel); // If true, jump to adding logic
+
+                // Remove 'this' from the list
+                //ilg.Emit(OpCodes.Ldloc, listLocal);
+                //ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                //var genericType = typeof(List<>).MakeGenericType(iViewModelType);
+                //var removeMethod = genericType.GetMethod("Remove", new[] { iViewModelType }) ?? default!;
+                //ilg.Emit(OpCodes.Callvirt, removeMethod);
+
+                // Assign list back to modelVMList (mimics modelVMList = list)
+                ilg.MarkLabel(addLabel); // Add logic starts here
+                ilg.Emit(OpCodes.Ldloc, listLocal); // Load the modified list
+                ilg.Emit(OpCodes.Starg_S, 1); // Store it back to the modelVMList argument
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty?.GetGetMethod() ?? default!);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "DeleteItemFromList", typeof(Task<>).MakeGenericType(typeof(IEnumerable<>).MakeGenericType(iViewModelType)), new[] { typeof(IEnumerable<>).MakeGenericType(iViewModelType) }, new[] { "modelVMList" }, (ilg, localBuilder) =>
+            {
+                // Load the modelVMList argument
+                ilg.Emit(OpCodes.Ldarg_1);
+
+                // Convert to list
+                var toListMethod = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public)?.MakeGenericMethod(iViewModelType) ?? default!;
+                ilg.Emit(OpCodes.Call, toListMethod);
+
+                //// Remove 'this' from the list
+                //ilg.Emit(OpCodes.Ldloc_0);
+                //ilg.Emit(OpCodes.Ldarg_0);
+                //var removeMethod = typeof(List<>).MakeGenericType(iViewModelType).GetMethod("Remove") ?? default!;
+                //ilg.Emit(OpCodes.Callvirt, removeMethod);
+
+                // Emit async completion
+                var completedTaskProperty = typeof(Task).GetProperty(nameof(Task.CompletedTask));
+                if (completedTaskProperty == null)
+                {
+                    throw new InvalidOperationException("CompletedTask property not found.");
+                }
+
+                ilg.Emit(OpCodes.Call, completedTaskProperty.GetGetMethod() ?? default!);
+                ilg.Emit(OpCodes.Ldloc_0);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            return typeBuilder;
         }
 
         public void Dispose()

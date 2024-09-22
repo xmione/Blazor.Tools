@@ -82,12 +82,12 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 assemblyName.Version = new Version("1.0.0.0");
                 var persistedAssemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
                 var moduleBuilder = persistedAssemblyBuilder.DefineDynamicModule(_employeeNameSpace);
-                var propertyInfoList = dataTable.GetProperties(); // Get the PropertyInfo collection
+                var columnDefinitions = dataTable.GetColumnDefinitions(); // Get the column definitions List<(string ColumnName, Type ColumnType)>
 
-                _modelProperties = propertyInfoList?.Select(p => new PropertyDefinition
+                _modelProperties = columnDefinitions?.Select(p => new PropertyDefinition
                 {
-                    Name = p.Name,
-                    Type = p.PropertyType
+                    Name = p.ColumnName,
+                    Type = p.ColumnType
                 }).ToList() ?? default!;
                 
                 _iModelExtendedProperties = typeof(IModelExtendedProperties).GetProperties()?.Select(p => new PropertyDefinition
