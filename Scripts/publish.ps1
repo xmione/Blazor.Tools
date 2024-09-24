@@ -324,7 +324,7 @@ Try {
         }
 
         # Clean Profile first for the imported Tools module
-        Clean-Tools
+        Cleanup-Tools
 
         Write-Host "==========================================================================================="
         Write-Host "Publishing the Package to nuget.org..."
