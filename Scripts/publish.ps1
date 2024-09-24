@@ -205,8 +205,8 @@ if ($LASTEXITCODE -ne 0) {
 $SolutionRoot = Get-Location
 $majorVersion = "3"
 $minorVersion = "1"
-$patchVersion = "4"
-$revisionVersion = "1"
+$patchVersion = "5"
+$revisionVersion = "0"
 $packageVersion = "${majorVersion}.${minorVersion}.${patchVersion}"
 $assemblyVersion = "$packageVersion.$revisionVersion"
 $fileVersion = "$packageVersion.$revisionVersion"

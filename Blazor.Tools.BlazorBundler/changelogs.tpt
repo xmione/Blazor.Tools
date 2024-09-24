@@ -8,10 +8,10 @@
 - None
 
 ### Minor Changes
-- None.
+- None
 
 ### Patches
-- None.
+- Added Get-EnvVars in tools module.
 
 ### Revisions
-- Added Get-EnvVars in tools module.
+- None
