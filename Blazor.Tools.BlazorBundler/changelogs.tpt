@@ -11,7 +11,7 @@
 - None.
 
 ### Patches
-- Added missing Blazor.Tools.BlazorBundler nuget packages.
+- Fixed build configuration file.
 
 ### Revisions
 - None.

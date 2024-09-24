@@ -83,7 +83,7 @@ function BuildSolution {
     <#
         To run:
                 BuildSolution -configuration "Release" -packageVersion "3.1.3" -assemblyVersion "3.1.3" -fileVersion "3.1.3.0"
-                dotnet msbuild $solutionFile /p:BlazorBundlerPackageVersion="3.1.3" /p:Configuration="Release" /p:AssemblyVersion="3.1.3" /p:FileVersion="3.1.3." /p:Version="3.1.2"
+                dotnet msbuild $solutionFile /p:PackageVersion="3.1.3" /p:Configuration="Release" /p:AssemblyVersion="3.1.3" /p:FileVersion="3.1.3." /p:Version="3.1.2"
     #>
     
 
@@ -92,7 +92,7 @@ function BuildSolution {
     Write-Host "dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion "
     Write-Host "==========================================================================================="
     # Update AssemblyVersion and FileVersion using the solution file. See (To run:) code above.
-    dotnet msbuild $solutionFile /p:BlazorBundlerPackageVersion=$packageVersion /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
+    dotnet msbuild $solutionFile /p:PackageVersion=$packageVersion /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
 
     <#
     Write-Host "Building project with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
@@ -197,10 +197,16 @@ function SaveChangeLogAndReadMe {
                         E N D  O F  F U N C T I O N  D E L A C R A T I O N S
 ===========================================================================================================#>
 
+
+# Check the exit code of the msbuild command
+if ($LASTEXITCODE -ne 0) {
+    throw "Initial failed with exit code $LASTEXITCODE"
+}
+
 $SolutionRoot = Get-Location
 $majorVersion = "3"
 $minorVersion = "1"
-$patchVersion = "3"
+$patchVersion = "4"
 $revisionVersion = "0"
 $packageVersion = "${majorVersion}.${minorVersion}.${patchVersion}"
 $assemblyVersion = "$packageVersion.$revisionVersion"
@@ -208,14 +214,72 @@ $fileVersion = "$packageVersion.$revisionVersion"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
 $changelogPath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\changelog_$packageVersion.md"
 
+# Check the exit code of the msbuild command
+if ($LASTEXITCODE -ne 0) {
+    throw "Variable settings 1 failed with exit code $LASTEXITCODE"
+}
+
 # Determine the configuration based on the IsRelease parameter
 $configuration = if ($IsRelease) { "Release" } else { "Debug" }
-
-# Update project file - using dotnet msbuild
 $solutionFile = "${SolutionRoot}\Blazor.Tools.sln"
+$toolsFolderPath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\tools"
 $projectFile = "${SolutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
 $packagesOutputFolderPath = "${SolutionRoot}\packages"
 $colors = @("Cyan", "Magenta", "Yellow", "Green")
+
+# Check the exit code of the msbuild command
+if ($LASTEXITCODE -ne 0) {
+    throw "Variable settings 2 failed with exit code $LASTEXITCODE"
+}
+
+# Set environment variables
+$env:PackageVersion = $packageVersion
+$env:Configuration = $configuration
+$env:AssemblyVersion = $assemblyVersion
+$env:FileVersion = $fileVersion
+$env:NugetApiKey = $nugetApiKey
+$env:ChangelogPath = $changelogPath
+
+$ModulePath = "${toolsFolderPath}\Update-EnvironmentVariable.psm1"
+
+
+# Check the exit code of the msbuild command
+if ($LASTEXITCODE -ne 0) {
+    throw "Environment variable settings failed with exit code $LASTEXITCODE"
+}
+
+
+# Check if the module is already imported
+if (-not (Get-Module -Name "Update-EnvironmentVariable" -ListAvailable)) {
+    Import-Module $ModulePath
+}
+
+# Check the exit code of the msbuild command
+if ($LASTEXITCODE -ne 0) {
+    throw "Import-Module failed with exit code $LASTEXITCODE"
+}
+
+Set-Item -Path "Env:PackageVersion" -Value $packageVersion
+Set-Item -Path "Env:Configuration" -Value $configuration
+Set-Item -Path "Env:AssemblyVersion" -Value $assemblyVersion
+Set-Item -Path "Env:FileVersion" -Value $fileVersion
+Set-Item -Path "Env:NugetApiKey" -Value $nugetApiKey
+Set-Item -Path "Env:ChangelogPath" -Value $changelogPath
+<#
+
+Update-EnvironmentVariable -Action Add -Name "PackageVersion" -Value $packageVersion
+Update-EnvironmentVariable -Action Add -Name "Configuration" -Value $configuration
+Update-EnvironmentVariable -Action Add -Name "AssemblyVersion" -Value $assemblyVersion
+Update-EnvironmentVariable -Action Add -Name "FileVersion" -Value $fileVersion
+Update-EnvironmentVariable -Action Add -Name "NugetApiKey" -Value $nugetApiKey
+Update-EnvironmentVariable -Action Add -Name "ChangelogPath" -Value $changelogPath
+#>
+
+# Check the exit code of the msbuild command
+if ($LASTEXITCODE -ne 0) {
+    throw "Set-Item failed with exit code $LASTEXITCODE"
+}
+
 Try {
 
     # Check if the $nugetApiKey variable is empty

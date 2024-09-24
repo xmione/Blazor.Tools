@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
     <BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
-    <BlazorBundlerPackageVersion Condition="'$(BlazorBundlerPackageVersion)' == ''"></BlazorBundlerPackageVersion>
-    <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)</SourcePath>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(PackageVersion)</PackageVersion>
+    <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(PackageVersion)</SourcePath>
     <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
     <PackagesPath>$(SourcePath)\packages</PackagesPath>
   </PropertyGroup>
@@ -10,7 +10,7 @@
     <!-- Log some information for debugging -->
     <Message Text="Executing CustomInstall target" Importance="high" />
     <Message Text="BlazorBundlerPackageName: $(BlazorBundlerPackageName)" Importance="high" />
-    <Message Text="BlazorBundlerPackageVersion: $(BlazorBundlerPackageVersion)" Importance="high" />
+    <Message Text="PackageVersion: $(PackageVersion)" Importance="high" />
 	
     <Message Text="SourcePath: $(SourcePath)" Importance="high" />
     <Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
