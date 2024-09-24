@@ -11,7 +11,7 @@
 - None.
 
 ### Patches
-- Fixed build configuration file.
+- None.
 
 ### Revisions
-- None.
+- Added Get-EnvVars in tools module.

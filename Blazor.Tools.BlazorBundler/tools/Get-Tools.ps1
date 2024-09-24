@@ -34,6 +34,7 @@ Import-Module '$ScriptDir\Print-Folder-Structure.psm1'
 Import-Module '$ScriptDir\Install-Pkgs.psm1'
 Import-Module '$ScriptDir\Uninstall-Pkgs.psm1'
 Import-Module '$ScriptDir\Cleanup-Tools.psm1'
+Import-Module '$ScriptDir\Get-EnvVars.psm1'
 "@
 
 # Remove existing import statements from the profile script

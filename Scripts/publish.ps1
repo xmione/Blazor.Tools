@@ -197,7 +197,6 @@ function SaveChangeLogAndReadMe {
                         E N D  O F  F U N C T I O N  D E L A C R A T I O N S
 ===========================================================================================================#>
 
-
 # Check the exit code of the msbuild command
 if ($LASTEXITCODE -ne 0) {
     throw "Initial failed with exit code $LASTEXITCODE"
@@ -207,7 +206,7 @@ $SolutionRoot = Get-Location
 $majorVersion = "3"
 $minorVersion = "1"
 $patchVersion = "4"
-$revisionVersion = "0"
+$revisionVersion = "1"
 $packageVersion = "${majorVersion}.${minorVersion}.${patchVersion}"
 $assemblyVersion = "$packageVersion.$revisionVersion"
 $fileVersion = "$packageVersion.$revisionVersion"
@@ -242,12 +241,10 @@ $env:ChangelogPath = $changelogPath
 
 $ModulePath = "${toolsFolderPath}\Update-EnvironmentVariable.psm1"
 
-
 # Check the exit code of the msbuild command
 if ($LASTEXITCODE -ne 0) {
     throw "Environment variable settings failed with exit code $LASTEXITCODE"
 }
-
 
 # Check if the module is already imported
 if (-not (Get-Module -Name "Update-EnvironmentVariable" -ListAvailable)) {
@@ -265,15 +262,6 @@ Set-Item -Path "Env:AssemblyVersion" -Value $assemblyVersion
 Set-Item -Path "Env:FileVersion" -Value $fileVersion
 Set-Item -Path "Env:NugetApiKey" -Value $nugetApiKey
 Set-Item -Path "Env:ChangelogPath" -Value $changelogPath
-<#
-
-Update-EnvironmentVariable -Action Add -Name "PackageVersion" -Value $packageVersion
-Update-EnvironmentVariable -Action Add -Name "Configuration" -Value $configuration
-Update-EnvironmentVariable -Action Add -Name "AssemblyVersion" -Value $assemblyVersion
-Update-EnvironmentVariable -Action Add -Name "FileVersion" -Value $fileVersion
-Update-EnvironmentVariable -Action Add -Name "NugetApiKey" -Value $nugetApiKey
-Update-EnvironmentVariable -Action Add -Name "ChangelogPath" -Value $changelogPath
-#>
 
 # Check the exit code of the msbuild command
 if ($LASTEXITCODE -ne 0) {
@@ -335,12 +323,15 @@ Try {
             throw "Build failed with exit code $LASTEXITCODE"
         }
 
+        # Clean Profile first for the imported Tools module
+        Clean-Tools
+
         Write-Host "==========================================================================================="
         Write-Host "Publishing the Package to nuget.org..."
         Write-Host "==========================================================================================="
         # Publish the package to nuget.org (replace with your publish command)
         #dotnet nuget push packages/Blazor.Tools.BlazorBundler.$packageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
-
+        
         $command = "$SolutionRoot\publish-packages -PackagesPath `"$packagesOutputFolderPath`" -NugetApiKey `"$nugetApiKey`" -PackageVersion `"$packageVersion`""
         Start-Process "powershell" -ArgumentList "-NoExit -Command `"$command`"" -Verb runAs
         
