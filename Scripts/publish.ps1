@@ -244,7 +244,7 @@ Try {
 
         # Dockerize
         #docker build -t solomiosisante/blazor-bundler:latest .
-        docker build -p:Version=$packageVersion -p:FileVersion=$fileVersion -p:AssemblyVersion=$assemblyVersion --build-arg BUILD_CONFIGURATION=$configuration -t solomiosisante/blazor-bundler:latest .
+        docker build --build-arg BUILD_CONFIGURATION=$configuration -t solomiosisante/blazor-bundler:latest .
 
         # Check the exit code of the msbuild command
         if ($LASTEXITCODE -ne 0) {
