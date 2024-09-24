@@ -211,6 +211,26 @@ function SaveChangeLogAndReadMe {
 
 }
 
+function Import-Modules {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string[]] $ModulePaths
+    )
+
+    foreach ($modulePath in $ModulePaths) {
+        # Extract the module name from the path
+        $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($modulePath)
+
+        # Check if the module is already imported
+        if (-not (Get-Module -Name $moduleName -ListAvailable)) {
+            Write-Host "Importing module: $moduleName from $modulePath"
+            Import-Module $modulePath
+        } else {
+            Write-Host "Module $moduleName is already imported."
+        }
+    }
+}
+
 function Initialize
 {
     param(
@@ -260,7 +280,7 @@ function Initialize
     # Determine the configuration based on the IsRelease parameter
     $global:configuration = if ($IsRelease) { "Release" } else { "Debug" }
     $global:solutionFile = "${global:solutionRoot}\Blazor.Tools.sln"
-    $global:toolsFolderPath = "${global:solutionRoot}\Blazor.Tools.BlazorBundler\tools"
+    $toolsFolderPath = "${global:solutionRoot}\Blazor.Tools.BlazorBundler\tools"
     $global:projectFile = "${global:solutionRoot}\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj"
     $global:packagesOutputFolderPath = "${global:solutionRoot}\packages"
     $global:colors = @("Cyan", "Magenta", "Yellow", "Green")
@@ -278,21 +298,24 @@ function Initialize
     $env:NugetApiKey = $global:nugetApiKey
     $env:ChangelogPath = $global:changelogPath
 
-    $global:modulePath = "${global:toolsFolderPath}\Update-EnvironmentVariable.psm1"
-
+    $modulePaths = @(
+    "${toolsFolderPath}\Update-EnvironmentVariable.psm1",
+    "${toolsFolderPath}\Print-Folder-Structure.psm1",
+    "${toolsFolderPath}\Install-Pkgs.psm1",
+    "${toolsFolderPath}\Uninstall-Pkgs.psm1",
+    "${toolsFolderPath}\Cleanup-Tools.psm1",
+    "${toolsFolderPath}\Get-EnvVars.psm1"
+)
     # Check the exit code of the msbuild command
     if ($LASTEXITCODE -ne 0) {
         throw "Environment variable settings failed with exit code $LASTEXITCODE"
     }
-
-    # Check if the module is already imported
-    if (-not (Get-Module -Name "Update-EnvironmentVariable" -ListAvailable)) {
-        Import-Module $global:modulePath
-    }
+    
+    Import-Modules -ModulePaths $modulePaths
 
     # Check the exit code of the msbuild command
     if ($LASTEXITCODE -ne 0) {
-        throw "Import-Module failed with exit code $LASTEXITCODE"
+        throw "Import-Modules failed with exit code $LASTEXITCODE"
     }
 
     Set-Item -Path "Env:PackageVersion" -Value $global:packageVersion
@@ -372,6 +395,10 @@ Try {
 
         # Clean Profile first for the imported Tools module
         Cleanup-Tools
+        # Check the exit code of the msbuild command
+        if ($LASTEXITCODE -ne 0) {
+            throw "Cleanup-Tools failed with exit code $LASTEXITCODE"
+        }
 
         Write-Host "==========================================================================================="
         Write-Host "Publishing the Package to nuget.org..."
