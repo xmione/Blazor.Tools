@@ -60,6 +60,7 @@ Function Uninstall-Pkgs
     # Call function to remove specified items from .csproj
     RemoveFromCsproj $csprojFile $directoriesToDelete
 
+    Cleanup-Tools
     Write-Host "CustomUninstall script completed"
 
 }

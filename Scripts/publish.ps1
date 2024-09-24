@@ -277,7 +277,7 @@ Try {
         # Publish the package to nuget.org (replace with your publish command)
         #dotnet nuget push packages/Blazor.Tools.BlazorBundler.$packageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
 
-        $command = "$SolutionRoot\publish-packages -PackagePath `"$packagesOutputFolderPath`" -NugetApiKey `"$nugetApiKey`" -PackageVersion `"$packageVersion`""
+        $command = "$SolutionRoot\publish-packages -PackagesPath `"$packagesOutputFolderPath`" -NugetApiKey `"$nugetApiKey`" -PackageVersion `"$packageVersion`""
         Start-Process "powershell" -ArgumentList "-NoExit -Command `"$command`"" -Verb runAs
         
         # Check the exit code of the msbuild command
