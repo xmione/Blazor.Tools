@@ -52,16 +52,40 @@
           SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
           DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
  
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
+    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Cleanup-Tools.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Cleanup-Tools.psm1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-EnvVars.psm1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-EnvVars.psm1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-Tools.ps1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.psm1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall-Pkgs.psm1')"
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Print-Folder-Structure.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Print-Folder-Structure.psm1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Set-EnvVars.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Set-EnvVars.psm1"
+          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+      <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall-Pkgs.psm1')"
           SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall-Pkgs.psm1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-Tools.ps1"
+      <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Update-EnvironmentVariable.psm1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Update-EnvironmentVariable.psm1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
     <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AIChatBot.razor')"

@@ -7,7 +7,7 @@
                 Remove-Module -Name Get-EnvVars
 
     To check if it exists:
-                Get-Module
+                Get-Module -Name "Get-EnvVars"
 #>
 
 Function Get-EnvVars {

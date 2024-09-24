@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Added modules to Get-Tools and Cleanup-Tools modules.
+- Added missing powershell modules to the package.
 
 ### Revisions
 - None

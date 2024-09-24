@@ -41,12 +41,22 @@
 			<PackagePath>\packages\</PackagePath>
 		</None>
 		<!-- None items in the tools folder -->
-		<None Include=" tools\install-nupkg.ps1">
+		<None Include=" tools\Cleanup-Tools.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- None items in the tools folder -->
+		<None Include=" tools\Get-EnvVars.psm1">
 			<Pack>True</Pack>
 			<PackagePath>\tools\</PackagePath>
 		</None>
 		<!-- Add Get-Tools.ps1 -->
 		<None Include="tools\Get-Tools.ps1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- None items in the tools folder -->
+		<None Include=" tools\install-nupkg.ps1">
 			<Pack>True</Pack>
 			<PackagePath>\tools\</PackagePath>
 		</None>
@@ -60,8 +70,18 @@
 			<Pack>True</Pack>
 			<PackagePath>\tools\</PackagePath>
 		</None>
+		<!-- Add Print-Folder-Structure.psm1 -->
+		<None Include="tools\Set-EnvVars.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
 		<!-- Add Uninstall-Pkgs.psm1 -->
 		<None Include="tools\Uninstall-Pkgs.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add Uninstall-Pkgs.psm1 -->
+		<None Include="tools\Update-EnvironmentVariable.psm1">
 			<Pack>True</Pack>
 			<PackagePath>\tools\</PackagePath>
 		</None>
