@@ -7,7 +7,7 @@ namespace Blazor.Tools.BlazorBundler.Interfaces
     {
         AssemblyName DefineAssemblyName(string contextAssemblyName = null!, string version = null!);
         PersistedAssemblyBuilder DefineAssemblyBuilder(AssemblyName? assemblyName = null, AssemblyBuilderAccess? assemblyBuilderAccess = null);
-        ModuleBuilder DefineModule(PersistedAssemblyBuilder assemblyBuilder = null!, string moduleName = null!);
+        ModuleBuilder DefineModuleBuilder(PersistedAssemblyBuilder assemblyBuilder = null!, string moduleName = null!);
         Type DefineInterfaceType(ModuleBuilder mb, string fullyQualifiedName);
     }
 }

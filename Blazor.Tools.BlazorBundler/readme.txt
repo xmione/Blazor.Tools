@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.1.2
-- **Assembly Version**: 3.1.2.0
-- **File Version**: 3.1.2.0
+- **Package Version**: 3.1.3
+- **Assembly Version**: 3.1.3.0
+- **File Version**: 3.1.3.0
 
 ## Features
 
@@ -57,7 +57,7 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
 ### Open PowerShell and run: 
 
 ```
-    $version = "3.1.2"
+    $version = "3.1.3"
     $userProfileName = "solom"
     $sourcePath = "C:\Users\$userProfileName\.nuget\packages\blazor.tools.blazorbundler\$version"
     $targetPath = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
@@ -139,4 +139,5 @@ Open PowerShell and run:
 - [changelog_3.1.0.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.1.0.md)
 - [changelog_3.1.1.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.1.1.md)
 - [changelog_3.1.2.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.1.2.md)
+- [changelog_3.1.3.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.1.3.md)
 

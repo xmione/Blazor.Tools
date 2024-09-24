@@ -82,14 +82,14 @@ function BuildSolution {
     )
     Write-Host "==========================================================================================="
     Write-Host "Building solution with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
-    Write-Host "dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion "
+    Write-Host "dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion "
     Write-Host "==========================================================================================="
     # Update AssemblyVersion and FileVersion using the solution file
-    dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion 
+    dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
     <#
     Write-Host "Building project with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
     # Update AssemblyVersion and FileVersion using the project file
-    dotnet msbuild $projectFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion 
+    dotnet msbuild $projectFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
     #>
 
     # Check the exit code of the msbuild command
@@ -340,8 +340,8 @@ Open PowerShell and run:
                         E N D  O F  F U N C T I O N  D E L A C R A T I O N S
 ===========================================================================================================#>
 
-$SolutionRoot = "C:\repo\Blazor.Tools"
-$packageVersion = "3.1.2"
+$SolutionRoot = Get-Location
+$packageVersion = "3.1.3"
 $assemblyVersion = "$packageVersion.0"
 $fileVersion = "$packageVersion.0"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
@@ -391,7 +391,7 @@ Try {
 
         # Dockerize
         #docker build -t solomiosisante/blazor-bundler:latest .
-        docker build --build-arg BUILD_CONFIGURATION=$configuration -t solomiosisante/blazor-bundler:latest .
+        docker build -p:Version=$packageVersion -p:FileVersion=$fileVersion -p:AssemblyVersion=$assemblyVersion --build-arg BUILD_CONFIGURATION=$configuration -t solomiosisante/blazor-bundler:latest .
 
         # Check the exit code of the msbuild command
         if ($LASTEXITCODE -ne 0) {
@@ -414,8 +414,11 @@ Try {
         Write-Host "Publishing the Package to nuget.org..."
         Write-Host "==========================================================================================="
         # Publish the package to nuget.org (replace with your publish command)
-        dotnet nuget push packages/Blazor.Tools.BlazorBundler.$packageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
+        #dotnet nuget push packages/Blazor.Tools.BlazorBundler.$packageVersion.nupkg --source https://api.nuget.org/v3/index.json --api-key $nugetApiKey
 
+        $command = "$SolutionRoot\publish-packages -PackagePath `"$packagesOutputFolderPath`" -NugetApiKey `"$nugetApiKey`" -PackageVersion `"$packageVersion`""
+        Start-Process "powershell" -ArgumentList "-NoExit -Command `"$command`"" -Verb runAs
+        
         # Check the exit code of the msbuild command
         if ($LASTEXITCODE -ne 0) {
             throw "Build failed with exit code $LASTEXITCODE"

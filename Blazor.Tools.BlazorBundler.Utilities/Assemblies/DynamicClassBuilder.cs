@@ -454,11 +454,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 _dynamicType = _typeBuilder?.CreateType();
                 AppLogger.WriteInfo($"_dynamicType {_dynamicType}");
 
-                var typeProps = _dynamicType?.GetProperties() ?? default!;
-                foreach (var prop in typeProps)
-                {
-                    AppLogger.WriteInfo($"prop.Name: {prop.Name}");
-                }
+                //var typeProps = _dynamicType?.GetProperties() ?? default!;
+                //foreach (var prop in typeProps)
+                //{
+                //    AppLogger.WriteInfo($"prop.Name: {prop.Name}");
+                //}
 
                 DeleteAssembly();
 
@@ -498,7 +498,25 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
                 if (_assembly != null && _fullyQualifiedClassName != null)
                 {
+                    var dllProps = _assembly.GetProperties() ?? default!;
+                    foreach (var prop in dllProps)
+                    {
+                        AppLogger.WriteInfo($"prop.Name: {prop.Name} Value: {_assembly.GetProperty(prop.Name)}");
+                    }
+
+                    var dllTypes = _assembly.GetTypes() ?? default!;
+                    foreach (var type in dllTypes)
+                    {
+                        AppLogger.WriteInfo($"type.Name: {type.Name} type.FullName: {type.FullName}");
+                    }
+                    
                     _dynamicType = _assembly.GetType(_fullyQualifiedClassName);
+
+                    var typeProps = _dynamicType?.GetProperties() ?? default!;
+                    foreach (var prop in typeProps)
+                    {
+                        AppLogger.WriteInfo($"prop.Name: {prop.Name} Value: {_dynamicType.GetPropertyValue(prop.Name)}");
+                    }
                 }
             }
             catch (Exception ex)

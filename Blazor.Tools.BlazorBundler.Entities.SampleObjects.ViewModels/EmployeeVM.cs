@@ -123,7 +123,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 
         public EmployeeVM(IContextProvider contextProvider)
         {
+            _employees = new List<EmployeeVM>();
             _contextProvider = contextProvider;
+            _rowID = 0;
+            _isEditMode = false;
+            _isVisible = false;
+            _startCell = 0;
+            _endCell = 0;
+            _isFirstCellClicked = false;
         }
 
         public EmployeeVM(IContextProvider contextProvider, Employee model)

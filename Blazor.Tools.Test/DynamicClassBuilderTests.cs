@@ -155,6 +155,36 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 {
                     Assert.Fail("Failed to retrieve the type from the model instance.");
                 }
+                 
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail($"Create failed with exception: {ex.Message}");
+                AppLogger.HandleException(ex);
+            }
+
+            await Task.CompletedTask;
+        }
+        
+        [TestMethod]
+        public async Task CreateDynamicBundlerDLL_Mock_Test()
+        {
+            try
+            {
+                // Setup the mock to simulate behavior
+                _dynamicClassBuilderMock?.Setup(m => m.CreateClassFromDataTable(EmployeeDataTable)).Verifiable();
+                _dynamicClassBuilderMock?.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
+
+                // Create an instance of DynamicClassBuilder for TModel
+                _dynamicClassBuilderMock?.Object.CreateClassFromDataTable(EmployeeDataTable);
+                _dynamicClassBuilderMock?.Object.SaveAssembly();
+
+                _modelType = _dynamicClassBuilderMock?.Object.DynamicType;
+
+                if (_modelType == null)
+                {
+                    Assert.Fail("Failed to retrieve the type from the model instance.");
+                }
 
                 // Define and create an instance of DynamicClassBuilder for TModelVM
                 var tiModelType = typeof(IModelExtendedProperties);
