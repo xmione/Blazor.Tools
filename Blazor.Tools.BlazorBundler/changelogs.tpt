@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Fix error in environment variables and imported modules in $PROFILE.
+- Fix error in $MajorVersion variable.
 
 ### Revisions
 - None

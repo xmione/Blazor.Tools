@@ -415,7 +415,7 @@ Try {
         }
 
         # Note: Re-initialize: It is important to re-initialize the user profile for the imported modules to be available globally.
-        Initialize -MajorVersion $$MajorVersion -MinorVersion $MinorVersion -PatchVersion $PatchVersion -RevisionVersion $RevisionVersion -Publish $Publish -IsRelease $IsRelease -GitComment $GitComment
+        Initialize -MajorVersion $MajorVersion -MinorVersion $MinorVersion -PatchVersion $PatchVersion -RevisionVersion $RevisionVersion -Publish $Publish -IsRelease $IsRelease -GitComment $GitComment
     }
 
 }
