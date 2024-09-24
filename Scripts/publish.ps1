@@ -131,28 +131,7 @@ function SaveChangeLogAndReadMe {
         [string]$fileVersion, 
         [string]$changelogPath
     )
-            
-    # Generate Changelog with dynamic version information
-    $changelogContent = @"
-Version $packageVersion
------------------------
-Package Version: $packageVersion
-Assembly Version: $assemblyVersion
-File Version: $fileVersion
-
-### Major Changes
-- None
-
-### Minor Changes
-- None.
-
-### Patches
-- Added missing project references.
-
-### Revisions
-- None.
-"@
-
+    
     # Save change log to file
     Write-Host "==========================================================================================="
     Write-Host "Saving change log to file $changelogPath"
@@ -166,11 +145,17 @@ File Version: $fileVersion
     # List all change log files in the directory
     $changeLogFiles = Get-ChildItem -Path $changelogDir -Filter $filterPattern | Sort-Object
 
+    # Generate Changelog with dynamic version information
+    $changelogContent =  Get-Content -Path "${changelogDir}\changelogs.tpt" -Raw
+    $changelogContent = $changelogContent -replace "$packageVersion", $packageVersion
+    $changelogContent = $changelogContent -replace "$assemblyVersion", $assemblyVersion
+    $changelogContent = $changelogContent -replace "$fileVersion", $fileVersion
+
     # Generate Markdown content for README.md with version information
-    $readmeContent =  Get-Content -Path "${changeLogDir}\readme.tpt" -Raw
-    $readmeContent = $readmeContent -replace "\$packageVersion", $packageVersion
-    $readmeContent = $readmeContent -replace "\$assemblyVersion", $assemblyVersion
-    $readmeContent = $readmeContent -replace "\$fileVersion", $fileVersion
+    $readmeContent = Get-Content -Path "${changeLogDir}\readme.tpt" -Raw
+    $readmeContent = $readmeContent -replace "$packageVersion", $packageVersion
+    $readmeContent = $readmeContent -replace "$assemblyVersion", $assemblyVersion
+    $readmeContent = $readmeContent -replace "$fileVersion", $fileVersion
 
     $changeLogsUrl = "https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/"
     # Append change log files to README.md
@@ -205,9 +190,13 @@ File Version: $fileVersion
 ===========================================================================================================#>
 
 $SolutionRoot = Get-Location
-$packageVersion = "3.1.3"
-$assemblyVersion = "$packageVersion.0"
-$fileVersion = "$packageVersion.0"
+$majorVersion = "3"
+$minorVersion = "1"
+$patchVersion = "3"
+$revisionVersion = "0"
+$packageVersion = "${majorVersion}.${minorVersion}.${patchVersion}"
+$assemblyVersion = "$packageVersion.$revisionVersion"
+$fileVersion = "$packageVersion.$revisionVersion"
 $nugetApiKey = $Env:MY_NUGET_API_KEY
 $changelogPath = "${SolutionRoot}\Blazor.Tools.BlazorBundler\changelog_$packageVersion.md"
 
