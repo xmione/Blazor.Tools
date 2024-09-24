@@ -80,12 +80,20 @@ function BuildSolution {
         [string]$assemblyVersion, 
         [string]$fileVersion
     )
+    <#
+        To run:
+                BuildSolution -configuration "Release" -packageVersion "3.1.3" -assemblyVersion "3.1.3" -fileVersion "3.1.3.0"
+                dotnet msbuild $solutionFile /p:BlazorBundlerPackageVersion="3.1.3" /p:Configuration="Release" /p:AssemblyVersion="3.1.3" /p:FileVersion="3.1.3." /p:Version="3.1.2"
+    #>
+    
+
     Write-Host "==========================================================================================="
     Write-Host "Building solution with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
     Write-Host "dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion "
     Write-Host "==========================================================================================="
-    # Update AssemblyVersion and FileVersion using the solution file
+    # Update AssemblyVersion and FileVersion using the solution file. See (To run:) code above.
     dotnet msbuild $solutionFile /p:BlazorBundlerPackageVersion=$packageVersion /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
+
     <#
     Write-Host "Building project with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
     # Update AssemblyVersion and FileVersion using the project file
