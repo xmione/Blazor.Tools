@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Fix error in $MajorVersion variable.
+- Added modules to Get-Tools and Cleanup-Tools modules.
 
 ### Revisions
 - None
