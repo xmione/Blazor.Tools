@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
-    <BlazorBundlerPackageVersion>3.1.2</BlazorBundlerPackageVersion>
+    <BlazorBundlerPackageVersion Condition="'$(BlazorBundlerPackageVersion)' == ''">3.1.2</BlazorBundlerPackageVersion>
     <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(BlazorBundlerPackageVersion)</SourcePath>
     <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
     <PackagesPath>$(SourcePath)\packages</PackagesPath>

@@ -85,7 +85,7 @@ function BuildSolution {
     Write-Host "dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion "
     Write-Host "==========================================================================================="
     # Update AssemblyVersion and FileVersion using the solution file
-    dotnet msbuild $solutionFile  /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
+    dotnet msbuild $solutionFile /p:BlazorBundlerPackageVersion=$packageVersion /p:Configuration=$configuration /p:AssemblyVersion=$assemblyVersion /p:FileVersion=$fileVersion /p:Version=$packageVersion
     <#
     Write-Host "Building project with the updated Configuration ($configuration) PackageVersion ($packageVersion), AssemblyVersion ($assemblyVersion) and FileVersion ($fileVersion)"
     # Update AssemblyVersion and FileVersion using the project file
