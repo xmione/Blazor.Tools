@@ -1,4 +1,10 @@
-﻿# .\Get-Tools.ps1
+﻿<#
+    To run:
+
+    $command = "C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\tools\Get-Tools.ps1"
+    Start-Process "powershell" -NoExit -ArgumentList "-Command `"$command`"" -Verb runAs
+#>
+
 Write-Output "Running Get-Tools module..."
 
 # Ensure execution policy is Unrestricted
@@ -36,11 +42,12 @@ Import-Module '$ScriptDir\Install-Pkgs.psm1'
 Import-Module '$ScriptDir\Uninstall-Pkgs.psm1'
 Import-Module '$ScriptDir\Cleanup-Tools.psm1'
 Import-Module '$ScriptDir\Get-EnvVars.psm1'
+Import-Module '$ScriptDir\Set-EnvVars.psm1'
 "@
 
 # Remove existing import statements from the profile script
 $ProfileContent = Get-Content -Path $ProfilePath
-$Pattern = "Update-EnvironmentVariable.psm1|Print-Folder-Structure.psm1|Install-Pkgs.psm1|Uninstall-Pkgs.psm1|Cleanup-Tools.psm1|Get-EnvVars.psm1"
+$Pattern = "Update-EnvironmentVariable.psm1|Print-Folder-Structure.psm1|Install-Pkgs.psm1|Uninstall-Pkgs.psm1|Cleanup-Tools.psm1|Get-EnvVars.psm1|Set-EnvVars.psm1"
 $FilteredContent = $ProfileContent | Where-Object { $_ -notmatch $Pattern }
 
 # Write the filtered content back to the profile script

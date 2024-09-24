@@ -37,7 +37,7 @@ param(
     [Parameter(Mandatory=$true)]
     [bool] $Publish,
     [bool] $IsRelease = $false,
-    [string] $GitComment = "Update project with the latest changes"
+    [string] $GitComment = "Updated project with the latest changes"
 )
 
 Write-Host "MajorVersion: $MajorVersion"
@@ -245,7 +245,7 @@ function Initialize
         [Parameter(Mandatory=$true)]
         [bool] $Publish,
         [bool] $IsRelease = $false,
-        [string] $GitComment = "Update project with the latest changes"
+        [string] $GitComment = "Updated project with the latest changes"
     )
 
     Write-Host "MajorVersion: $MajorVersion"
@@ -269,7 +269,7 @@ function Initialize
     $global:packageVersion = "${MajorVersion}.${MinorVersion}.${PatchVersion}"
     $global:assemblyVersion = "$global:packageVersion.$RevisionVersion"
     $global:fileVersion = "$global:packageVersion.$RevisionVersion"
-    $global:nugetApiKey = $Env:MY_NUGET_API_KEY
+    $global:nugetApiKey = $Env:NugetApiKey
     $global:changelogPath = "${global:solutionRoot}\Blazor.Tools.BlazorBundler\changelog_${global:packageVersion}.md"
 
     # Check the exit code of the msbuild command
@@ -304,7 +304,8 @@ function Initialize
     "${toolsFolderPath}\Install-Pkgs.psm1",
     "${toolsFolderPath}\Uninstall-Pkgs.psm1",
     "${toolsFolderPath}\Cleanup-Tools.psm1",
-    "${toolsFolderPath}\Get-EnvVars.psm1"
+    "${toolsFolderPath}\Get-EnvVars.psm1",
+    "${toolsFolderPath}\Set-EnvVars.psm1"
 )
     # Check the exit code of the msbuild command
     if ($LASTEXITCODE -ne 0) {
@@ -342,7 +343,7 @@ Try {
 
     # Check if the $global:nugetApiKey variable is empty
     if ([string]::IsNullOrWhiteSpace($global:nugetApiKey)) {
-        throw "NuGet API Key environment variable is empty. In a terminal, run: `$Env:MY_NUGET_API_KEY = 'YOUR_API_KEY'"
+        throw "NuGet API Key environment variable is empty. In a terminal, run: `$Env:NugetApiKey = 'YOUR_API_KEY'"
     }
     
     & "${global:solutionRoot}\Scripts\delnugetsources.ps1" -Verbose

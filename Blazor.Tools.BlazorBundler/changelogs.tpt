@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Added modules to Get-Tools and Cleanup-Tools modules.
+- Added Set-EnvVars module to Get-Tools and Cleanup-Tools modules and publish.ps1 file.
 
 ### Revisions
 - None

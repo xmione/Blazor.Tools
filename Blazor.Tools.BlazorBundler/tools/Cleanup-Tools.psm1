@@ -12,7 +12,7 @@ Function Cleanup-Tools {
         $ProfileContent = Get-Content -Path $ProfilePath
 
         # Define the pattern to match the import statements
-        $Pattern = "Update-EnvironmentVariable.psm1|Print-Folder-Structure.psm1|Install-Pkgs.psm1|Uninstall-Pkgs.psm1|Cleanup-Tools.psm1|Get-EnvVars.psm1"
+        $Pattern = "Update-EnvironmentVariable.psm1|Print-Folder-Structure.psm1|Install-Pkgs.psm1|Uninstall-Pkgs.psm1|Cleanup-Tools.psm1|Get-EnvVars.psm1|Set-EnvVars.psm1"
 
         # Filter out the import statements
         $FilteredContent = $ProfileContent | Where-Object { $_ -notmatch $Pattern }
