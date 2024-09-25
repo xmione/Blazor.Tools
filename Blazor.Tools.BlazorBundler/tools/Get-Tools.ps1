@@ -8,7 +8,7 @@
 Write-Output "Running Get-Tools module..."
 
 # Ensure execution policy is Unrestricted
-Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force -ErrorAction SilentlyContinue
+#Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force -ErrorAction SilentlyContinue
 
 $ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Path
 
@@ -55,5 +55,6 @@ Set-Content -Path $ProfilePath -Value $FilteredContent
 
 # Add the new module import statements to the profile script
 Add-Content -Path $ProfilePath -Value $ModuleImports
+
 
 Write-Output "Finished setting up global module imports. Restart your PowerShell session to use them."

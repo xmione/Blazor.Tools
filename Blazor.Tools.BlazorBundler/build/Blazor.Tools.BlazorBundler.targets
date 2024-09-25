@@ -193,9 +193,68 @@
     <!-- Invoke PowerShell script to install all packages -->
     <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
     <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Install.ps1&quot; -SourcePath &quot;$(SourcePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
+	  <PropertyGroup>
+		  <PowerShellCommand Condition="'$(OS)' == 'Windows_NT'">powershell.exe</PowerShellCommand>
+		  <PowerShellCommand Condition="'$(OS)' != 'Windows_NT'">pwsh</PowerShellCommand>
+	  </PropertyGroup>
 
-    <!-- Invoke PowerShell script to load PowerShell Modules -->
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
+	  <ItemGroup>
+		  <EnvVars Include="Configuration: $(Configuration)" />
+		  <EnvVars Include="MajorVersion: $(MajorVersion)" />
+		  <EnvVars Include="MinorVersion: $(MinorVersion)" />
+		  <EnvVars Include="PatchVersion: $(PatchVersion)" />
+		  <EnvVars Include="RevisionVersion: $(RevisionVersion)" />
+		  <EnvVars Include="NugetApiKey: $(NugetApiKey)" />
+		  <EnvVars Include="Publish: $(Publish)" />
+		  <EnvVars Include="IsRelease: $(IsRelease)" />
+		  <EnvVars Include="GitComment: $(GitComment)" />
+		  <EnvVars Include="AssemblyVersion: $(AssemblyVersion)" />
+		  <EnvVars Include="FileVersion: $(FileVersion)" />
+		  <EnvVars Include="ChangelogPath: $(ChangelogPath)" />
+	  </ItemGroup>
+
+	  <PropertyGroup>
+		  <FormattedEnvVars>@(EnvVars, ' | ')</FormattedEnvVars>
+	  </PropertyGroup>
+
+	  <Target Name="DisplayEnvVars">
+		  <Message Text="Environment Variables: $(FormattedEnvVars)" Importance="high" />
+	  </Target>
+
+	  <Target Name="SetEnvironmentVariables">
+		  <!-- Set environment variables for Windows -->
+		  <Exec Command="set Configuration=$(Configuration)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set MajorVersion=$(MajorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set MinorVersion=$(MinorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set PatchVersion=$(PatchVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set RevisionVersion=$(RevisionVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set NugetApiKey=$(NugetApiKey)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set Publish=$(Publish)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set IsRelease=$(IsRelease)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set GitComment=$(GitComment)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set AssemblyVersion=$(AssemblyVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set FileVersion=$(FileVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		  <Exec Command="set ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' == 'Windows_NT'" />
+
+		  <!-- Set environment variables for Linux -->
+		  <Exec Command="export Configuration=$(Configuration)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export MajorVersion=$(MajorVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export MinorVersion=$(MinorVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export PatchVersion=$(PatchVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export RevisionVersion=$(RevisionVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export NugetApiKey=$(NugetApiKey)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export Publish=$(Publish)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export IsRelease=$(IsRelease)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export GitComment=$(GitComment)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export AssemblyVersion=$(AssemblyVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export FileVersion=$(FileVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		  <Exec Command="export ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' != 'Windows_NT'" />
+	  </Target>
+
+	  <Target Name="RunPowerShellScript">
+		  <!-- Invoke PowerShell script to load PowerShell Modules -->
+		  <Exec Command="$(PowerShellCommand) -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
+	  </Target>
 
   </Target>
 </Project>
