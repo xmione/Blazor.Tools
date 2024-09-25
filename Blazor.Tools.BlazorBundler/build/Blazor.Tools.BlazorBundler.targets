@@ -195,7 +195,7 @@
     <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Install.ps1&quot; -SourcePath &quot;$(SourcePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
 
     <!-- Invoke PowerShell script to load PowerShell Modules -->
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Get-Tools.ps1&quot; " />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
 
   </Target>
 </Project>

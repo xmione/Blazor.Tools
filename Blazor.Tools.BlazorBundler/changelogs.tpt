@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Fixed error in installing install-nupkg.ps1.
+- Fixed Tools Module setup.
 
 ### Revisions
 - None
