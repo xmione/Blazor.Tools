@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Added .env file and load-env.ps1 script file to load the .env file to the target.
+- Added .env file to build targets file to copy it to the BlazorBundler folder.
 
 ### Revisions
 - None

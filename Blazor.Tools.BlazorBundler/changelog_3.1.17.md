@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Fixed Tools Module setup.
+- Added .env file to build targets file to copy it to the BlazorBundler folder.
 
 ### Revisions
 - None

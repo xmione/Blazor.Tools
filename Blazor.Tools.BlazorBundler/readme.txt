@@ -138,8 +138,4 @@ Open PowerShell and run:
 ## Change Logs
 
 
-- [changelog_3.1.12.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.12.md)
-- [changelog_3.1.13.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.13.md)
-- [changelog_3.1.14.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.14.md)
-- [changelog_3.1.15.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.15.md)
 

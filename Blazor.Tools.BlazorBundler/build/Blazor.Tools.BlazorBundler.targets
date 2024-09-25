@@ -72,6 +72,10 @@
 			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
 			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
 
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\.env')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\.env"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
 		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Cleanup-Tools.psm1')"
 			  SourceFiles="$(MSBuildThisFileDirectory)..\tools\Cleanup-Tools.psm1"
 			  DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
