@@ -92,6 +92,10 @@
 			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
 			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\load-env.ps1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\load-env.ps1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
 		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Print-Folder-Structure.psm1')"
 			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Print-Folder-Structure.psm1"
 			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
@@ -146,6 +150,7 @@
 
 	<Target Name="RunPowerShellScript" DependsOnTargets="SetEnvironmentVariables">
 		<!-- Invoke PowerShell script to load PowerShell Modules -->
+		<Exec Command="$(PowerShellCommand) -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\load-env.ps1&quot; " />
 		<Exec Command="$(PowerShellCommand) -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
 	</Target>
 </Project>

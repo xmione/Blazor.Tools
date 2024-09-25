@@ -41,6 +41,10 @@
 			<PackagePath>\packages\</PackagePath>
 		</None>
 		<!-- None items in the tools folder -->
+		<None Include=" tools\.env">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
 		<None Include=" tools\Cleanup-Tools.psm1">
 			<Pack>True</Pack>
 			<PackagePath>\tools\</PackagePath>
@@ -62,6 +66,11 @@
 		</None>
 		<!-- Add Install-Pkgs.psm1 -->
 		<None Include="tools\Install-Pkgs.psm1">
+			<Pack>True</Pack>
+			<PackagePath>\tools\</PackagePath>
+		</None>
+		<!-- Add load-env.ps1 -->
+		<None Include="tools\load-env.ps1">
 			<Pack>True</Pack>
 			<PackagePath>\tools\</PackagePath>
 		</None>

@@ -331,6 +331,28 @@ function Initialize
         throw "Set-Item failed with exit code $LASTEXITCODE"
     }
 
+    # Create the .env file
+    $EnvFilePath = "$toolsFolderPath\.env"
+    $EnvVars = @"
+Configuration=$global:configuration
+MajorVersion=$global:majorVersion
+MinorVersion=$global:minorVersion
+PatchVersion=$global:patchVersion
+RevisionVersion=$global:revisionVersion
+Publish=$Publish
+IsRelease=$IsRelease
+GitComment=$GitComment
+AssemblyVersion=$global:assemblyVersion
+FileVersion=$global:fileVersion
+ChangelogPath=$global:changelogPath
+"@
+    Write-Output "Creating .env file at $EnvFilePath..."
+    Set-Content -Path $EnvFilePath -Value $EnvVars
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Set-Content failed with exit code $LASTEXITCODE"
+    }
+
 }
 <#==========================================================================================================
                         E N D  O F  F U N C T I O N  D E L A C R A T I O N S
