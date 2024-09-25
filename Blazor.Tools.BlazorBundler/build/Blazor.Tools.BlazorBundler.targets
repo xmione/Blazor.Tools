@@ -114,7 +114,7 @@
 		<Message Text="Environment Variables: $(FormattedEnvVars)" Importance="high" />
 	</Target>
 
-	<Target Name="SetEnvironmentVariables">
+	<Target Name="SetEnvironmentVariables" BeforeTargets="RunPowerShellScript">
 		<!-- Set environment variables for Windows -->
 		<Exec Command="set Configuration=$(Configuration)" Condition="'$(OS)' == 'Windows_NT'" />
 		<Exec Command="set MajorVersion=$(MajorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
@@ -144,7 +144,7 @@
 		<Exec Command="export ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' != 'Windows_NT'" />
 	</Target>
 
-	<Target Name="RunPowerShellScript">
+	<Target Name="RunPowerShellScript" DependsOnTargets="SetEnvironmentVariables">
 		<!-- Invoke PowerShell script to load PowerShell Modules -->
 		<Exec Command="$(PowerShellCommand) -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
 	</Target>
