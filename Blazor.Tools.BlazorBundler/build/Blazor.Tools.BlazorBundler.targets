@@ -1,260 +1,151 @@
 <Project>
-  <PropertyGroup>
-    <BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
-    <PackageVersion Condition="'$(PackageVersion)' == ''">$(PackageVersion)</PackageVersion>
-    <SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(PackageVersion)</SourcePath>
-    <TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
-    <PackagesPath>$(SourcePath)\packages</PackagesPath>
-  </PropertyGroup>
-  <Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
-    <!-- Log some information for debugging -->
-    <Message Text="Executing CustomInstall target" Importance="high" />
-    <Message Text="BlazorBundlerPackageName: $(BlazorBundlerPackageName)" Importance="high" />
-    <Message Text="PackageVersion: $(PackageVersion)" Importance="high" />
-	
-    <Message Text="SourcePath: $(SourcePath)" Importance="high" />
-    <Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
-    
+	<PropertyGroup>
+		<BlazorBundlerPackageName>blazor.tools.blazorbundler</BlazorBundlerPackageName>
+		<PackageVersion Condition="'$(PackageVersion)' == ''">$(PackageVersion)</PackageVersion>
+		<SourcePath>$(NuGetPackageRoot)$(BlazorBundlerPackageName)\$(PackageVersion)</SourcePath>
+		<TargetProjectPath>$(MSBuildProjectFullPath)</TargetProjectPath>
+		<PackagesPath>$(SourcePath)\packages</PackagesPath>
+		<PowerShellCommand Condition="'$(OS)' == 'Windows_NT'">powershell.exe</PowerShellCommand>
+		<PowerShellCommand Condition="'$(OS)' != 'Windows_NT'">pwsh</PowerShellCommand>
+	</PropertyGroup>
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
+	<ItemGroup>
+		<EnvVars Include="Configuration: $(Configuration)" />
+		<EnvVars Include="MajorVersion: $(MajorVersion)" />
+		<EnvVars Include="MinorVersion: $(MinorVersion)" />
+		<EnvVars Include="PatchVersion: $(PatchVersion)" />
+		<EnvVars Include="RevisionVersion: $(RevisionVersion)" />
+		<EnvVars Include="NugetApiKey: $(NugetApiKey)" />
+		<EnvVars Include="Publish: $(Publish)" />
+		<EnvVars Include="IsRelease: $(IsRelease)" />
+		<EnvVars Include="GitComment: $(GitComment)" />
+		<EnvVars Include="AssemblyVersion: $(AssemblyVersion)" />
+		<EnvVars Include="FileVersion: $(FileVersion)" />
+		<EnvVars Include="ChangelogPath: $(ChangelogPath)" />
+	</ItemGroup>
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
+	<PropertyGroup>
+		<FormattedEnvVars>@(EnvVars, ' | ')</FormattedEnvVars>
+	</PropertyGroup>
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazored-typeahead\blazored-typeahead.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazored-typeahead\blazored-typeahead.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazored-typeahead\" />
+	<Target Name="CustomInstall" BeforeTargets="PrepareForBuild">
+		<!-- Log some information for debugging -->
+		<Message Text="Executing CustomInstall target" Importance="high" />
+		<Message Text="BlazorBundlerPackageName: $(BlazorBundlerPackageName)" Importance="high" />
+		<Message Text="PackageVersion: $(PackageVersion)" Importance="high" />
+		<Message Text="SourcePath: $(SourcePath)" Importance="high" />
+		<Message Text="TargetProjectPath: $(TargetProjectPath)" Importance="high" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazor-bootstrap\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\blazored-typeahead\blazored-typeahead.js')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\blazored-typeahead\blazored-typeahead.js"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\blazored-typeahead\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\bootstrap.bundle.min.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\bootstrap.bundle.min.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\js\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\site.js')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\site.js"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\js\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\css\bundler.css')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
-          DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
- 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Cleanup-Tools.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Cleanup-Tools.psm1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\bootstrap-icons\font\fonts\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-EnvVars.psm1')"
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\bootstrap.bundle.min.js')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\bootstrap.bundle.min.js"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\js\" />
+
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\js\site.js')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\js\site.js"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\js\" />
+
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\wwwroot\bundler\css\bundler.css')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\wwwroot\bundler\css\bundler.css"
+			  DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\bundler\css\" />
+
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Cleanup-Tools.psm1')"
+			  SourceFiles="$(MSBuildThisFileDirectory)..\tools\Cleanup-Tools.psm1"
+			  DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-EnvVars.psm1')"
 			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-EnvVars.psm1"
 			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1')"
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1')"
 			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-Tools.ps1"
 			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.ps1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.ps1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Install-Pkgs.psm1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Print-Folder-Structure.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Print-Folder-Structure.psm1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Print-Folder-Structure.psm1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Print-Folder-Structure.psm1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Set-EnvVars.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Set-EnvVars.psm1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Set-EnvVars.psm1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Set-EnvVars.psm1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-      <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall-Pkgs.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall-Pkgs.psm1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Uninstall-Pkgs.psm1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Uninstall-Pkgs.psm1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-      <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Update-EnvironmentVariable.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\Update-EnvironmentVariable.psm1"
-          DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
+		<Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Update-EnvironmentVariable.psm1')"
+			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Update-EnvironmentVariable.psm1"
+			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-    <!--<Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AIChatBot.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\AIChatBot.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
+	</Target>
+	
+	<Target Name="DisplayEnvVars">
+		<Message Text="Environment Variables: $(FormattedEnvVars)" Importance="high" />
+	</Target>
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\AITables.sql')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\AITables.sql"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
+	<Target Name="SetEnvironmentVariables">
+		<!-- Set environment variables for Windows -->
+		<Exec Command="set Configuration=$(Configuration)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set MajorVersion=$(MajorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set MinorVersion=$(MinorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set PatchVersion=$(PatchVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set RevisionVersion=$(RevisionVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set NugetApiKey=$(NugetApiKey)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set Publish=$(Publish)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set IsRelease=$(IsRelease)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set GitComment=$(GitComment)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set AssemblyVersion=$(AssemblyVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set FileVersion=$(FileVersion)" Condition="'$(OS)' == 'Windows_NT'" />
+		<Exec Command="set ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' == 'Windows_NT'" />
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\AI\SentimentAnalysis.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\AI\SentimentAnalysis.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\AI\" />
+		<!-- Set environment variables for Linux -->
+		<Exec Command="export Configuration=$(Configuration)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export MajorVersion=$(MajorVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export MinorVersion=$(MinorVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export PatchVersion=$(PatchVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export RevisionVersion=$(RevisionVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export NugetApiKey=$(NugetApiKey)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export Publish=$(Publish)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export IsRelease=$(IsRelease)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export GitComment=$(GitComment)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export AssemblyVersion=$(AssemblyVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export FileVersion=$(FileVersion)" Condition="'$(OS)' != 'Windows_NT'" />
+		<Exec Command="export ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' != 'Windows_NT'" />
+	</Target>
 
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\ExcelUploader.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\ExcelUploader.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\ExcelUploaderDetail.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\ExcelUploaderDetail.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\ExcelUploaderHeader.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\ExcelUploaderHeader.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\ExcelUploaderTitle.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\ExcelUploaderTitle.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SessionDemo.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\SessionDemo.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddRowModal.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddRowModal.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\DataTableGrid.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\DataTableGrid.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\DTSearchBox.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\DTSearchBox.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\AddLookupTableModal.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\AddLookupTableModal.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\SetTargetTableModal.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\SetTargetTableModal.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableColumn.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableColumn.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableGrid.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableGrid.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableNode.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableNode.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TableSource.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TableSource.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />
-
-    <Copy Condition="!Exists('$(MSBuildProjectDirectory)\Components\Grid\TestComponent.razor.cs')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\Components\Grid\TestComponent.razor.cs"
-          DestinationFolder="$(MSBuildProjectDirectory)\Components\Grid\" />-->
-
-    <!--<ItemGroup>
-      <PackageReferenceToUpdate Include="Blazor.Bootstrap" Version="1.11.1" />
-      <PackageReferenceToUpdate Include="Blazor.Typeahead" Version="4.7.0" />
-    </ItemGroup>
-
-    <UpdatePackageReference
-      Condition="!Exists('$(MSBuildProjectDirectory)\obj\$(MSBuildProjectName).csproj.nuget.g.props')"
-      PackageReference="@(PackageReferenceToUpdate)"
-      ProjectPath="$(MSBuildProjectFullPath)" />-->
-
-    <!-- Define the list of package files to install -->
-    <!--<ItemGroup>
-      <PackageFile Include="$(PackagePath)\blazor.bootstrap.1.11.1.nupkg" />
-      <PackageFile Include="$(PackagePath)\blazored.typeahead.4.7.0.nupkg" />
-      <PackageFile Include="$(PackagePath)\dapper.2.1.35.nupkg" />
-      <PackageFile Include="$(PackagePath)\htmlagilitypack.1.11.61.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.6.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.build.17.10.4.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.entityframeworkcore.sqlserver.8.0.6.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.entityframeworkcore.tools.8.0.6.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.ml.3.0.1.nupkg" />
-      <PackageFile Include="$(PackagePath)\microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg" />
-      <PackageFile Include="$(PackagePath)\newtonsoft.json.13.0.3.nupkg" />
-    </ItemGroup>-->
-          
-    <!-- Invoke PowerShell script to install all packages -->
-    <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ToolsPath)\install-nupkg.ps1&quot; -PackagePaths '%(PackageFile.Identity)' -SourcePath &quot;$(PackagePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
-    <!--<Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SourcePath)\tools\Install.ps1&quot; -SourcePath &quot;$(SourcePath)&quot; -TargetProjectPath &quot;$(TargetProjectPath)&quot;" />-->
-	  <PropertyGroup>
-		  <PowerShellCommand Condition="'$(OS)' == 'Windows_NT'">powershell.exe</PowerShellCommand>
-		  <PowerShellCommand Condition="'$(OS)' != 'Windows_NT'">pwsh</PowerShellCommand>
-	  </PropertyGroup>
-
-	  <ItemGroup>
-		  <EnvVars Include="Configuration: $(Configuration)" />
-		  <EnvVars Include="MajorVersion: $(MajorVersion)" />
-		  <EnvVars Include="MinorVersion: $(MinorVersion)" />
-		  <EnvVars Include="PatchVersion: $(PatchVersion)" />
-		  <EnvVars Include="RevisionVersion: $(RevisionVersion)" />
-		  <EnvVars Include="NugetApiKey: $(NugetApiKey)" />
-		  <EnvVars Include="Publish: $(Publish)" />
-		  <EnvVars Include="IsRelease: $(IsRelease)" />
-		  <EnvVars Include="GitComment: $(GitComment)" />
-		  <EnvVars Include="AssemblyVersion: $(AssemblyVersion)" />
-		  <EnvVars Include="FileVersion: $(FileVersion)" />
-		  <EnvVars Include="ChangelogPath: $(ChangelogPath)" />
-	  </ItemGroup>
-
-	  <PropertyGroup>
-		  <FormattedEnvVars>@(EnvVars, ' | ')</FormattedEnvVars>
-	  </PropertyGroup>
-
-	  <Target Name="DisplayEnvVars">
-		  <Message Text="Environment Variables: $(FormattedEnvVars)" Importance="high" />
-	  </Target>
-
-	  <Target Name="SetEnvironmentVariables">
-		  <!-- Set environment variables for Windows -->
-		  <Exec Command="set Configuration=$(Configuration)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set MajorVersion=$(MajorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set MinorVersion=$(MinorVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set PatchVersion=$(PatchVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set RevisionVersion=$(RevisionVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set NugetApiKey=$(NugetApiKey)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set Publish=$(Publish)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set IsRelease=$(IsRelease)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set GitComment=$(GitComment)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set AssemblyVersion=$(AssemblyVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set FileVersion=$(FileVersion)" Condition="'$(OS)' == 'Windows_NT'" />
-		  <Exec Command="set ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' == 'Windows_NT'" />
-
-		  <!-- Set environment variables for Linux -->
-		  <Exec Command="export Configuration=$(Configuration)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export MajorVersion=$(MajorVersion)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export MinorVersion=$(MinorVersion)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export PatchVersion=$(PatchVersion)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export RevisionVersion=$(RevisionVersion)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export NugetApiKey=$(NugetApiKey)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export Publish=$(Publish)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export IsRelease=$(IsRelease)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export GitComment=$(GitComment)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export AssemblyVersion=$(AssemblyVersion)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export FileVersion=$(FileVersion)" Condition="'$(OS)' != 'Windows_NT'" />
-		  <Exec Command="export ChangelogPath=$(ChangelogPath)" Condition="'$(OS)' != 'Windows_NT'" />
-	  </Target>
-
-	  <Target Name="RunPowerShellScript">
-		  <!-- Invoke PowerShell script to load PowerShell Modules -->
-		  <Exec Command="$(PowerShellCommand) -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
-	  </Target>
-
-  </Target>
+	<Target Name="RunPowerShellScript">
+		<!-- Invoke PowerShell script to load PowerShell Modules -->
+		<Exec Command="$(PowerShellCommand) -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\BlazorBundler\Get-Tools.ps1&quot; " />
+	</Target>
 </Project>
