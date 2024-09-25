@@ -64,8 +64,8 @@
 			SourceFiles="$(MSBuildThisFileDirectory)..\tools\Get-Tools.ps1"
 			DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
-	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.psm1')"
-          SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.psm1"
+	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\install-nupkg.ps1')"
+          SourceFiles="$(MSBuildThisFileDirectory)..\tools\install-nupkg.ps1"
           DestinationFolder="$(MSBuildProjectDirectory)\BlazorBundler\" />
 
 	  <Copy Condition="!Exists('$(MSBuildProjectDirectory)\BlazorBundler\Install-Pkgs.psm1')"
