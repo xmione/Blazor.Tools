@@ -11,7 +11,7 @@
 - None
 
 ### Patches
-- Added .env file to build targets file to copy it to the BlazorBundler folder.
+- Added PackageVersion to the saved environment variables.
 
 ### Revisions
 - None

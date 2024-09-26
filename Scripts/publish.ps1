@@ -342,6 +342,7 @@ RevisionVersion=$global:revisionVersion
 Publish=$Publish
 IsRelease=$IsRelease
 GitComment=$GitComment
+PackageVersion=$global:packageVersion
 AssemblyVersion=$global:assemblyVersion
 FileVersion=$global:fileVersion
 ChangelogPath=$global:changelogPath
