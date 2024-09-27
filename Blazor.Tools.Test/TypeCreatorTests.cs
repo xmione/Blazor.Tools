@@ -235,6 +235,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             typeCreator.DefineAssemblyBuilder(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = typeCreator.DefineModuleBuilder(moduleName: contextAssemblyName);
             TypeBuilder typeBuilder = default!;
+            TypeBuilder tbBeforeCreate = default!;
 
             var modelProperties = typeCreator.GetDataTableColumnDefinitions(EmployeeDataTable)
                 .Where(i => i.TableName == employeeTypeName)
@@ -247,6 +248,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _employeeType = typeCreator.CreateType(
                 ref moduleBuilder,
                 out typeBuilder,
+                out tbBeforeCreate,
                 typeName: employeeFullyQualifiedTypeName,
                 typeAttributes: TypeAttributes.Public | TypeAttributes.Class,
                 properties: modelProperties
@@ -266,6 +268,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             var iValidatableObjectCreatedType = typeCreator.CreateType(
                 ref moduleBuilder,
                 out typeBuilder,
+                out tbBeforeCreate,
                 typeName: iValidatableObjectType?.FullName ?? default!,
                 typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
                 methodDefinitions: iValidatableTypeMethods
@@ -291,6 +294,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             var iCloneableCreatedType = typeCreator.CreateType(
                 ref moduleBuilder,
                 out typeBuilder,
+                out tbBeforeCreate,
                 typeName: iCloneableType?.FullName ?? default!,
                 typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
                 methodDefinitions: iCloneableTypeMethods,
@@ -307,13 +311,14 @@ namespace Blazor.Tools.BlazorBundler.Tests
                     Type = p.PropertyType
                 }).ToList() ?? default!;
 
-            //var iModelExtendedPropertiesConstructedType = typeCreator.CreateType(
-            //    ref moduleBuilder,
-            //    out typeBuilder,
-            //    typeName: $"{interfaceNameSpace}.IModelExtendedProperties",
-            //    typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
-            //    properties: iModelExtendedProperties
-            //    );
+            var iModelExtendedPropertiesCreatedType = typeCreator.CreateType(
+                ref moduleBuilder,
+                out typeBuilder,
+                out tbBeforeCreate,
+                typeName: $"{interfaceNameSpace}.IModelExtendedProperties",
+                typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
+                properties: iModelExtendedProperties
+                );
 
             // Define the IEmployee interface
             typeBuilder = moduleBuilder.DefineType(
@@ -333,6 +338,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             var iViewModelCreatedType = typeCreator.CreateType(
                 ref moduleBuilder,
                 out typeBuilder,
+                out tbBeforeCreate,
                 typeName: $"{interfaceNameSpace}.IViewModel",
                 typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
                 interfaces: new Type[] { iModelExtendedPropertiesConstructedType },
@@ -355,34 +361,36 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 (
                 ref moduleBuilder,
                 out typeBuilder,
+                out tbBeforeCreate,
                 typeName: employeeVMFullyQualifiedTypeName,
                 typeAttributes: TypeAttributes.Public | TypeAttributes.Class,
                 baseType: _employeeType,
                 //interfaces: new Type[] { iValidatableObjectCreatedType, iCloneableCreatedType, iViewModelType, iModelExtendedPropertiesConstructedType },
                 properties: modelProperties,
-                defineFieldsAction: tb => DefineFields(tb),
+                defineFieldsAction: tb => DefineFields(typeCreator, tb),
                 defineConstructorsAction: tb => DefineConstructors(typeCreator, tb, _employeeType),
-                //defineMethodsAction: tb => DefineMethods(typeCreator, tb, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType),
+                defineMethodsAction: tb => DefineMethods(typeCreator, tb, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType),
                 iImplementations: iImplementations
                 );
 
+            //DefineMethods(typeCreator, tbBeforeCreate, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
             // Save the assembly to a file
             typeCreator.Save(dllPath);
 
-            var assembly = Assembly.LoadFile(dllPath);
-            _vmType = assembly.GetType(employeeVMFullyQualifiedTypeName)!;
+            //var assembly = Assembly.LoadFile(dllPath);
+            //_vmType = assembly.GetType(employeeVMFullyQualifiedTypeName)!;
 
-            object employeeInstance = Activator.CreateInstance(_employeeType)!;
-            object employeeVMInstance = Activator.CreateInstance(_vmType)!;
+            //object employeeInstance = Activator.CreateInstance(_employeeType)!;
+            //object employeeVMInstance = Activator.CreateInstance(_vmType)!;
 
-            // Use reflection to set the _employees field with List<EmployeeVM>
-            FieldInfo employeesField = typeBuilder.GetField("_employees", BindingFlags.NonPublic | BindingFlags.Instance)!;
-            Type listOfEmployeeVMType = typeof(List<>).MakeGenericType(_vmType);
-            object listOfEmployeeVMInstance = Activator.CreateInstance(listOfEmployeeVMType)!;
-            employeesField.SetValue(employeeVMInstance, listOfEmployeeVMInstance);
+            //// Use reflection to set the _employees field with List<EmployeeVM>
+            //FieldInfo employeesField = typeBuilder.GetField("_employees", BindingFlags.NonPublic | BindingFlags.Instance)!;
+            //Type listOfEmployeeVMType = typeof(List<>).MakeGenericType(_vmType);
+            //object listOfEmployeeVMInstance = Activator.CreateInstance(listOfEmployeeVMType)!;
+            //employeesField.SetValue(employeeVMInstance, listOfEmployeeVMInstance);
 
-            //typeBuilder = DefineConstructors(typeCreator, typeBuilder, _employeeType);
-            typeBuilder = DefineMethods(typeCreator, typeBuilder, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
+            ////typeBuilder = DefineConstructors(typeCreator, typeBuilder, _employeeType);
+            //typeBuilder = DefineMethods(typeCreator, typeBuilder, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
 
         }
 
@@ -442,21 +450,6 @@ namespace Blazor.Tools.BlazorBundler.Tests
             typeBuilder = tc.DefineAutoProperty(typeBuilder, "LastName", typeof(string));
             typeBuilder = tc.DefineAutoProperty(typeBuilder, "DateOfBirth", typeof(DateOnly));
             typeBuilder = tc.DefineAutoProperty(typeBuilder, "CountryID", typeof(int));
-            // Define fields
-            //FieldBuilder idField = typeBuilder.DefineField("_id", typeof(int), FieldAttributes.Public);
-            //FieldBuilder firstNameField = typeBuilder.DefineField("_firstName", typeof(string), FieldAttributes.Public);
-            //FieldBuilder middleNameField = typeBuilder.DefineField("_middleName", typeof(string), FieldAttributes.Public);
-            //FieldBuilder lastNameField = typeBuilder.DefineField("_lastName", typeof(string), FieldAttributes.Public);
-            //FieldBuilder dateOfBirthField = typeBuilder.DefineField("_dateOfBirth", typeof(DateOnly), FieldAttributes.Public);
-            //FieldBuilder countryIdField = typeBuilder.DefineField("_countryID", typeof(int), FieldAttributes.Public);
-
-            // Define properties
-            //DefineClassProperty(typeBuilder, "ID", typeof(int));
-            //DefineClassProperty(typeBuilder, "FirstName", typeof(string));
-            //DefineClassProperty(typeBuilder, "MiddleName", typeof(string));
-            //DefineClassProperty(typeBuilder, "LastName", typeof(string));
-            //DefineClassProperty(typeBuilder, "DateOfBirth", typeof(DateOnly));
-            //DefineClassProperty(typeBuilder, "CountryID", typeof(int));
 
             // Create the type
             Type employeeType = typeBuilder.CreateType();
@@ -466,13 +459,6 @@ namespace Blazor.Tools.BlazorBundler.Tests
             {
                 AppLogger.WriteInfo($"Method: {method.Name}, Return Type: {method.ReturnType}");
             }
-
-            //// Retrieve and print properties
-            //var properties = employeeType.GetProperties();
-            //foreach (var prop in properties)
-            //{
-            //    AppLogger.WriteInfo($"Property: {prop.Name}, Type: {prop.PropertyType}");
-            //}
 
             if (File.Exists(dllPath))
             {
@@ -719,12 +705,18 @@ namespace Blazor.Tools.BlazorBundler.Tests
             return typeBuilder;
         }
 
-        public TypeBuilder DefineFields(TypeBuilder typeBuilder)
+        public TypeBuilder DefineFields(TypeCreator typeCreator, TypeBuilder typeBuilder)
         {
-            // Define the field for the contextProvider only once
-            _employeeListField = typeBuilder.DefineField("_employees", typeof(List<>).MakeGenericType(typeBuilder), FieldAttributes.Private);
             //_employeeListField = typeBuilder.DefineField("_employees", typeof(object), FieldAttributes.Private);
-            _contextProviderField = typeBuilder.DefineField("_contextProvider", typeof(IContextProvider), FieldAttributes.Private);
+            //_contextProviderField = typeBuilder.DefineField("_contextProvider", typeof(IContextProvider), FieldAttributes.Private);
+
+            // Define the field for the contextProvider only once
+            var employeesType = typeof(List<>).MakeGenericType(typeBuilder)!;
+            var employeesTypeName = employeesType.FullName!;
+            var contextProviderType = typeof(IContextProvider)!;
+            var contextProviderTypeName = contextProviderType.FullName!;
+            _employeeListField = typeCreator.DefineField(employeesTypeName, typeBuilder,"_employees", employeesType);
+            _contextProviderField = typeCreator.DefineField(contextProviderTypeName, typeBuilder, "_contextProvider", contextProviderType);
 
             return typeBuilder;
         }
@@ -737,7 +729,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
 
             // Define constructors
             // Parameterless constructor
-            typeBuilder = typeCreator.DefineConstructor(typeBuilder, Type.EmptyTypes, ilg =>
+            typeBuilder = typeCreator.DefineConstructor("parameterless", typeBuilder, Type.EmptyTypes, ilg =>
             {
                 // Call the base constructor
                 ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
@@ -757,9 +749,9 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Stfld, _contextProviderField); // Store it in the _contextProvider field
 
                 // Step 3: Initialize other fields (IModelExtendedProperties fields)
-                if (typeCreator.AddedFields != null)
+                if (typeCreator.Fields != null)
                 {
-                    foreach ((string typeName, FieldBuilder fieldBuilder) in typeCreator.AddedFields)
+                    foreach ((string typeName, FieldBuilder fieldBuilder) in typeCreator.Fields)
                     {
                         if (typeName.Contains("IModelExtendedProperties"))
                         {
@@ -777,44 +769,43 @@ namespace Blazor.Tools.BlazorBundler.Tests
             });
 
             // Constructor with IContextProvider parameter
-            typeBuilder = typeCreator.DefineConstructor(typeBuilder, new[] { typeof(IContextProvider) }, ilg =>
+            typeBuilder = typeCreator.DefineConstructor("with_IContextProvider", typeBuilder, new[] { typeof(IContextProvider) }, ilg =>
             {
                 ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
-                ilg.Emit(OpCodes.Ldarg_0);
-                ilg.Emit(OpCodes.Call, baseConstructor);
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ilg.Emit(OpCodes.Call, baseConstructor); // Call base constructor
 
-                // Set _employeeList field
-                ilg.Emit(OpCodes.Ldarg_0);
-                var employeeListConstructor = typeof(List<>).MakeGenericType(typeof(object)).GetConstructor(Type.EmptyTypes)!;
-                ilg.Emit(OpCodes.Newobj, employeeListConstructor);
-                ilg.Emit(OpCodes.Stfld, _employeeListField);
+                // Initialize _employeeList as List<object> (since EmployeeVM is not yet available)
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ConstructorInfo objectListConstructor = typeof(List<object>).GetConstructor(Type.EmptyTypes)!;
+                ilg.Emit(OpCodes.Newobj, objectListConstructor); // Create new List<object>
+                ilg.Emit(OpCodes.Stfld, _employeeListField); // Store in _employeeList field
 
                 // Set _contextProvider field
-                ilg.Emit(OpCodes.Ldarg_0);
-                ilg.Emit(OpCodes.Ldarg_1);
-                ilg.Emit(OpCodes.Stfld, _contextProviderField);
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ilg.Emit(OpCodes.Ldarg_1); // Load the constructor parameter (IContextProvider)
+                ilg.Emit(OpCodes.Stfld, _contextProviderField); // Store in _contextProvider field
 
-                // Step 3: Initialize other fields (IModelExtendedProperties fields)
-                if (typeCreator.AddedFields != null)
+                // Initialize other fields (e.g., IModelExtendedProperties)
+                if (typeCreator.Fields != null)
                 {
-                    foreach ((string typeName, FieldBuilder fieldBuilder) in typeCreator.AddedFields)
+                    foreach ((string typeName, FieldBuilder fieldBuilder) in typeCreator.Fields)
                     {
                         if (typeName.Contains("IModelExtendedProperties"))
                         {
-                            ilg.Emit(OpCodes.Ldarg_0);
-                            ilg.Emit(OpCodes.Ldc_I4_0); // Initialize int/boolean fields with 0/false
-                            ilg.Emit(OpCodes.Stfld, fieldBuilder); // Store default values in fields
+                            ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                            ilg.Emit(OpCodes.Ldc_I4_0); // Load the default value (0 for int, false for bool)
+                            ilg.Emit(OpCodes.Stfld, fieldBuilder); // Store in the field
                         }
                     }
                 }
 
-                ilg.Emit(OpCodes.Ret);
-
+                ilg.Emit(OpCodes.Ret); // Return from constructor
                 Console.WriteLine("Constructor with IContextProvider parameter defined.");
             });
 
             // Constructor with IContextProvider and Employee parameter
-            typeBuilder = typeCreator.DefineConstructor(typeBuilder, new[] { typeof(IContextProvider), modelType }, ilg =>
+            typeBuilder = typeCreator.DefineConstructor("with_IContextProvider_Employee", typeBuilder, new[] { typeof(IContextProvider), modelType }, ilg =>
             {
                 ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -829,9 +820,9 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                 ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
 
-                if (typeCreator.AddedProperties != null)
+                if (typeCreator.Properties != null)
                 {
-                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
                     {
                         if (modelType.FullName == typeName)
                         {
@@ -854,7 +845,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             });
 
             // Constructor with IContextProvider and EmployeeVM parameter
-            typeBuilder = typeCreator.DefineConstructor(typeBuilder, new[] { typeof(IContextProvider), typeBuilder }, ilg =>
+            typeBuilder = typeCreator.DefineConstructor("with_IContextProvider_EmployeeVM", typeBuilder, new[] { typeof(IContextProvider), typeBuilder }, ilg =>
             {
                 ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
                 ilg.Emit(OpCodes.Ldarg_0);
@@ -869,9 +860,9 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                 ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
 
-                if (typeCreator.AddedProperties != null)
+                if (typeCreator.Properties != null)
                 {
-                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
                     {
                         var isValidType = typeName == modelType.FullName || typeName.Contains("IModelExtendedProperties");
                         if (isValidType && prop.CanWrite)
@@ -905,56 +896,237 @@ namespace Blazor.Tools.BlazorBundler.Tests
 
         public TypeBuilder DefineMethods(TypeCreator typeCreator, TypeBuilder typeBuilder, Type iViewModelType, Type modelType, Type iModelType)
         {
-            // Define methodDefinitions dynamically
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "Clone", typeBuilder, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // 1. Create a new instance of EmployeeVM using its constructor (with _contextProvider)
+                ConstructorInfo employeeVMConstructor = typeCreator?.Constructors?.FirstOrDefault(c=> c.ConstructorName == "parameterless").ConstructorBuilder!; 
+                FieldInfo contextProviderField = typeCreator?.Fields?.FirstOrDefault(f => f.TypeName == "_contextProvider").FieldBuilder!; // Get _contextProvider field
+
+                // Load 'this' to access _contextProvider and push it on the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ilg.Emit(OpCodes.Ldfld, contextProviderField); // Load _contextProvider field
+
+                // Call the constructor of EmployeeVM (passing _contextProvider)
+                ilg.Emit(OpCodes.Newobj, employeeVMConstructor); // Create a new EmployeeVM
+
+                // 2. Store the new instance in a local variable
+                LocalBuilder cloneInstance = ilg.DeclareLocal(typeBuilder); // Declare local variable for new EmployeeVM
+                ilg.Emit(OpCodes.Stloc, cloneInstance); // Store the new instance in the local variable
+
+                // 3. Assign properties from 'this' to the clone instance
+                // The following properties are assigned: IsEditMode, IsVisible, IsFirstCellClicked, StartCell, EndCell, RowID, ID, FirstName, MiddleName, LastName, DateOfBirth, CountryID
+
+                if (typeCreator?.Properties != null)
+                {
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
+                    {
+                        if (typeName == modelType.FullName || typeName == iModelType.FullName)
+                        {
+                            if (prop.CanWrite)
+                            {
+                                ilg.Emit(OpCodes.Ldarg_0); // Load "this"
+                                ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
+                                ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                                ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                            }
+
+                        }
+
+                    }
+                }
+
+                // 4. Return the cloned instance
+                ilg.Emit(OpCodes.Ldloc, cloneInstance); // Load the cloned instance
+                ilg.Emit(OpCodes.Ret); // Return the cloned instance
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "SetList", typeof(void), new[] { typeof(List<EmployeeVM>) }, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Load 'this' onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+
+                // Load the 'items' argument onto the evaluation stack
+                ilg.Emit(OpCodes.Ldarg_1); // Load items (List<EmployeeVM>)
+
+                // Set the _employees field with the 'items' argument
+                FieldInfo employeesField = typeCreator?.Fields?.FirstOrDefault(f => f.TypeName == "_employees").FieldBuilder!; 
+                ilg.Emit(OpCodes.Stfld, employeesField); // Store 'items' into _employees
+
+                // Return from the method
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            // Define the Validate method dynamically
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "Validate", typeof(IEnumerable<ValidationResult>), new[] { typeof(ValidationContext) }, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Declare labels for branching
+                Label notNullLabel = ilg.DefineLabel(); // If _employees is not null
+                Label endOfMethod = ilg.DefineLabel(); // End of method (yield break)
+
+                // Load 'this' and check if _employees is null
+                FieldInfo employeesField = typeCreator?.Fields?.FirstOrDefault(f => f.TypeName == "_employees").FieldBuilder!;
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ilg.Emit(OpCodes.Ldfld, employeesField); // Load _employees field
+
+                // If _employees is not null, branch to notNullLabel
+                ilg.Emit(OpCodes.Brtrue_S, notNullLabel); // If _employees != null, continue
+
+                // _employees is null: return early (yield break)
+                ilg.Emit(OpCodes.Br, endOfMethod); // Jump to end
+
+                // Mark the point where _employees is not null
+                ilg.MarkLabel(notNullLabel);
+
+                // Placeholder for additional validation logic (like calling AlreadyExists)
+                // ...
+
+                // End of method (exit point)
+                ilg.MarkLabel(endOfMethod);
+                ilg.Emit(OpCodes.Ret);
+            });
+
+            typeBuilder = typeCreator.DefineMethod(typeBuilder, "AlreadyExists", typeof(bool), new[] { typeof(string), typeof(int) }, Array.Empty<string>(), (ilg, localBuilder) =>
+            {
+                // Declare local variables
+                LocalBuilder alreadyExists = ilg.DeclareLocal(typeof(bool)); // bool alreadyExists
+                LocalBuilder foundItem = ilg.DeclareLocal(typeBuilder); // EmployeeVM foundItem
+
+                // Initialize alreadyExists = false
+                ilg.Emit(OpCodes.Ldc_I4_0); // Push 'false' onto the stack
+                ilg.Emit(OpCodes.Stloc, alreadyExists); // Store it in alreadyExists
+
+                // Check if 'name' is not null
+                Label nameNotNullLabel = ilg.DefineLabel();
+                ilg.Emit(OpCodes.Ldarg_1); // Load 'name'
+                ilg.Emit(OpCodes.Brtrue_S, nameNotNullLabel); // Branch if 'name' != null
+
+                // If 'name' is null, return false
+                ilg.Emit(OpCodes.Ldloc, alreadyExists); // Load alreadyExists
+                ilg.Emit(OpCodes.Ret); // Return alreadyExists (false)
+
+                // Mark the point where 'name' is not null
+                ilg.MarkLabel(nameNotNullLabel);
+
+                // Load _employees and call FirstOrDefault
+
+                MethodInfo firstOrDefaultMethod = typeof(Enumerable).GetMethods()
+                .Where(m => m.Name == "FirstOrDefault" && m.GetParameters().Length == 2)
+                .Where(m =>
+                {
+                    var parameters = m.GetParameters();
+                    // Ensure the second parameter is a Func<,>
+                    return parameters[1].ParameterType.IsGenericType &&
+                           parameters[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>);
+                })
+                .Single()
+                .MakeGenericMethod(typeBuilder);  // Apply your generic type
+
+                // Create a lambda expression for the FirstOrDefault call
+                // p => p.FirstName == name && p.ID != currentItemId
+                MethodInfo firstNameGetter = typeCreator?.Properties?.FirstOrDefault(p => p.TypeName == "FirstName").PropertyBuilder?.GetGetMethod()!;
+                MethodInfo idGetter = typeCreator?.Properties?.FirstOrDefault(p => p.TypeName == "ID").PropertyBuilder?.GetGetMethod()!;
+                FieldInfo employeesField = typeCreator?.Fields?.FirstOrDefault(f => f.TypeName == "_employees").FieldBuilder!;
+
+                // Load _employees
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ilg.Emit(OpCodes.Ldfld, employeesField); // Load _employees
+
+                // Push lambda expression to the evaluation stack
+                // You'd need to emit IL code for the expression "p => p.FirstName == name && p.ID != currentItemId"
+                // (Details of this lambda emission can be complex and depends on how you're generating dynamic expressions)
+
+                // Call FirstOrDefault on _employees
+                ilg.Emit(OpCodes.Call, firstOrDefaultMethod);
+
+                // Check if foundItem != null
+                ilg.Emit(OpCodes.Stloc, foundItem); // Store the result into foundItem
+                ilg.Emit(OpCodes.Ldloc, foundItem); // Load foundItem onto the evaluation stack
+                Label setAlreadyExistsTrue = ilg.DefineLabel();
+                ilg.Emit(OpCodes.Brtrue_S, setAlreadyExistsTrue); // If foundItem != null, branch to set alreadyExists = true
+
+                // Mark the label for setting alreadyExists to true
+                ilg.MarkLabel(setAlreadyExistsTrue);
+                ilg.Emit(OpCodes.Ldc_I4_1); // Load 'true'
+                ilg.Emit(OpCodes.Stloc, alreadyExists); // Set alreadyExists = true
+
+                // Return alreadyExists
+                ilg.Emit(OpCodes.Ldloc, alreadyExists); // Load alreadyExists
+                ilg.Emit(OpCodes.Ret); // Return alreadyExists
+            });
+            
+            // Define the ToNewModel
             typeBuilder = typeCreator.DefineMethod(typeBuilder, "ToNewModel", modelType, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
             {
-                // Check for parameterless constructor
-                ConstructorInfo constructor = modelType.GetConstructor(Type.EmptyTypes)
+                // Declare a local variable to hold the new instance of Employee
+                LocalBuilder employeeLocal = ilg.DeclareLocal(modelType); // Assume modelType is Employee
+
+                // Find constructor of Employee
+                ConstructorInfo employeeConstructor = modelType.GetConstructor(Type.EmptyTypes)
                     ?? throw new InvalidOperationException($"No parameterless constructor found for type {modelType.Name}");
 
-                // Emit IL code to call the constructor
-                ilg.Emit(OpCodes.Newobj, constructor);
+                // Emit code to create a new instance of Employee and store it in local variable
+                ilg.Emit(OpCodes.Newobj, employeeConstructor);
+                ilg.Emit(OpCodes.Stloc, employeeLocal);
+
+                if (typeCreator?.Properties != null)
+                {
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
+                    {
+                        if (typeName == modelType.FullName && prop.CanWrite)
+                        {
+                            // Load the new Employee instance onto the stack
+                            ilg.Emit(OpCodes.Ldloc, employeeLocal);
+                            // Load 'this' (the current instance) onto the stack
+                            ilg.Emit(OpCodes.Ldarg_0);
+                            ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+
+                        }
+
+                    }
+                }
+
+                // Load the new Employee instance onto the stack and return it
+                ilg.Emit(OpCodes.Ldloc, employeeLocal);
                 ilg.Emit(OpCodes.Ret);
             });
 
             typeBuilder = typeCreator.DefineMethod(typeBuilder, "ToNewIModel", iModelType, Type.EmptyTypes, Array.Empty<string>(), (ilg, localBuilder) =>
             {
-                // Get the constructor of modelType
-                ConstructorInfo? constructor = modelType.GetConstructor(Type.EmptyTypes);
+                // Get the constructor of the type (with IContextProvider)
+                ConstructorInfo? constructor = typeCreator?.Constructors?.FirstOrDefault(c => c.ConstructorName == "with_IContextProvider").ConstructorBuilder;
                 if (constructor == null)
                 {
-                    throw new InvalidOperationException($"No parameterless constructor found for type {modelType.Name}");
+                    throw new InvalidOperationException($"No constructor with IContextProvider found for type {_vmType.Name}");
                 }
 
-                // Emit IL to create a new instance of modelType
-                ilg.Emit(OpCodes.Newobj, constructor); // Create new instance of modelType
-                LocalBuilder localBuilderInstance = ilg.DeclareLocal(modelType); // Declare a local variable for the instance
-                ilg.Emit(OpCodes.Stloc, localBuilderInstance); // Store the instance in the local variable
+                // Load 'this._contextProvider' (load the current instance's context provider)
+                ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                ilg.Emit(OpCodes.Ldfld, _contextProviderField); // Load _contextProvider field
 
-                // Get _modelProperties of modelType
-                if (typeCreator.AddedProperties != null)
+                // Call the constructor to create a new instance of EmployeeVM with contextProvider
+                ilg.Emit(OpCodes.Newobj, constructor); // Create new EmployeeVM with _contextProvider
+                LocalBuilder newInstance = ilg.DeclareLocal(typeBuilder); // Declare a local variable to hold the new instance
+                ilg.Emit(OpCodes.Stloc, newInstance); // Store the new instance in the local variable
+
+                // Set properties on the new instance (from the current instance)
+                foreach ((string typeName, PropertyBuilder prop) in typeCreator?.Properties!)
                 {
-                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    if ((typeName == iModelType.FullName || typeName == modelType.FullName) && prop.CanWrite)
                     {
-                        if (typeName == modelType.FullName && prop.CanWrite)
-                        {
-                            // Load the instance and the value to set
-                            ilg.Emit(OpCodes.Ldloc, localBuilderInstance); // Load instance
-                            ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
+                        // Load the new EmployeeVM instance onto the stack
+                        ilg.Emit(OpCodes.Ldloc, newInstance); // Load new instance
 
-                            // Load the value of the property from 'this'
-                            if (prop != null)
-                            {
-                                ilg.Emit(OpCodes.Callvirt, prop?.GetGetMethod() ?? default!); // Call property getter
-                                ilg.Emit(OpCodes.Callvirt, prop?.GetSetMethod() ?? default!); // Call property setter
-                            }
-                        }
+                        // Load 'this' (the current instance) onto the stack
+                        ilg.Emit(OpCodes.Ldarg_0);
+                        ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
+                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
                     }
-
-                    // Return the new instance
-                    ilg.Emit(OpCodes.Ldloc, localBuilderInstance);
-                    ilg.Emit(OpCodes.Ret);
                 }
+
+                // Load the new instance onto the stack and return it
+                ilg.Emit(OpCodes.Ldloc, newInstance); // Load new instance
+                ilg.Emit(OpCodes.Ret); // Return the new instance
             });
 
             // Define the method in the dynamic class builder
@@ -993,7 +1165,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Ldarg_1);
 
                 // Set the IsEditMode property
-                var isEditModeItem = typeCreator.AddedProperties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
+                var isEditModeItem = typeCreator.Properties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
                 var isEditModeProperty = isEditModeItem?.PropertyBuilder;
                 if (isEditModeProperty == null)
                 {
@@ -1020,7 +1192,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Ldarg_0);
 
                 // Set the IsEditMode property to false
-                var isEditModeItem = typeCreator.AddedProperties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
+                var isEditModeItem = typeCreator.Properties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
                 var isEditModeProperty = isEditModeItem?.PropertyBuilder;
                 if (isEditModeProperty == null)
                 {
@@ -1050,9 +1222,9 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 // Get all defined constructors
                 var constructors = typeCreator.GetDefinedConstructors();
 
-                foreach (var (ctor, parameters) in constructors)
+                foreach (var (name, ctor, parameters) in constructors)
                 {
-                    Console.WriteLine($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.Name))}");
+                    Console.WriteLine($"Constructor: {name}, Parameters: {string.Join(", ", parameters.Select(p => p.Name))}");
                 }
 
                 // Identify the constructor with IContextProvider
@@ -1073,9 +1245,9 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Stloc, newInstance);
 
                 // Load _modelProperties from 'this' and set them on the new instance
-                if (typeCreator.AddedProperties != null)
+                if (typeCreator.Properties != null)
                 {
-                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.AddedProperties)
+                    foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
                     {
                         if (new[] { modelType.FullName, iModelType.FullName }.Contains(typeName) && prop.CanWrite)
                         {

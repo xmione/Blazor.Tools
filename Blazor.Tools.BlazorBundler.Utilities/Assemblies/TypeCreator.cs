@@ -32,32 +32,37 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         private string _moduleName;
         private ModuleBuilder _moduleBuilder;
         private List<(string TableName, string ColumnName, Type ColumnType)>? _columnDefinitions;
-        private List<(string TypeName, PropertyBuilder PropertyBuilder)>? _addedProperties;
-        private List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>? _constructors = default!;
-        private List<(string TypeName, FieldBuilder FieldBuilder)> _addedFields;
+        private List<(string TypeName, PropertyBuilder PropertyBuilder)>? _properties;
+        private List<(string ConstructorName, ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>? _constructors = default!;
+        private List<(string TypeName, FieldBuilder FieldBuilder)>? _fields;
 
-        public List<(string TypeName, FieldBuilder FieldBuilder)>? AddedFields
+        public List<(string TypeName, FieldBuilder FieldBuilder)>? Fields
         {
-            get { return _addedFields; }
+            get { return _fields; }
         }
         
-        public List<(string TypeName, PropertyBuilder PropertyBuilder)>? AddedProperties 
+        public List<(string TypeName, PropertyBuilder PropertyBuilder)>? Properties 
         {
-            get { return _addedProperties; }
+            get { return _properties; }
+        }
+        
+        public List<(string ConstructorName, ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>? Constructors 
+        {
+            get { return _constructors; }
         }
 
         public TypeCreator()
         {
-            _addedFields = new List<(string TypeName, FieldBuilder FieldBuilder)>();
-            _addedProperties = new List<(string TypeName, PropertyBuilder PropertyBuilder)>();
-            _constructors = new List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>();
+            _fields = new List<(string TypeName, FieldBuilder FieldBuilder)>();
+            _properties = new List<(string TypeName, PropertyBuilder PropertyBuilder)>();
+            _constructors = new List<(string ConstructorName, ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>();
         }
 
         public TypeCreator(string contextAssemblyName, string modelTypeAssemblyName, string modelTypeName, string iModelTypeAssemblyName, string iModelTypeName, string version, AssemblyBuilderAccess assemblyBuilderAccess) 
         {
-            _addedFields = new List<(string TypeName, FieldBuilder FieldBuilder)>();
-            _addedProperties = new List<(string TypeName, PropertyBuilder PropertyBuilder)>();
-            _constructors = new List<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>();
+            _fields = new List<(string TypeName, FieldBuilder FieldBuilder)>();
+            _properties = new List<(string TypeName, PropertyBuilder PropertyBuilder)>();
+            _constructors = new List<(string ConstructorName, ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)>();
 
             _contextAssemblyName = contextAssemblyName;
             _modelTypeAssemblyName = modelTypeAssemblyName;
@@ -127,6 +132,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         public Type CreateType(
                                 ref ModuleBuilder moduleBuilder,
                                 out TypeBuilder typeBuilder,
+                                out TypeBuilder tbBeforeCreate,
                                 string typeName,
                                 TypeAttributes typeAttributes,
                                 Type baseType = default!,
@@ -220,6 +226,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     
                 }
 
+                tbBeforeCreate = typeBuilder;
                 type = typeBuilder.CreateType();
 
             }
@@ -232,7 +239,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return type;
         }
 
-        public TypeBuilder DefineConstructor(TypeBuilder typeBuilder, Type[] parameterTypes, Action<ILGenerator> generateConstructorBody)
+        public TypeBuilder DefineConstructor(string constructorName, TypeBuilder typeBuilder, Type[] parameterTypes, Action<ILGenerator> generateConstructorBody)
         {
             var constructorBuilder = typeBuilder.DefineConstructor(
                 MethodAttributes.Public,
@@ -244,13 +251,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             generateConstructorBody(ilg);
             ilg.Emit(OpCodes.Ret);
 
-            _constructors?.Add((constructorBuilder, parameterTypes));
+            _constructors?.Add((constructorName, constructorBuilder, parameterTypes));
 
             return typeBuilder;
 
         }
 
-        public IReadOnlyList<(ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> GetDefinedConstructors()
+        public IReadOnlyList<(string ConstructorName, ConstructorBuilder ConstructorBuilder, Type[] ParameterTypes)> GetDefinedConstructors()
         {
             return _constructors?.AsReadOnly() ?? default!;
         }
@@ -387,35 +394,38 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         public TypeBuilder DefineAutoProperty(TypeBuilder typeBuilder, string propertyName, Type propertyType)
         {
+            // Define a private backing field
+            FieldBuilder fieldBuilder = typeBuilder.DefineField($"_{char.ToLower(propertyName[0])}{propertyName.Substring(1)}",
+                                                                propertyType,
+                                                                FieldAttributes.Private);
+
             // Define the property
             PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
 
             // Define the 'get' accessor method
-            MethodBuilder getMethodBuilder = typeBuilder.DefineMethod("get_" + propertyName,
+            MethodBuilder getMethodBuilder = typeBuilder.DefineMethod($"get_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                propertyType, Type.EmptyTypes);
+                propertyType,
+                Type.EmptyTypes);
 
             ILGenerator getIL = getMethodBuilder.GetILGenerator();
-            getIL.Emit(OpCodes.Ldarg_0);
-            getIL.Emit(OpCodes.Call, typeof(object).GetMethod("GetType")!);
-            getIL.Emit(OpCodes.Call, typeof(Type).GetMethod("GetProperty", new Type[] { typeof(string) })!);
-            getIL.Emit(OpCodes.Callvirt, typeof(PropertyInfo).GetMethod("GetValue", new Type[] { typeof(object) })!);
-            getIL.Emit(OpCodes.Ret);
+            getIL.Emit(OpCodes.Ldarg_0);  // Load "this"
+            getIL.Emit(OpCodes.Ldfld, fieldBuilder);  // Load the value of the field
+            getIL.Emit(OpCodes.Ret);  // Return the value
 
             // Define the 'set' accessor method
-            MethodBuilder setMethodBuilder = typeBuilder.DefineMethod("set_" + propertyName,
+            MethodBuilder setMethodBuilder = typeBuilder.DefineMethod($"set_{propertyName}",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                null, new Type[] { propertyType });
+                null,
+                new Type[] { propertyType });
 
             ILGenerator setIL = setMethodBuilder.GetILGenerator();
-            setIL.Emit(OpCodes.Ldarg_0);
-            setIL.Emit(OpCodes.Call, typeof(object).GetMethod("GetType")!);
-            setIL.Emit(OpCodes.Call, typeof(Type).GetMethod("GetProperty", new Type[] { typeof(string) })!);
-            setIL.Emit(OpCodes.Ldarg_1);
-            setIL.Emit(OpCodes.Callvirt, typeof(PropertyInfo).GetMethod("SetValue", new Type[] { typeof(object), typeof(object) })!);
-            setIL.Emit(OpCodes.Ret);
+            setIL.Emit(OpCodes.Ldarg_0);  // Load "this"
+            setIL.Emit(OpCodes.Ldarg_1);  // Load the value to be set
+            setIL.Emit(OpCodes.Stfld, fieldBuilder);  // Store the value in the field
+            setIL.Emit(OpCodes.Ret);  // Return
 
-            // Map the 'get' and 'set' accessor methods to the property
+            // Assign the methods to the property
             propertyBuilder.SetGetMethod(getMethodBuilder);
             propertyBuilder.SetSetMethod(setMethodBuilder);
 
@@ -451,19 +461,29 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
         }
 
+        public FieldBuilder DefineField(string typeName, TypeBuilder typeBuilder, string propertyName, Type propertyType)
+        {
+
+            var fieldName = propertyName.Contains("ID") ? "_id" : $"_{propertyName.ToCamelCase()}";
+            var fieldBuilder = typeBuilder.DefineField(fieldName, propertyType, FieldAttributes.Private);
+
+            // Remove any existing field with the same typeName and fieldName, and add the new field
+            _fields = _fields?
+                .Where(f => f.TypeName != typeName || f.FieldBuilder.Name != fieldName)
+                .Concat(new[] { (TypeName: typeName, FieldBuilder: fieldBuilder) })
+                .ToList()!;
+
+            _fields.Add((fieldName, fieldBuilder));
+
+            return fieldBuilder;
+        }
+
         private TypeBuilder DefineProperty(string typeName, TypeBuilder typeBuilder, string propertyName, Type propertyType, TypeBuilder baseTypeBuilder = null!)
         {
             try
             {
                 // Define the private field
-                var fieldName = propertyName.Contains("ID")? "_id" : $"_{propertyName.ToCamelCase()}";
-                var fieldBuilder = typeBuilder.DefineField(fieldName, propertyType, FieldAttributes.Private);
-
-                // Remove any existing field with the same typeName and fieldName, and add the new field
-                _addedFields = _addedFields
-                    .Where(f => f.TypeName != typeName || f.FieldBuilder.Name != fieldName)
-                    .Concat(new[] { (TypeName: typeName, FieldBuilder: fieldBuilder) })
-                    .ToList();
+                var fieldBuilder = DefineField(typeName, typeBuilder, propertyName, propertyType);
 
                 // Define the property
                 var propertyBuilder = typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
@@ -495,7 +515,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 setterIL.Emit(OpCodes.Ret);
                 propertyBuilder.SetSetMethod(setterBuilder);
 
-                _addedProperties?.Add((typeName, propertyBuilder));
+                _properties?.Add((typeName, propertyBuilder));
 
                 // Override iViewModelMethods if baseTypeBuilder is provided
                 if (baseTypeBuilder != null)

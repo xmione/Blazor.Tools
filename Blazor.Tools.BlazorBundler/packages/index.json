@@ -41,9 +41,9 @@
       "path": "humanizer.2.14.1.nupkg"
     },
     {
-      "version": "8.2.0.7535",
+      "version": "9.0.0.7660-preview2",
       "id": "icsharpcode.decompiler",
-      "path": "icsharpcode.decompiler.8.2.0.7535.nupkg"
+      "path": "icsharpcode.decompiler.9.0.0.7660-preview2.nupkg"
     },
     {
       "version": "6.0.26",
@@ -71,9 +71,14 @@
       "path": "microsoft.aspnetcore.components.web.6.0.26.nupkg"
     },
     {
-      "version": "8.0.6",
+      "version": "9.0.0-rc.1.24452.1",
+      "id": "microsoft.aspnetcore.diagnostics.entityframeworkcore",
+      "path": "microsoft.aspnetcore.diagnostics.entityframeworkcore.9.0.0-rc.1.24452.1.nupkg"
+    },
+    {
+      "version": "9.0.0-rc.1.24452.1",
       "id": "microsoft.aspnetcore.identity.entityframeworkcore",
-      "path": "microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg"
+      "path": "microsoft.aspnetcore.identity.entityframeworkcore.9.0.0-rc.1.24452.1.nupkg"
     },
     {
       "version": "6.0.26",
