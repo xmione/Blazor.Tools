@@ -8,27 +8,27 @@
 	<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
-	<PackageReference Include="Blazor.Tools.BlazorBundler" Version="3.1.19" />
-	<PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
+	<PackageReference Include="HtmlAgilityPack" Version="1.11.66" />
 	<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.0-preview.7.24406.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0-preview.7.24406.2" />
     <PackageReference Include="Microsoft.Build" Version="17.11.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.11.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version=" 4.11.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.12.0-2.final" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0-preview.7.24405.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0-preview.7.24405.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+    <PackageReference Include="Microsoft.ML" Version="4.0.0-preview.24378.1" />
     <PackageReference Include="OpenTelemetry" Version="1.9.0" />
-    <PackageReference Include="system.configuration.configurationmanager" Version="9.0.0-preview.7.24405.7" />
-    <PackageReference Include="system.data.oledb" Version="9.0.0-preview.7.24405.7" />
-    <PackageReference Include="system.diagnostics.performancecounter" Version="9.0.0-preview.7.24405.7" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0-rc.1.24431.7" />
+	<PackageReference Include="System.Data.OleDb" Version="9.0.0-rc.1.24431.7" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.0-rc.1.24431.7" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
     <ProjectReference Include="..\Blazor.Tools.ServiceDefaults\Blazor.Tools.ServiceDefaults.csproj" />
   </ItemGroup>
   <ItemGroup>

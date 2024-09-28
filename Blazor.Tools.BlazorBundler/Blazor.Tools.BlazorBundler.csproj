@@ -168,7 +168,10 @@
 		<PackageReference Include="ICSharpCode.Decompiler" Version="9.0.0.7660-preview2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components" Version="9.0.0-rc.1.24452.1" />
 		<PackageReference Include="Microsoft.Build" Version="17.11.4" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.12.0-2.final" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0-2.final" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0-2.final" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.12.0-2.final" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.0-preview1.24240.8" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0-rc.1.24431.7" />
 		<PackageReference Include="Microsoft.ML" Version="4.0.0-preview.24378.1" />

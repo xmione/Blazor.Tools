@@ -5,9 +5,9 @@ using Blazor.Tools.Components;
 using Blazor.Tools.Components.Account;
 using Blazor.Tools.Data;
 
-//using Blazor.Tools.BlazorBundler.SessionManagement;
-//using Blazor.Tools.BlazorBundler.Interfaces;
-//using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces;
+using Blazor.Tools.BlazorBundler.SessionManagement;
+using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces;
 
 namespace Blazor.Tools;
 
@@ -39,7 +39,7 @@ public class Program
 
         builder.AddServiceDefaults();
         // Configure Blazorise with existing registrations
-        //builder.Services.AddBlazorBootstrap();
+        builder.Services.AddBlazorBootstrap();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -49,7 +49,7 @@ public class Program
         builder.Services.AddScoped<IdentityUserAccessor>();
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-        //builder.Services.AddScoped<SessionTable>();
+        builder.Services.AddScoped<SessionTable>();
 
         builder.Services.AddAuthentication(options =>
             {
@@ -58,8 +58,8 @@ public class Program
             })
             .AddIdentityCookies();
 
-        //RegisterHttpClientService<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionTableService>(builder, _baseAPIUrl);
-        //RegisterHttpClientService<ISessionTableService, SessionTableService>(builder, _baseAPIUrl);
+        RegisterHttpClientService<ICommonService<SessionTable, ISessionTable, IReportItem>, SessionTableService>(builder, _baseAPIUrl);
+        RegisterHttpClientService<ISessionTableService, SessionTableService>(builder, _baseAPIUrl);
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
