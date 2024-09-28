@@ -21,7 +21,6 @@ namespace Blazor.Tools.BlazorBundler.Entities
             _assemblyPath = assemblyPath;
         }
 
-        [Obsolete]
         public string DecompileWholeAssembly()
         {
             var decompiledCode = string.Empty;
@@ -168,7 +167,6 @@ namespace Blazor.Tools.BlazorBundler.Entities
             return cleanedCode;
         }
 
-        [Obsolete]
         public static DecompilerSettings GetDecompilerSettings()
         {
             var decompilerSettings = new DecompilerSettings
@@ -218,7 +216,6 @@ namespace Blazor.Tools.BlazorBundler.Entities
                 IntroduceReadonlyAndInModifiers = true,
                 IntroduceRefModifiersOnStructs = true,
                 IntroduceUnmanagedConstraint = true,
-                LifetimeAnnotations = false,
                 LiftNullables = true,
                 LoadInMemory = false,
                 LocalFunctions = true,
@@ -289,7 +286,7 @@ namespace Blazor.Tools.BlazorBundler.Entities
     // Built-in implementation for AssemblyResolver
     public class AssemblyResolver : IAssemblyResolver
     {
-        public PEFile? Resolve(IAssemblyReference reference)
+        public MetadataFile? Resolve(IAssemblyReference reference)
         {
             // You can provide logic to resolve referenced assemblies here if needed
             return null; // Default behavior: no assembly resolution
@@ -301,14 +298,19 @@ namespace Blazor.Tools.BlazorBundler.Entities
             return null; // Default behavior: no module resolution
         }
 
-        public Task<PEFile?> ResolveAsync(IAssemblyReference reference)
+        public Task<MetadataFile?> ResolveAsync(IAssemblyReference reference)
         {
             return Task.FromResult(Resolve(reference));
         }
 
-        public Task<PEFile?> ResolveModuleAsync(PEFile mainModule, string moduleName)
+        public Task<MetadataFile?> ResolveModuleAsync(MetadataFile mainModule, string moduleName)
         {
             return Task.FromResult(ResolveModule(mainModule, moduleName));
+        }
+
+        public MetadataFile? ResolveModule(MetadataFile mainModule, string moduleName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

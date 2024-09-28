@@ -30,8 +30,7 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 
             return decompiledMethod;
         }
-
-        [Obsolete]
+        
         public static string DecompileWholeModuleToClass(this string assemblyPath, string outputPath)
         {
             //string assemblyPath = "DynamicAssembly.dll";

@@ -1,5 +1,5 @@
 ﻿using Moq;
-using TestContext = Bunit.TestContext;
+using BunitContext = Bunit.TestContext;
 using Microsoft.Extensions.DependencyInjection;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
@@ -11,7 +11,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
     [TestClass]
     public class CreateDLLFromDataTableTests : SampleData, IDisposable
     {
-        private TestContext _testContext = default!;
+        private BunitContext _testContext = default!;
         private Mock<ICreateDLLFromDataTable> _createDLLFromDataTableMock = default!;
         private DataTable _dataTable = new DataTable();
 
@@ -22,7 +22,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _dataTable = EmployeeDataTable;
 
             // Initialize the bUnit test context
-            _testContext = new TestContext();
+            _testContext = new BunitContext();
 
             // Initialize the mock object
             _createDLLFromDataTableMock = new Mock<ICreateDLLFromDataTable>();

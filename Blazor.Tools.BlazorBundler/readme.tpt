@@ -58,7 +58,8 @@ dotnet add package Blazor.Tools.BlazorBundler
 
 ## After-Install Setup Commands
 
-Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
+Note: After installing the package, you have to manually buld the project first then run the Install-Pkgs module file 
+        to install required nuget packages.
       First replace the values of the $userProfileName and $targetPath variables.
       
       $userProfileName should contain your Windows UserProfile Name

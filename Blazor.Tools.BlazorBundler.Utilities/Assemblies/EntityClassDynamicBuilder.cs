@@ -36,7 +36,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             set { _disposableAssembly = value; }
         }
 
-        public EntityClassDynamicBuilder(string nameSpace, DataTable dataTable, List<string>? usingStatements)
+        public EntityClassDynamicBuilder(string nameSpace, DataTable dataTable, List<string>? usingStatements = null)
         {
             _nameSpace = nameSpace;
             _dataTable = dataTable;
@@ -119,20 +119,15 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return stringValue;
         }
 
-        public void Save(string assemblyName, string classCode, string nameSpace, string className, string dllPath)
+        public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath)
         {
 
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
-            var classGenerator = new ClassGenerator(assemblyName);
-
-            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
-            var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
-            var systemRuntimeFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Runtime.dll";
-
-            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath);
-            var systemLocation = Path.Combine(programFilesPath, systemFilePath);
-            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath);
+            var classGenerator = new ClassGenerator(assemblyName, version);
+            var systemPrivateCoreLibLocation = typeof(object).Assembly.Location;
+            var systemLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.dll");
+            var systemRuntimeLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Runtime.dll");
+            var systemCollectionsLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Collections.dll");
 
             // Add references to existing assemblies that contain types used in the dynamic class
             classGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types

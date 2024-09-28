@@ -42,13 +42,25 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             set { _outputKind = value; }
         }
 
-        public ClassGenerator(string assemblyName)
+        public ClassGenerator(string assemblyName, string version = "1.0.0.0")
         {
             _assemblyName = assemblyName;
             _outputKind = OutputKind.DynamicallyLinkedLibrary;
+
+            var assemblyAttributes = new[]
+            {
+                $"[assembly: System.Reflection.AssemblyVersion(\"{version}\")]",
+                $"[assembly: System.Reflection.AssemblyFileVersion(\"{version}\")]"
+            };
+
+            var assemblyInfoSyntax = string.Join(Environment.NewLine, assemblyAttributes);
+
+            // Include assembly attributes in the compilation
             _compilation = CSharpCompilation.Create(assemblyName,
-                options: new CSharpCompilationOptions(_outputKind));
+                options: new CSharpCompilationOptions(_outputKind),
+                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(assemblyInfoSyntax) });
         }
+
 
         public void AddReference(string assemblyPath)
         {

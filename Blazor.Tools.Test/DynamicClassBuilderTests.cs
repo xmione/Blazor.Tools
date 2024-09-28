@@ -2,7 +2,7 @@
 using Moq;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Components.Grid;
-using TestContext = Bunit.TestContext;
+using BunitContext = Bunit.TestContext;
 using Microsoft.Extensions.DependencyInjection;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
@@ -17,7 +17,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
     [TestClass]
     public class DynamicBundlerTests : SampleData, IDisposable
     {
-        private TestContext? _testContext;
+        private BunitContext? _testContext;
         private Mock<IDataTableGrid>? _dataTableGridMock;
         private Mock<IDynamicClassBuilder>? _dynamicClassBuilderMock;
         private Mock<IModelExtendedProperties>? _iModelExtendedProperties;
@@ -37,7 +37,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
         public void TestInit()
         {
             // Initialize the bUnit test context
-            _testContext = new TestContext();
+            _testContext = new BunitContext();
 
             // Initialize the mock object
             _dataTableGridMock = new Mock<IDataTableGrid>();
@@ -107,7 +107,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             try
             {
                 // Act: Call the method that interacts with IDynamicClassBuilder
-                _dataTableGridComponent = _testContext?.RenderComponent<DataTableGrid>(parameters => parameters
+                _dataTableGridComponent = _testContext?.Render<DataTableGrid>(parameters => parameters
                     .Add(p => p.Title, EmployeeDataTable.TableName) // Set component parameters using bUnit's parameter helper
                     .Add(p => p.SelectedTable, EmployeeDataTable)
                     .Add(p => p.ModelsAssemblyName, ModelsAssemblyName)

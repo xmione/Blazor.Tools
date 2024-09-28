@@ -12,9 +12,13 @@ using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using static Blazor.Tools.BlazorBundler.Utilities.Assemblies.AssemblyGenerator;
+using EventDefinition = Blazor.Tools.BlazorBundler.Utilities.Assemblies.AssemblyGenerator.EventDefinition;
+using MethodDefinition = Blazor.Tools.BlazorBundler.Utilities.Assemblies.AssemblyGenerator.MethodDefinition;
+using PropertyDefinition = Blazor.Tools.BlazorBundler.Utilities.Assemblies.AssemblyGenerator.PropertyDefinition;
 
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
@@ -150,6 +154,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             Type type = default!;
             try
             {
+
                 // Define the type builder
                 typeBuilder = moduleBuilder.DefineType(
                     typeName,
@@ -175,7 +180,15 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 {
                     foreach (var prop in properties)
                     {
-                        typeBuilder = DefineProperty(typeName, typeBuilder, prop.Name, prop.Type);
+                        if (typeBuilder.IsInterface)
+                        {
+                            typeBuilder = DefineInterfaceProperty(typeBuilder, prop.Name, prop.Type);
+                        }
+                        else 
+                        {
+                            typeBuilder = DefineProperty(typeName, typeBuilder, prop.Name, prop.Type);
+                        }
+                        
                     }
                 }
 
@@ -358,6 +371,12 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             propertyBuilder.SetGetMethod(getPropMethodBuilder);
             propertyBuilder.SetSetMethod(setPropMethodBuilder);
 
+            // Remove any existing properties with the same typeName PropertyBuilder.Name, and add the new property
+            _properties = _properties?
+                .Where(f => f.TypeName != typeBuilder.Name || f.PropertyBuilder.Name != propertyName)
+                .Concat(new[] { (TypeName: typeBuilder.Name, PropertyBuilder: propertyBuilder) })
+            .ToList()!;
+
             return typeBuilder;
         }
 
@@ -515,7 +534,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 setterIL.Emit(OpCodes.Ret);
                 propertyBuilder.SetSetMethod(setterBuilder);
 
-                _properties?.Add((typeName, propertyBuilder));
+                // Exclude property if exists then add property to the list. This script makes sure that it does not duplicate it.
+                _properties = _properties?
+                    .Where(f => f.TypeName != typeName || f.PropertyBuilder.Name != propertyName)
+                    .Concat(new[] { (TypeName: typeName, PropertyBuilder: propertyBuilder) })
+                    .ToList()!;
 
                 // Override iViewModelMethods if baseTypeBuilder is provided
                 if (baseTypeBuilder != null)

@@ -303,6 +303,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 );
 
             var iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
+
             var iModelExtendedProperties = iModelExtendedPropertiesType
                 .GetProperties()?
                 .Select(p => new PropertyDefinition
@@ -310,6 +311,18 @@ namespace Blazor.Tools.BlazorBundler.Tests
                     Name = p.Name,
                     Type = p.PropertyType
                 }).ToList() ?? default!;
+
+            //// Define the IModelExtendedProperties interface
+            //typeBuilder = moduleBuilder.DefineType(
+            //    iModelExtendedPropertiesType.FullName!,
+            //    TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+
+            //foreach (var prop in iModelExtendedProperties)
+            //{
+            //    typeBuilder = typeCreator.DefineInterfaceProperty(typeBuilder, prop.Name, prop.Type);
+            //}
+
+            //var iModelExtendedPropertiesCreatedType = typeBuilder.CreateType();
 
             var iModelExtendedPropertiesCreatedType = typeCreator.CreateType(
                 ref moduleBuilder,
@@ -320,19 +333,19 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 properties: iModelExtendedProperties
                 );
 
-            // Define the IEmployee interface
-            typeBuilder = moduleBuilder.DefineType(
-                $"{interfaceNameSpace}.IModelExtendedProperties",
-                TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+            //// Define the IEmployee interface
+            //typeBuilder = moduleBuilder.DefineType(
+            //    $"{interfaceNameSpace}.IModelExtendedProperties",
+            //    TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            // Define properties for the interface
-            foreach (var prop in iModelExtendedProperties)
-            {
-                typeBuilder = typeCreator.DefineInterfaceProperty(typeBuilder, prop.Name, prop.Type);
-            }
+            //// Define properties for the interface
+            //foreach (var prop in iModelExtendedProperties)
+            //{
+            //    typeBuilder = typeCreator.DefineInterfaceProperty(typeBuilder, prop.Name, prop.Type);
+            //}
 
-            // Create the interface type
-            var iModelExtendedPropertiesConstructedType = typeBuilder.CreateType();
+            //// Create the interface type
+            //var iModelExtendedPropertiesConstructedType = typeBuilder.CreateType();
 
             var iViewModelType = typeof(IViewModel<,>);
             var iViewModelCreatedType = typeCreator.CreateType(
@@ -341,12 +354,12 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 out tbBeforeCreate,
                 typeName: $"{interfaceNameSpace}.IViewModel",
                 typeAttributes: TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract,
-                interfaces: new Type[] { iModelExtendedPropertiesConstructedType },
+                interfaces: new Type[] { iModelExtendedPropertiesCreatedType },
                 genericParameterNames: new[] { "TModel", "TIModel" },  // Define <TModel, TIModel>
                 defineMethodsAction: tb => DefineViewModelMethods(typeCreator, tb)
                 );
             
-            var iViewModelConstructedGenericType = iViewModelCreatedType.MakeGenericType(_employeeType, iModelExtendedPropertiesConstructedType);
+            var iViewModelConstructedGenericType = iViewModelCreatedType.MakeGenericType(_employeeType, iModelExtendedPropertiesCreatedType);
 
             //var genericType = typeof(List<>).MakeGenericType(iViewModelType);
             //var removeMethod = genericType.GetMethod("Remove", BindingFlags.Instance | BindingFlags.Public, Type.DefaultBinder, new[] { iViewModelType }, null) ?? default!;
@@ -369,7 +382,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 properties: modelProperties,
                 defineFieldsAction: tb => DefineFields(typeCreator, tb),
                 defineConstructorsAction: tb => DefineConstructors(typeCreator, tb, _employeeType),
-                defineMethodsAction: tb => DefineMethods(typeCreator, tb, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType),
+                defineMethodsAction: tb => DefineMethods(typeCreator, tb, iViewModelType, _employeeType, iModelExtendedPropertiesCreatedType),
                 iImplementations: iImplementations
                 );
 
@@ -395,31 +408,50 @@ namespace Blazor.Tools.BlazorBundler.Tests
         }
 
         [TestMethod]
-        public void DefineInterfaceType_Test()
+        public void DefineIModelExtendedPropertiesType_Test()
         {
-            string contextAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
-            string modelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            string modelTypeName = "Employee";
-            string iModelTypeAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
-            string iModelTypeName = "IModelExtendedProperties";
-            string version = "1.0.0.0";
+            // Define assembly and module
+            var contextAssemblyName = "Blazor.Tools.BlazorBundler";
+            var interfaceAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            var iModelExtendedPropertiesTypeName = "IModelExtendedProperties";
+            var version = "3.1.2.0";
+            var iModelExtendedPropertiesFullyQualifiedTypeName = $"{interfaceAssemblyName}.{iModelExtendedPropertiesTypeName}";
+            var dllPath = Path.Combine(Path.GetTempPath(), $"{contextAssemblyName}.dll");
 
-            AssemblyName assemblyName = new AssemblyName(contextAssemblyName);
-            assemblyName.Version = new Version(version);
-            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(contextAssemblyName);
+            var tc = new TypeCreator();
+            tc.DefineAssemblyName(contextAssemblyName, version);
+            var assemblyBuilder = tc.DefineAssemblyBuilder();
+            var moduleBuilder = tc.DefineModuleBuilder();
 
-            var expectedType = typeof(IViewModel<Employee, IModelExtendedProperties>);
-            string expectedTypeFullName = expectedType.FullName ?? string.Empty;
+            // Define the IModelExtendedProperties interface
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                iModelExtendedPropertiesFullyQualifiedTypeName,
+                TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            var tc = new TypeCreator(contextAssemblyName, modelTypeAssemblyName, modelTypeName, iModelTypeAssemblyName, iModelTypeName, version, AssemblyBuilderAccess.Run);
-            
-            Type createdType = tc.DefineInterfaceType(moduleBuilder, expectedTypeFullName);
+            // Define properties for the interface
+            typeBuilder = tc.DefineInterfaceProperty(typeBuilder, "RowID", typeof(int));
+            typeBuilder = tc.DefineInterfaceProperty(typeBuilder, "IsEditMode", typeof(bool));
+            typeBuilder = tc.DefineInterfaceProperty(typeBuilder, "IsVisible", typeof(bool));
+            typeBuilder = tc.DefineInterfaceProperty(typeBuilder, "StartCell", typeof(int));
+            typeBuilder = tc.DefineInterfaceProperty(typeBuilder, "EndCell", typeof(int));
+            typeBuilder = tc.DefineInterfaceProperty(typeBuilder, "IsFirstCellClicked", typeof(bool));
 
-            Debug.WriteLine($"Expected FullName: {expectedTypeFullName}");
-            Debug.WriteLine($"Created Type FullName: {createdType.AssemblyQualifiedName}");
+            // Create the interface type
+            Type iModelExtendedPropertiesType = typeBuilder.CreateType();
 
-            //Assert.AreEqual(expectedTypeFullName, createdType.AssemblyQualifiedName);
+            // Retrieve and print properties (interfaces don't have actual properties, so this will only show the declared signatures)
+            var methods = iModelExtendedPropertiesType.GetMethods();
+            foreach (var method in methods)
+            {
+                AppLogger.WriteInfo($"Method: {method.Name}, Return Type: {method.ReturnType}");
+            }
+
+            if (File.Exists(dllPath))
+            {
+                File.Delete(dllPath);
+            }
+
+            assemblyBuilder.Save(dllPath);
         }
 
         [TestMethod]
@@ -848,34 +880,41 @@ namespace Blazor.Tools.BlazorBundler.Tests
             typeBuilder = typeCreator.DefineConstructor("with_IContextProvider_EmployeeVM", typeBuilder, new[] { typeof(IContextProvider), typeBuilder }, ilg =>
             {
                 ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
-                ilg.Emit(OpCodes.Ldarg_0);
-                ilg.Emit(OpCodes.Call, baseConstructor);
-
-                // Set contextProvider field
-                ilg.Emit(OpCodes.Ldarg_0);
-                ilg.Emit(OpCodes.Ldarg_1);
-                ilg.Emit(OpCodes.Stfld, _contextProviderField);
-
-                // Set _modelProperties from EmployeeVM modelVM
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
-                ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
+                ilg.Emit(OpCodes.Call, baseConstructor); // Call base class constructor
 
+                // Set _contextProvider field
+                ilg.Emit(OpCodes.Ldarg_0);  // Load "this"
+                ilg.Emit(OpCodes.Ldarg_1);  // Load contextProvider
+                ilg.Emit(OpCodes.Stfld, _contextProviderField);  // Store contextProvider in _contextProvider
+
+                // Set properties from modelVM
                 if (typeCreator.Properties != null)
                 {
                     foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
                     {
-                        var isValidType = typeName == modelType.FullName || typeName.Contains("IModelExtendedProperties");
-                        if (isValidType && prop.CanWrite)
+                        // Skip the cast if we're dealing with IModelExtendedProperties or similar
+                        bool isIModelProperty = typeName.Contains("IModelExtendedProperties");
+                        bool isEmployeeVMProperty = typeName == modelType.FullName;
+
+                        if ((isIModelProperty || isEmployeeVMProperty) && prop.CanWrite)
                         {
-                            ilg.Emit(OpCodes.Ldarg_0); // Load "this"
-                            ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
-                            ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                            // Load "this" (target object)
+                            ilg.Emit(OpCodes.Ldarg_0);
+
+                            // Load modelVM (the second argument passed into the constructor)
+                            ilg.Emit(OpCodes.Ldarg_2);  // Load modelVM
+
+                            // Call the getter on modelVM
+                            ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!);  // Call modelVM's getter for the property
+
+                            // Call the setter on the target object
+                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!);  // Set the target's property
                         }
                     }
                 }
 
-                ilg.Emit(OpCodes.Ret);
+                ilg.Emit(OpCodes.Ret);  // Return from constructor
 
                 Console.WriteLine("Constructor with IContextProvider and EmployeeVM parameter defined.");
             });

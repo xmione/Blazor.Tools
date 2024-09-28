@@ -97,29 +97,18 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return stringValue;
         }
 
-        public void Save(string assemblyName, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassTypeLocation)
+        public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassTypeLocation)
         {
-
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
+            var classGenerator = new ClassGenerator(assemblyName, version);
 
-            var classGenerator = new ClassGenerator(assemblyName);
-
-            var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var systemPrivateCoreLibFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Private.CoreLib.dll";
-            var systemFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.dll";
-            var systemRuntimeFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Runtime.dll";
-            var systemCollectionsFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Collections.dll";
-            var systemConsoleFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Console.dll";
-            var systemLinqFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Linq.dll";
-            var systemThreadingTasksFilePath = @"dotnet\shared\Microsoft.NETCore.App\8.0.8\System.Threading.Tasks.dll";
-
-            var systemPrivateCoreLibLocation = Path.Combine(programFilesPath, systemPrivateCoreLibFilePath);
-            var systemLocation = Path.Combine(programFilesPath, systemFilePath);
-            var systemRuntimeLocation = Path.Combine(programFilesPath, systemRuntimeFilePath);
-            var systemCollectionsLocation = Path.Combine(programFilesPath, systemCollectionsFilePath);
-            var systemConsoleLocation = Path.Combine(programFilesPath, systemConsoleFilePath);
-            var systemLinqLocation = Path.Combine(programFilesPath, systemLinqFilePath);
-            var systemThreadingTasksLocation = Path.Combine(programFilesPath, systemThreadingTasksFilePath);
+            var systemPrivateCoreLibLocation = typeof(object).Assembly.Location;
+            var systemLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.dll") ;
+            var systemRuntimeLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Runtime.dll");
+            var systemCollectionsLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Collections.dll");
+            var systemConsoleLocation = typeof(System.Console).Assembly.Location;
+            var systemLinqLocation = typeof(System.Linq.Enumerable).Assembly.Location;
+            var systemThreadingTasksLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Threading.Tasks.dll");
 
             // Add references to existing assemblies that contain types used in the dynamic class
             classGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
@@ -212,7 +201,7 @@ using System.Threading.Tasks;";
 
         private void AddFieldsAndProperties()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             string items = $"private List<{_vmClassName}> {listVarName};";
             string contextProvider = "private readonly IContextProvider _contextProvider;";
 
@@ -452,7 +441,7 @@ using System.Threading.Tasks;";
          */
         private void AddSetListMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic void SetList(List<{_vmClassName}> items)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\t{listVarName} = items;");
@@ -479,7 +468,7 @@ using System.Threading.Tasks;";
          */
         private void AddValidateMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic IEnumerable<ValidationResult> Validate(ValidationContext validationContext)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\tif ({listVarName} == null)");
@@ -506,7 +495,7 @@ using System.Threading.Tasks;";
 
         private void AddAlreadyExistsMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine("\t\tpublic bool AlreadyExists(string name, int currentItemId)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\tbool alreadyExists = false;");
@@ -552,7 +541,7 @@ using System.Threading.Tasks;";
 
         private void AddFromModelMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> FromModel({_baseClassName} model)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine("\t\t\ttry");
@@ -703,7 +692,7 @@ using System.Threading.Tasks;";
          */
         private void AddSetEditModeMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SetEditMode(bool isEditMode)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine("\t\t\tIsEditMode = isEditMode;");
@@ -724,7 +713,7 @@ using System.Threading.Tasks;";
          */
         private void AddSaveModelVMMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SaveModelVM()");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine("\t\t\tIsEditMode = false;");
@@ -760,7 +749,7 @@ using System.Threading.Tasks;";
          */
         private void AddSaveModelVMToNewModelVM()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IViewModel<{_baseClassName}, IModelExtendedProperties>> SaveModelVMToNewModelVM()");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\tvar newModel = new {_vmClassName}(_contextProvider)");
@@ -818,7 +807,7 @@ using System.Threading.Tasks;";
          */
         private void AddAddItemToListMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\tvar list = modelVMList.ToList();");
@@ -881,7 +870,7 @@ using System.Threading.Tasks;";
 
         private void AddUpdateListMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList, bool isAdding)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\tif (isAdding)");
@@ -953,7 +942,7 @@ using System.Threading.Tasks;";
          */
         private void AddDeleteItemFromListMethod()
         {
-            string listVarName = $"_{_baseClassName.Pluralize().ToLower()}";
+            string listVarName = $"_{_baseClassName?.Pluralize().ToLower()}";
             _sb?.AppendLine($"\t\tpublic async Task<IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<{_baseClassName}, IModelExtendedProperties>> modelVMList)");
             _sb?.AppendLine("\t\t{");
             _sb?.AppendLine($"\t\t\tvar list = modelVMList.ToList();");

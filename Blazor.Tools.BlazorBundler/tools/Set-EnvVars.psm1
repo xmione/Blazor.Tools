@@ -48,19 +48,20 @@ param(
     Write-Host "fileVersion: $fileVersion"
     Write-Host "changelogPath: $changelogPath"
 
-    Set-Item -Path "Env:Configuration" -Value $Configuration
-    Set-Item -Path "Env:MajorVersion" -Value $MajorVersion
-    Set-Item -Path "Env:MinorVersion" -Value $MinorVersion
-    Set-Item -Path "Env:PatchVersion" -Value $PatchVersion
-    Set-Item -Path "Env:RevisionVersion" -Value $RevisionVersion
-    Set-Item -Path "Env:NugetApiKey" -Value $NugetApiKey
-    Set-Item -Path "Env:Publish" -Value $Publish
-    Set-Item -Path "Env:IsRelease" -Value $IsRelease
-    Set-Item -Path "Env:GitComment" -Value $GitComment
+    Set-Item -Path env:Configuration -Value $Configuration
+    Set-Item -Path env:MajorVersion -Value $MajorVersion
+    Set-Item -Path env:MinorVersion -Value $MinorVersion
+    Set-Item -Path env:PatchVersion -Value $PatchVersion
+    Set-Item -Path env:RevisionVersion -Value $RevisionVersion
+    Set-Item -Path env:NugetApiKey -Value $NugetApiKey
+    Set-Item -Path env:Publish -Value $Publish
+    Set-Item -Path env:IsRelease -Value $IsRelease
+    Set-Item -Path env:GitComment -Value $GitComment
+    Set-Item -Path env:PackageVersion -Value $packageVersion
 
-    Set-Item -Path "Env:AssemblyVersion" -Value $assemblyVersion
-    Set-Item -Path "Env:FileVersion" -Value $fileVersion
-    Set-Item -Path "Env:ChangelogPath" -Value $changelogPath
+    Set-Item -Path env:AssemblyVersion -Value $assemblyVersion
+    Set-Item -Path env:FileVersion -Value $fileVersion
+    Set-Item -Path env:ChangelogPath -Value $changelogPath
      
 }
 

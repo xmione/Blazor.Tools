@@ -58,7 +58,8 @@ dotnet add package Blazor.Tools.BlazorBundler
 
 ## After-Install Setup Commands
 
-Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
+Note: After installing the package, you have to manually buld the project first then run the Install-Pkgs module file 
+        to install required nuget packages.
       First replace the values of the $userProfileName and $targetPath variables.
       
       $userProfileName should contain your Windows UserProfile Name
@@ -150,4 +151,5 @@ Open PowerShell and run:
 
 
 - [changelog_3.1.18.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.18.md)
+- [changelog_3.1.19.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.19.md)
 
