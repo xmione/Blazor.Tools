@@ -420,10 +420,20 @@ namespace Blazor.Tools.BlazorBundler.Interfaces
                 }
 
                 _modelType = baseClassType;
-                _modelVMType = vmClassType;
+                _modelVMType = viewModelType;
 
                 _modelInstance = Activator.CreateInstance(_modelType);
                 _modelVMInstance = Activator.CreateInstance(_modelVMType);
+
+                // Ensure that the ViewModel implements IViewModel<TModel, TIModel>
+                if (specificIViewModelType.IsAssignableFrom(viewModelType))
+                {
+                    Console.WriteLine("The ViewModel implements the expected interface.");
+                }
+                else
+                {
+                    Console.WriteLine("The ViewModel does not implement the expected interface.");
+                }
 
                 // Use reflection to work with IViewModel
             }

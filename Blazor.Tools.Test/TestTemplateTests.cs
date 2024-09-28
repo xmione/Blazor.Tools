@@ -1,7 +1,7 @@
 ﻿namespace Blazor.Tools.Test
 {
     [TestClass]
-    public sealed class Test1
+    public sealed class TestTemplateTests
     {
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
