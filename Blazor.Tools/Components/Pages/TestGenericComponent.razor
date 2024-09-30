@@ -1,5 +1,6 @@
 ﻿@page "/test-generic-component"
 @using System.Reflection
+@using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Utilities.Exceptions
 @using Microsoft.CodeAnalysis
 @using Microsoft.CodeAnalysis.CSharp
@@ -9,38 +10,37 @@
 <MessageDisplay Item="DynamicInstance" />
 
 @code {
-    [Parameter]
-    public object DynamicInstance { get; set; } = default!;
+    [Parameter] public ITestVM<IBase, ITestMEP> DynamicInstance { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
+        var message = DynamicInstance.GetMessage();
         // Define the source code for ClassA
         var classASource = @"
 using System;
-
-namespace Models
-{
-    public class ClassA
-    {
-        public virtual string GetMessage() => ""Hello from ClassA"";
-    }
-}";
-
-        // Define the source code for ClassB
-        var classBSource = @"
-using System;
 using System.Threading.Tasks;
-using Interfaces;
+using Blazor.Tools.BlazorBundler.Interfaces;
 
 namespace Models
 {
-    public class ClassB : ClassA, IViewModel<ClassA, IModelExtendedProperties>, IModelExtendedProperties
+    public class ClassA : ITestVM<IBase, ITestMEP>, IBase, ITestMEP
     {
+        public int ID { get; set; }
         public bool IsEditMode { get; set; }
 
-        public override string GetMessage() => ""Hello from ClassB"";
+        private string _message;
 
-        public async Task<IViewModel<ClassA, IModelExtendedProperties>> SetEditMode(bool isEditMode)
+        public void SetMessage(string message)
+        {
+            _message = message;
+        }
+
+        public string GetMessage()
+        {
+            return ""Hello from ClassA"";
+        }
+
+        public async Task<ITestVM<IBase, ITestMEP>> SetEditMode(bool isEditMode)
         {
             IsEditMode = isEditMode;
             await Task.CompletedTask;
@@ -49,33 +49,56 @@ namespace Models
     }
 }";
 
-        // Define the source code for the interfaces
-        var interfaceSource = @"
+        // Define the source code for ClassB
+        var classBSource = @"
+using System;
 using System.Threading.Tasks;
+using Blazor.Tools.BlazorBundler.Interfaces;
 
-namespace Interfaces
+namespace Models
 {
-    public interface IViewModel<TModel, TIModel>
+    public class ClassB : ITestVM<IBase, ITestMEP>, IBase, ITestMEP
     {
-        Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
-    }
+        public int ID { get; set; }
+        public bool IsEditMode { get; set; }
 
-    public interface IModelExtendedProperties
-    {
-        bool IsEditMode { get; set; }
+        private string _message;
+
+        public void SetMessage(string message)
+        {
+            _message = message;
+        }
+
+        public string GetMessage()
+        {
+            return _message;
+        }
+
+        public async Task<ITestVM<IBase, ITestMEP>> SetEditMode(bool isEditMode)
+        {
+            IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return this;
+        }
     }
 }";
 
         // Compile all sources into a single in-memory assembly
-        var combinedAssemblyBytes = EmitAssemblyToMemory("CombinedAssembly", interfaceSource, classASource, classBSource);
+        var combinedAssemblyBytes = EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
 
         // Load the combined assembly from memory
         var combinedAssembly = Assembly.Load(combinedAssemblyBytes);
 
         // Get the type of ClassB
-        var dynamicType = combinedAssembly.GetType("ClassB")!;
-        DynamicInstance = Activator.CreateInstance(dynamicType)!;
+        var dynamicType = combinedAssembly.GetType("Models.ClassB")!;
+        DynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
 
+        // Invoke SetMessage
+        var setMessageMethod = dynamicType.GetMethod("SetMessage");
+        if (setMessageMethod != null)
+        {
+            setMessageMethod.Invoke(DynamicInstance, new object[] { message });
+        }
         // Set IsEditMode to true and verify the change
         var setEditModeMethod = dynamicType.GetMethod("SetEditMode");
         if (setEditModeMethod != null)
@@ -87,11 +110,19 @@ namespace Interfaces
     private static byte[] EmitAssemblyToMemory(string assemblyName, params string[] sourceCodes)
     {
         var syntaxTrees = sourceCodes.Select(code => CSharpSyntaxTree.ParseText(code)).ToList();
+        var assemblyFolder = Path.GetDirectoryName(typeof(Task).Assembly.Location)!;
+        var systemRuntime = Path.Combine(assemblyFolder, "System.Runtime.dll");
+        var systemThreadingTasks = Path.Combine(assemblyFolder, "System.Threading.Tasks.dll");
+
+        AppLogger.WriteInfo(systemThreadingTasks);
         var references = new List<MetadataReference>
-    {
-        MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-        MetadataReference.CreateFromFile(typeof(Task).Assembly.Location),
-    };
+        {
+        
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(systemRuntime),
+            MetadataReference.CreateFromFile(systemThreadingTasks),
+            MetadataReference.CreateFromFile(typeof(ITestVM<,>).Assembly.Location)
+        };
 
         var compilation = CSharpCompilation.Create(assemblyName)
             .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
