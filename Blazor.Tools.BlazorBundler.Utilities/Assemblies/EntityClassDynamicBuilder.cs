@@ -119,9 +119,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return stringValue;
         }
 
-        public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath)
+        public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath, string? baseClassCode = null)
         {
-
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
             var classGenerator = new ClassGenerator(assemblyName, version);
             var systemPrivateCoreLibLocation = typeof(object).Assembly.Location;
@@ -134,9 +133,19 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(systemLocation);  // System.dll
             classGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
 
-            _classType = classGenerator.CreateType(classCode, nameSpace, className); // type created from memory stream does not have disposableAssembly location.
+            // Add the base class code as a module if provided
+            if (baseClassCode != null)
+            {
+                classGenerator.AddModule(baseClassCode, nameSpace);
+            }
 
-            // Save the compiled disposableAssembly to the Temp folder
+            // Add the class code as a module if provided
+            classGenerator.AddModule(classCode, nameSpace);
+
+            // Create the type from the provided class code
+            _classType = classGenerator.CreateType(classCode, nameSpace, className, baseClassCode);
+
+            // Save the compiled assembly to the Temp folder
             classGenerator.SaveAssemblyToTempFolder(dllPath);
 
             while (dllPath.IsFileInUse())
@@ -148,7 +157,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             using (var disposableAssembly = DisposableAssembly.LoadFile(dllPath))
             {
-                _classType = disposableAssembly.GetType($"{nameSpace}.{className}"); // type created from loading an disposableAssembly file has an disposableAssembly location.
+                _classType = disposableAssembly.GetType($"{nameSpace}.{className}"); // type created from loading an assembly file has an assembly location.
                 _disposableAssembly = disposableAssembly;
             }
 
@@ -158,9 +167,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 //vmDllPath.KillLockingProcesses();
                 Thread.Sleep(1000);
             }
-
         }
-
+        
         // Implement IDisposable to clean up resources
         public void Dispose()
         {

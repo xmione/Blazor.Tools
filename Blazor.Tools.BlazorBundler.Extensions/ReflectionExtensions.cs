@@ -297,6 +297,16 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             
         }
 
+        // Extension method to get raw bytes from in-memory assemblies
+        public static byte[] GetRawBytes(this Assembly assembly)
+        {
+            using var ms = new MemoryStream();
+            using (var fs = new FileStream(assembly.Location, FileMode.Open, FileAccess.Read))
+            {
+                fs.CopyTo(ms);
+            }
+            return ms.ToArray();
+        }
         private static string FormatType(Type type)
         {
             if (type.IsGenericType)

@@ -1,0 +1,69 @@
+﻿@page "/test-generic-component"
+@using System.Reflection
+@using Blazor.Tools.BlazorBundler.Utilities.Exceptions
+@using Microsoft.CodeAnalysis
+@using Microsoft.CodeAnalysis.CSharp
+
+<PageTitle>Testing Generic component with Dynamically created Assembly</PageTitle>
+@* Example usage with dynamically created instances *@
+<MessageDisplay Item="dynamicInstance" />
+
+@code {
+    private object dynamicInstance;
+
+    protected override void OnInitialized()
+    {
+        // Define the source code for ClassA
+        var classASource = @"
+        public class ClassA
+        {
+            public virtual string GetMessage() => ""Hello from ClassA"";
+        }";
+
+        // Define the source code for ClassB
+        var classBSource = @"
+        public class ClassB : ClassA
+        {
+            public override string GetMessage() => ""Hello from ClassB"";
+        }";
+
+        // Compile both ClassA and ClassB into a single in-memory assembly
+        var combinedAssemblyBytes = EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
+
+        // Load the combined assembly from memory
+        var combinedAssembly = Assembly.Load(combinedAssemblyBytes);
+
+        // Get the type of ClassB
+        var dynamicType = combinedAssembly.GetType("ClassB")!;
+        dynamicInstance = Activator.CreateInstance(dynamicType)!;
+    }
+
+    private static byte[] EmitAssemblyToMemory(string assemblyName, params string[] sourceCodes)
+    {
+        var syntaxTrees = sourceCodes.Select(code => CSharpSyntaxTree.ParseText(code)).ToList();
+        var references = new List<MetadataReference>
+        {
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+        };
+
+        var compilation = CSharpCompilation.Create(assemblyName)
+            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .AddReferences(references)
+            .AddSyntaxTrees(syntaxTrees);
+
+        using var ms = new MemoryStream();
+        var result = compilation.Emit(ms);
+
+        if (!result.Success)
+        {
+            var failures = result.Diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+            foreach (var diagnostic in failures)
+            {
+                AppLogger.WriteInfo($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+            }
+            throw new InvalidOperationException("Compilation failed");
+        }
+
+        return ms.ToArray();
+    }
+}

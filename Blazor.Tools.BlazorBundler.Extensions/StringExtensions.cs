@@ -53,5 +53,16 @@ namespace Blazor.Tools.BlazorBundler.Extensions
 
             return pascalCase;
         }
+
+        public static string RemoveLines(this string content, string keyword)
+        {
+            if (string.IsNullOrEmpty(content) || string.IsNullOrEmpty(keyword))
+                return content; // Return the content as is if content or keyword is null or empty.
+
+            // Split the content into lines, filter out lines containing the keyword, and join them back together
+            var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var filteredLines = lines.Where(line => !line.Contains(keyword));
+            return string.Join(Environment.NewLine, filteredLines);
+        }
     }
 }

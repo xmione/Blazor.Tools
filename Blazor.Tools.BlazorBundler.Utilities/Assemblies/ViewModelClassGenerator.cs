@@ -97,7 +97,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return stringValue;
         }
 
-        public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassTypeLocation)
+        public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassCode, string baseClassTypeLocation)
         {
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
             var classGenerator = new ClassGenerator(assemblyName, version);
@@ -125,8 +125,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location); // Blazor.Tools.BlazorBundler.Interfaces, same with ICloneable, IViewModel and IContextProvider
             classGenerator.AddReference(typeof(ContextProvider).Assembly.Location); // Blazor.Tools.BlazorBundler.Entities
 
+            // Add the class code as a module if provided
+            classGenerator.AddModule(classCode, nameSpace); classGenerator.AddModule(baseClassCode, nameSpace);
+
             _compilation = classGenerator.Compilation;
-            _classType = classGenerator.CreateType(classCode, nameSpace, className);
+            _classType = classGenerator.CreateType(classCode, nameSpace, className, baseClassCode);
 
             // Save the compiled assembly to the Temp folder
             classGenerator.SaveAssemblyToTempFolder(dllPath);

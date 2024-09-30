@@ -324,7 +324,7 @@ namespace Blazor.Tools.BlazorBundler.Interfaces
             {
                 viewModelClassGenerator.CreateFromDataTable(selectedTable);
                 vmClassCode = viewModelClassGenerator.ToString() + baseClassCode + iCloneableCode + iModelExtendedPropertiesCode + iViewModelCode;
-                viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
+                viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseClassCode, baseDLLPath);
                 vmClassType = viewModelClassGenerator.ClassType ?? default!;
                 vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
 

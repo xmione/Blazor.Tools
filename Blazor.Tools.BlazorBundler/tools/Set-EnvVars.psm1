@@ -1,7 +1,13 @@
 <#
     To test run:
                 Import-Module C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\tools\Set-EnvVars.psm1
-                Set-EnvVars -MajorVersion 3 -MinorVersion 1 -PatchVersion 8 -RevisionVersion 0 -NugetApiKey "YOUR_API_Key" -Publish $false -IsRelease $false -GitComment "Updated project with the latest changes"
+                Set-EnvVars -Configuration "Release" -MajorVersion 3 -MinorVersion 1 -PatchVersion 20 -RevisionVersion 0 -NugetApiKey $env:NugetApiKey -Publish $false -IsRelease $false -GitComment "- Updated the following packages:
+	ICSharpCode.Decompiler version 9.0.0.7660-preview2
+	Microsoft.AspNetCore.Components version 9.0.0-preview.7.24406.2
+	Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore version 9.0.0-rc.1.24452.1
+	Microsoft.AspNetCore.Identity.EntityFrameworkCore version 9.0.0-rc.1.24452.1
+
+- Updated Install-Pkgs.psm1 that can be used to manually install packages."
 
     To remove:
                 Remove-Module -Name Set-EnvVars
@@ -12,6 +18,8 @@
 
 Function Set-EnvVars {
 param(
+    [Parameter(Mandatory=$true)]
+    [string] $Configuration,
     [Parameter(Mandatory=$true)]
     [string] $MajorVersion,
     [Parameter(Mandatory=$true)]

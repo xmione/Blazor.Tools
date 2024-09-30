@@ -37,6 +37,7 @@ if (-not (Test-Path -Path $ProfilePath)) {
 $ModuleImports = @"
 # Import custom modules
 Import-Module '$ScriptDir\Update-EnvironmentVariable.psm1'
+Import-Module '$ScriptDir\Update-Envs.psm1'
 Import-Module '$ScriptDir\Print-Folder-Structure.psm1'
 Import-Module '$ScriptDir\Install-Pkgs.psm1'
 Import-Module '$ScriptDir\Uninstall-Pkgs.psm1'

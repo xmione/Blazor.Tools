@@ -10,6 +10,9 @@ using OutputKind = Microsoft.CodeAnalysis.OutputKind;
 using Assembly = System.Reflection.Assembly;
 using Blazor.Tools.BlazorBundler.Extensions;
 using System.Reflection;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
+using ICSharpCode.Decompiler.CSharp.Syntax;
+using SyntaxTree = Microsoft.CodeAnalysis.SyntaxTree;
 namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 {
     public class ClassGenerator : IDisposable
@@ -42,10 +45,10 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             set { _outputKind = value; }
         }
 
-        public ClassGenerator(string assemblyName, string version = "1.0.0.0")
+        public ClassGenerator(string assemblyName, string version = "1.0.0.0", OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
             _assemblyName = assemblyName;
-            _outputKind = OutputKind.DynamicallyLinkedLibrary;
+            _outputKind = outputKind;
 
             var assemblyAttributes = new[]
             {
@@ -55,16 +58,20 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             var assemblyInfoSyntax = string.Join(Environment.NewLine, assemblyAttributes);
 
-            // Include assembly attributes in the compilation
-            _compilation = CSharpCompilation.Create(assemblyName,
-                options: new CSharpCompilationOptions(_outputKind),
-                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(assemblyInfoSyntax) });
-        }
+            var compilationOptions = new CSharpCompilationOptions(_outputKind, moduleName: assemblyName);
 
+            var syntaxTrees = new[] { CSharpSyntaxTree.ParseText(assemblyInfoSyntax) };
+            
+            // Include assembly attributes in the compilation
+            _compilation = CSharpCompilation.Create(
+                assemblyName: assemblyName,
+                options: compilationOptions,
+                syntaxTrees: syntaxTrees);
+        }
 
         public void AddReference(string assemblyPath)
         {
-            Console.WriteLine("Adding reference to {0}", assemblyPath);
+            AppLogger.WriteInfo($"Adding reference to {assemblyPath}" );
 
             var reference = MetadataReference.CreateFromFile(assemblyPath);
             _compilation = _compilation?.AddReferences(reference) ?? CSharpCompilation.Create(_assemblyName).AddReferences(reference);
@@ -82,47 +89,102 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _compilation = _compilation?.AddReferences(reference);
         }
 
-        public Type? CreateType(string classCode, string nameSpace, string className)
+        public void AddModule(string moduleCode, string moduleName)
         {
-            Type? type = null;
-            var syntaxTree = CSharpSyntaxTree.ParseText(classCode);
+            var syntaxTree = CSharpSyntaxTree.ParseText(moduleCode);
+            var moduleCompilation = CSharpCompilation.Create(moduleName,
+                options: new CSharpCompilationOptions(OutputKind.NetModule),
+                syntaxTrees: new[] { syntaxTree },
+                references: _compilation?.References);
 
-            _compilation = _compilation?.AddSyntaxTrees(syntaxTree);
-
-            using var ms = new MemoryStream();
-            var result = _compilation?.Emit(ms);
-
-            if (result != null && !result.Success)
+            using (var ms = new MemoryStream())
             {
-                var failures = result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
-                foreach (var diagnostic in failures)
+                var result = moduleCompilation.Emit(ms);
+                if (!result.Success)
                 {
-                    Console.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+                    // Handle compilation errors
+                    throw new CompilationException(result.Diagnostics);
                 }
 
-                throw new InvalidOperationException("Compilation failed.");
+                ms.Seek(0, SeekOrigin.Begin);
+                var moduleReference = MetadataReference.CreateFromStream(ms);
+                _compilation = _compilation?.AddReferences(moduleReference);
             }
+        }
 
-            ms.Seek(0, SeekOrigin.Begin);
-            byte[] rawAssembly = ms.ToArray();
-            _assembly = Assembly.Load(rawAssembly);
+        public Type? CreateType(string classCode, string nameSpace, string className, string? baseClassCode = null)
+        {
+            Type? type = null;
 
             try
             {
-                var types = _assembly.GetTypes();
-                type = _assembly.GetType($"{nameSpace}.{className}");
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                var loaderExceptions = ex.LoaderExceptions;
-                foreach (var loaderException in loaderExceptions)
+                var syntaxTrees = new List<SyntaxTree>();
+
+                //if (baseClassCode != null)
+                //{
+                //    var baseClassSyntaxTree = CSharpSyntaxTree.ParseText(baseClassCode);
+                //    syntaxTrees.Add(baseClassSyntaxTree);
+                //}
+
+                var classSyntaxTree = CSharpSyntaxTree.ParseText(classCode);
+                syntaxTrees.Add(classSyntaxTree);
+
+                _compilation = _compilation?.AddSyntaxTrees(syntaxTrees);
+
+                using var ms = new MemoryStream();
+                var result = _compilation?.Emit(ms);
+
+                if (result != null && !result.Success)
                 {
-                    Console.WriteLine(loaderException?.Message);
+                    var failures = result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
+                    foreach (var diagnostic in failures)
+                    {
+                        AppLogger.WriteInfo($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+                    }
+
+                    throw new CompilationException(result.Diagnostics);
                 }
+
+                ms.Seek(0, SeekOrigin.Begin);
+                byte[] rawAssembly = ms.ToArray();
+                _assembly = Assembly.Load(rawAssembly);
+
+                try
+                {
+                    var types = _assembly.GetTypes();
+                    type = _assembly.GetType($"{nameSpace}.{className}");
+                    AppLogger.WriteInfo($"Module name: {_assembly?.GetModules().FirstOrDefault()?.Name ?? "<Unknown Module>"}");
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    var loaderExceptions = ex.LoaderExceptions;
+                    foreach (var loaderException in loaderExceptions)
+                    {
+                        AppLogger.WriteInfo(loaderException?.Message!);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleException(ex);
             }
 
             return type;
         }
+
+        //public void SaveAssemblyToTempFolder(string dllPath)
+        //{
+        //    using (var fs = new FileStream(dllPath, FileMode.Create, FileAccess.Write))
+        //    {
+        //        var result = _compilation?.Emit(fs);
+        //        if (result == null || !result.Success)
+        //        {
+        //             Handle compilation errors
+        //            throw new CompilationException(result?.Diagnostics!);
+        //        }
+        //    }
+        //}
 
         public void SaveAssemblyToTempFolder(string fileName)
         {
@@ -134,7 +196,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 var failures = result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 foreach (var diagnostic in failures)
                 {
-                    Console.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+                    AppLogger.WriteInfo($"{diagnostic.Id}: {diagnostic.GetMessage()}");
                 }
 
                 throw new InvalidOperationException("Compilation failed.");
@@ -162,7 +224,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 }
                 catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32) // HResult 0x20 (ERROR_SHARING_VIOLATION)
                 {
-                    Console.WriteLine(ex.Message);
+                    AppLogger.WriteInfo(ex.Message);
                     while (fileName.IsFileInUse()) // Ensure no processes are locking the file
                     {
                         fileName.KillLockingProcesses();
@@ -179,7 +241,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 throw new IOException("Failed to write the file after multiple attempts.");
             }
 
-            Console.WriteLine("Successfully compiled and saved to {0}", fileName);
+            AppLogger.WriteInfo($"Successfully compiled and saved to {fileName}");
         }
 
         // Implement IDisposable to clean up resources

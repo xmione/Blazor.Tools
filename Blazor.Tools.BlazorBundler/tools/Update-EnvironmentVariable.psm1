@@ -1,11 +1,26 @@
-# Example usage:
-# Add an environment variable
 
 <#
-Update-EnvironmentVariable -Action Add -Name "MyVariable" -Value "MyValue"
 
-# Remove an environment variable
-Update-EnvironmentVariable -Action Remove -Name "MyVariable"
+# Import Module:
+
+    Import-Module C:\repo\Blazor.Tools\Blazor.Tools.BlazorBundler\tools\Update-Envs.psm1
+
+# Remove Module:
+
+    Remove-Module Update-Envs
+
+# For Machine profile: 
+    -IsUser $false
+    
+  For User profile:
+    -IsUser $true
+
+# Add an environment variable:   
+    Update-EnvironmentVariable -Action Add -Name "Configuration" -Value "Release" -IsUser $false 
+
+# Remove an environment variable:
+    
+    Update-EnvironmentVariable -Action Remove -Name "MyVariable"
 
 #>
 
@@ -18,7 +33,9 @@ Function Update-EnvironmentVariable {
         [Parameter(Mandatory = $true)]
         [string]$Name,
 
-        [string]$Value
+        [string]$Value,
+
+        [bool]$IsUser = $true
     )
 
     # Path to the user's PowerShell profile script
@@ -37,8 +54,12 @@ Function Update-EnvironmentVariable {
     $Pattern = "^\`$env:" + [regex]::Escape($Name) + "\s*="
 
     if ($Action -eq "Add") {
-        # Set the environment variable in the current session
-        [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Process)
+        # Set the environment variable in the User scope (or use Machine for system-wide)
+        if($IsUser){
+            [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::User)
+        } else {
+            [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
+        }
 
         # Remove existing environment variable if it exists in the profile
         $FilteredContent = $ProfileContent | Where-Object { $_ -notmatch $Pattern }
@@ -49,8 +70,12 @@ Function Update-EnvironmentVariable {
 
         Write-Output "Adding environment variable $Name with value $Value to profile and current session."
     } elseif ($Action -eq "Remove") {
-        # Remove the environment variable from the current session
-        [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::Process)
+        # Remove the environment variable from the User scope
+        if($IsUser){
+            [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::User)
+        } else {
+            [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::Machine)
+        }
 
         # Remove the environment variable from the profile
         $FilteredContent = $ProfileContent | Where-Object { $_ -notmatch $Pattern }
@@ -61,9 +86,5 @@ Function Update-EnvironmentVariable {
     # Write the updated content back to the profile script
     Set-Content -Path $ProfilePath -Value $FilteredContent
 
-    Write-Output "Finished updating environment variables. No restart is required for the current session."
+    Write-Output "Finished updating environment variables. A restart may be required to apply changes globally."
 }
-
-Export-ModuleMember -Function Update-EnvironmentVariable
-
-

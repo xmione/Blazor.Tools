@@ -863,7 +863,7 @@ namespace Blazor.Tools.ConsoleApp
                 viewModelClassGenerator.CreateFromDataTable(selectedTable);
                 vmClassCode = viewModelClassGenerator.ToString() + baseClassCode + iCloneableCode + iModelExtendedPropertiesCode + iViewModelCode;
                 //vmClassCode = viewModelClassGenerator.ToString() + baseClassCode + iCloneableCode + iViewModelCode;
-                viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseDLLPath);
+                viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseClassCode, baseDLLPath);
                 vmClassType = viewModelClassGenerator.ClassType ?? default!;    
                 vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
 
