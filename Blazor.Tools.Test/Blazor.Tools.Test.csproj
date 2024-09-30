@@ -23,6 +23,7 @@
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data\Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />
+    <ProjectReference Include="..\Blazor.Tools\Blazor.Tools.csproj" />
   </ItemGroup>
 
   <ItemGroup>

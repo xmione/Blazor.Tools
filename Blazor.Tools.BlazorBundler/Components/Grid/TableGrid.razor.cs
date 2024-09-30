@@ -14,7 +14,7 @@ using DocumentFormat.OpenXml.EMMA;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGrid<TModel, TIModel> : ComponentBase
+    public partial class TableGrid<TModel, TIModel> : ComponentBase where TModel : class
     {
         [Parameter] public string Title { get; set; } = string.Empty;
         [Parameter] public string TableID { get; set; } = string.Empty;

@@ -6,45 +6,92 @@
 
 <PageTitle>Testing Generic component with Dynamically created Assembly</PageTitle>
 @* Example usage with dynamically created instances *@
-<MessageDisplay Item="dynamicInstance" />
+<MessageDisplay Item="DynamicInstance" />
 
 @code {
-    private object dynamicInstance;
+    [Parameter]
+    public object DynamicInstance { get; set; } = default!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Define the source code for ClassA
         var classASource = @"
-        public class ClassA
-        {
-            public virtual string GetMessage() => ""Hello from ClassA"";
-        }";
+using System;
+
+namespace Models
+{
+    public class ClassA
+    {
+        public virtual string GetMessage() => ""Hello from ClassA"";
+    }
+}";
 
         // Define the source code for ClassB
         var classBSource = @"
-        public class ClassB : ClassA
-        {
-            public override string GetMessage() => ""Hello from ClassB"";
-        }";
+using System;
+using System.Threading.Tasks;
+using Interfaces;
 
-        // Compile both ClassA and ClassB into a single in-memory assembly
-        var combinedAssemblyBytes = EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
+namespace Models
+{
+    public class ClassB : ClassA, IViewModel<ClassA, IModelExtendedProperties>, IModelExtendedProperties
+    {
+        public bool IsEditMode { get; set; }
+
+        public override string GetMessage() => ""Hello from ClassB"";
+
+        public async Task<IViewModel<ClassA, IModelExtendedProperties>> SetEditMode(bool isEditMode)
+        {
+            IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return this;
+        }
+    }
+}";
+
+        // Define the source code for the interfaces
+        var interfaceSource = @"
+using System.Threading.Tasks;
+
+namespace Interfaces
+{
+    public interface IViewModel<TModel, TIModel>
+    {
+        Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
+    }
+
+    public interface IModelExtendedProperties
+    {
+        bool IsEditMode { get; set; }
+    }
+}";
+
+        // Compile all sources into a single in-memory assembly
+        var combinedAssemblyBytes = EmitAssemblyToMemory("CombinedAssembly", interfaceSource, classASource, classBSource);
 
         // Load the combined assembly from memory
         var combinedAssembly = Assembly.Load(combinedAssemblyBytes);
 
         // Get the type of ClassB
         var dynamicType = combinedAssembly.GetType("ClassB")!;
-        dynamicInstance = Activator.CreateInstance(dynamicType)!;
+        DynamicInstance = Activator.CreateInstance(dynamicType)!;
+
+        // Set IsEditMode to true and verify the change
+        var setEditModeMethod = dynamicType.GetMethod("SetEditMode");
+        if (setEditModeMethod != null)
+        {
+            await (Task)setEditModeMethod.Invoke(DynamicInstance, new object[] { true })!;
+        }
     }
 
     private static byte[] EmitAssemblyToMemory(string assemblyName, params string[] sourceCodes)
     {
         var syntaxTrees = sourceCodes.Select(code => CSharpSyntaxTree.ParseText(code)).ToList();
         var references = new List<MetadataReference>
-        {
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-        };
+    {
+        MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(Task).Assembly.Location),
+    };
 
         var compilation = CSharpCompilation.Create(assemblyName)
             .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -66,4 +113,6 @@
 
         return ms.ToArray();
     }
+
+
 }
