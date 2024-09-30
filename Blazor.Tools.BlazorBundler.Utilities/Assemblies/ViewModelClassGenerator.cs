@@ -126,7 +126,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(typeof(ContextProvider).Assembly.Location); // Blazor.Tools.BlazorBundler.Entities
 
             // Add the class code as a module if provided
-            classGenerator.AddModule(classCode, nameSpace); classGenerator.AddModule(baseClassCode, nameSpace);
+            classGenerator.AddModule(classCode, nameSpace); 
+            //classGenerator.AddModule(baseClassCode, nameSpace);
 
             _compilation = classGenerator.Compilation;
             _classType = classGenerator.CreateType(classCode, nameSpace, className, baseClassCode);

@@ -1168,7 +1168,7 @@ namespace Blazor.Tools.BlazorBundler.Interfaces
                     {
                         foreach (var row in _selectedData)
                         {
-                            // Process each row here
+                            // LoadAssembly each row here
                             Console.WriteLine(row);
                         }
                     }

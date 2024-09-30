@@ -292,7 +292,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     {
                         foreach (var row in selectedData)
                         {
-                            // Process each row here
+                            // LoadAssembly each row here
                             Console.WriteLine(row);
                         }
                     }
@@ -320,7 +320,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             //            {
             //                foreach (var row in rows)
             //                {
-            //                    // Process each row here
+            //                    // LoadAssembly each row here
             //                    Console.WriteLine(row);
             //                }
             //            }

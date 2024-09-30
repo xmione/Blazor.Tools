@@ -1,6 +1,7 @@
 ﻿@page "/test-generic-component"
 @using System.Reflection
 @using Blazor.Tools.BlazorBundler.Interfaces
+@using Blazor.Tools.BlazorBundler.Utilities.Assemblies
 @using Blazor.Tools.BlazorBundler.Utilities.Exceptions
 @using Microsoft.CodeAnalysis
 @using Microsoft.CodeAnalysis.CSharp
@@ -15,6 +16,8 @@
     protected override async Task OnInitializedAsync()
     {
         var message = DynamicInstance.GetMessage();
+
+
         // Define the source code for ClassA
         var classASource = @"
 using System;
@@ -83,14 +86,13 @@ namespace Models
     }
 }";
 
+        var assemblyEmitter = new AssemblyEmitter();
         // Compile all sources into a single in-memory assembly
-        var combinedAssemblyBytes = EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
-
-        // Load the combined assembly from memory
-        var combinedAssembly = Assembly.Load(combinedAssemblyBytes);
-
+        var combinedAssemblyBytes = assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
+        assemblyEmitter.LoadAssembly();
+         
         // Get the type of ClassB
-        var dynamicType = combinedAssembly.GetType("Models.ClassB")!;
+        var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.ClassB")!;
         DynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
 
         // Invoke SetMessage
@@ -106,44 +108,5 @@ namespace Models
             await (Task)setEditModeMethod.Invoke(DynamicInstance, new object[] { true })!;
         }
     }
-
-    private static byte[] EmitAssemblyToMemory(string assemblyName, params string[] sourceCodes)
-    {
-        var syntaxTrees = sourceCodes.Select(code => CSharpSyntaxTree.ParseText(code)).ToList();
-        var assemblyFolder = Path.GetDirectoryName(typeof(Task).Assembly.Location)!;
-        var systemRuntime = Path.Combine(assemblyFolder, "System.Runtime.dll");
-        var systemThreadingTasks = Path.Combine(assemblyFolder, "System.Threading.Tasks.dll");
-
-        AppLogger.WriteInfo(systemThreadingTasks);
-        var references = new List<MetadataReference>
-        {
-        
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            MetadataReference.CreateFromFile(systemRuntime),
-            MetadataReference.CreateFromFile(systemThreadingTasks),
-            MetadataReference.CreateFromFile(typeof(ITestVM<,>).Assembly.Location)
-        };
-
-        var compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-            .AddReferences(references)
-            .AddSyntaxTrees(syntaxTrees);
-
-        using var ms = new MemoryStream();
-        var result = compilation.Emit(ms);
-
-        if (!result.Success)
-        {
-            var failures = result.Diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-            foreach (var diagnostic in failures)
-            {
-                AppLogger.WriteInfo($"{diagnostic.Id}: {diagnostic.GetMessage()}");
-            }
-            throw new InvalidOperationException("Compilation failed");
-        }
-
-        return ms.ToArray();
-    }
-
-
+     
 }
