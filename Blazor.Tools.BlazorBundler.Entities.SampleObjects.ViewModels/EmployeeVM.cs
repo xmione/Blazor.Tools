@@ -9,7 +9,7 @@
 // They are used to dynamically create the assembly dll file.
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Entities;
-using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using Blazor.Tools.BlazorBundler.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,23 +19,60 @@ using System.Threading.Tasks;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 {
-    public class EmployeeVM : Employee, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<Employee, IModelExtendedProperties>
+    public class EmployeeVM : IBase, IValidatableObject, ICloneable<EmployeeVM>, IViewModel<IBase, IModelExtendedProperties>
     {
         private List<EmployeeVM> _employees;
-
         private readonly IContextProvider _contextProvider;
 
+        public int _id;
+        public string _firstName;
+        public string _middleName;
+        public string _lastName;
+        public DateOnly _dateOfBirth;
+        public int _countryID;
+
         public int _rowID;
-
         public bool _isEditMode;
-
         public bool _isVisible;
-
         public int _startCell;
-
         public int _endCell;
-
         public bool _isFirstCellClicked;
+
+        public int ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+        
+        public string FirstName
+        {
+            get { return _firstName; }
+            set { _firstName = value; }
+        }
+        
+        public string MiddleName
+        {
+            get { return _middleName; }
+            set { _middleName = value; }
+        }
+        
+        public string LastName
+        {
+            get { return _lastName; }
+            set { _lastName = value; }
+        }
+        
+        public DateOnly DateOfBirth
+        {
+            get { return _dateOfBirth; }
+            set { _dateOfBirth = value; }
+        }
+        
+        public int CountryID
+        {
+            get { return _countryID; }
+            set { _countryID = value; }
+        }
 
         public int RowID
         {
@@ -133,50 +170,50 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             _isFirstCellClicked = false;
         }
 
-        public EmployeeVM(IContextProvider contextProvider, Employee model)
+        public EmployeeVM(IContextProvider contextProvider, IBase model)
         {
             _contextProvider = contextProvider;
-            ID = model.ID;
-            FirstName = model.FirstName;
-            MiddleName = model.MiddleName;
-            LastName = model.LastName;
-            DateOfBirth = model.DateOfBirth;
-            CountryID = model.CountryID;
+            _id = model.ID;
+            _firstName = model.GetPropertyValue<string>("FirstName");
+            _middleName = model.GetPropertyValue<string>("MiddleName");
+            _lastName = model.GetPropertyValue<string>("LastName");
+            _dateOfBirth = model.GetPropertyValue<DateOnly>("DateOfBirth");
+            _countryID = model.GetPropertyValue<int>("CountryID");
         }
 
         public EmployeeVM(IContextProvider contextProvider, EmployeeVM modelVM)
         {
             _contextProvider = contextProvider;
-            IsEditMode = modelVM.IsEditMode;
-            IsVisible = modelVM.IsVisible;
-            IsFirstCellClicked = modelVM.IsFirstCellClicked;
-            StartCell = modelVM.StartCell;
-            EndCell = modelVM.EndCell;
-            RowID = modelVM.RowID;
-            ID = modelVM.ID;
-            FirstName = modelVM.FirstName;
-            MiddleName = modelVM.MiddleName;
-            LastName = modelVM.LastName;
-            DateOfBirth = modelVM.DateOfBirth;
-            CountryID = modelVM.CountryID;
+            _isEditMode = modelVM.IsEditMode;
+            _isVisible = modelVM.IsVisible;
+            _isFirstCellClicked = modelVM.IsFirstCellClicked;
+            _startCell = modelVM.StartCell;
+            _endCell = modelVM.EndCell;
+            _rowID = modelVM.RowID;
+            _id = modelVM.ID;
+            _firstName = modelVM.FirstName;
+            _middleName = modelVM.MiddleName;
+            _lastName = modelVM.LastName;
+            _dateOfBirth = modelVM.DateOfBirth;
+            _countryID = modelVM.CountryID;
         }
 
         public EmployeeVM Clone()
         {
             return new EmployeeVM(_contextProvider)
             {
-                IsEditMode = this.IsEditMode,
-                IsVisible = this.IsVisible,
-                IsFirstCellClicked = this.IsFirstCellClicked,
-                StartCell = this.StartCell,
-                EndCell = this.EndCell,
-                RowID = this.RowID,
-                ID = this.ID,
-                FirstName = this.FirstName,
-                MiddleName = this.MiddleName,
-                LastName = this.LastName,
-                DateOfBirth = this.DateOfBirth,
-                CountryID = this.CountryID
+                _isEditMode = this.IsEditMode,
+                _isVisible = this.IsVisible,
+                _isFirstCellClicked = this.IsFirstCellClicked,
+                _startCell = this.StartCell,
+                _endCell = this.EndCell,
+                _rowID = this.RowID,
+                _id = this.ID,
+                _firstName = this.FirstName,
+                _middleName = this.MiddleName,
+                _lastName = this.LastName,
+                _dateOfBirth = this.DateOfBirth,
+                _countryID = this.CountryID
             };
         }
 
@@ -215,7 +252,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return alreadyExists;
         }
 
-        public async Task<IViewModel<Employee, IModelExtendedProperties>> FromModel(Employee model)
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> FromModel(IBase model)
         {
             try
             {
@@ -223,12 +260,12 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
                 {
                     await Task.Run(() =>
                     {
-                        ID = model.ID;
-                        FirstName = model.FirstName;
-                        MiddleName = model.MiddleName;
-                        LastName = model.LastName;
-                        DateOfBirth = model.DateOfBirth;
-                        CountryID = model.CountryID;
+                        _id = model.GetPropertyValue<int>("ID")!;
+                        _firstName = model.GetPropertyValue<string>("FirstName");
+                        _middleName = model.GetPropertyValue<string>("MiddleName");
+                        _lastName = model.GetPropertyValue<string>("LastName");
+                        _dateOfBirth = model.GetPropertyValue<DateOnly>("DateOfBirth")!;
+                        _countryID = model.GetPropertyValue<int>("CountryID")!;
                     });
 
                 }
@@ -241,17 +278,19 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return this;
         }
 
-        public Employee ToNewModel()
+        public IBase ToNewModel()
         {
-            return new Employee
-            {
-                ID = this.ID,
-                FirstName = this.FirstName,
-                MiddleName = this.MiddleName,
-                LastName = this.LastName,
-                DateOfBirth = this.DateOfBirth,
-                CountryID = this.CountryID
-            };
+            var type = typeof(IBase);
+            var typeInstance = (IBase)Activator.CreateInstance(type)!;
+
+            typeInstance.SetValue("ID", this.ID);
+            typeInstance.SetValue("FirstName", this.FirstName);
+            typeInstance.SetValue("MiddleName", this.MiddleName);
+            typeInstance.SetValue("LastName", this.LastName);
+            typeInstance.SetValue("DateOfBirth", this.DateOfBirth);
+            typeInstance.SetValue("CountryID", this.CountryID);
+
+            return typeInstance;
         }
 
         public IModelExtendedProperties ToNewIModel()
@@ -273,21 +312,21 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             };
         }
 
-        public async Task<IViewModel<Employee, IModelExtendedProperties>> SetEditMode(bool isEditMode)
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> SetEditMode(bool isEditMode)
         {
             IsEditMode = isEditMode;
             await Task.CompletedTask;
             return this;
         }
 
-        public async Task<IViewModel<Employee, IModelExtendedProperties>> SaveModelVM()
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> SaveModelVM()
         {
             IsEditMode = false;
             await Task.CompletedTask;
             return this;
         }
 
-        public async Task<IViewModel<Employee, IModelExtendedProperties>> SaveModelVMToNewModelVM()
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> SaveModelVMToNewModelVM()
         {
             var newEmployee = new EmployeeVM(_contextProvider)
             {
@@ -309,7 +348,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return newEmployee;
         }
 
-        public async Task<IEnumerable<IViewModel<Employee, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<Employee, IModelExtendedProperties>> modelVMList)
+        public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList)
         {
             var list = modelVMList.ToList();
 
@@ -327,7 +366,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return list;
         }
 
-        public async Task<IEnumerable<IViewModel<Employee, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<Employee, IModelExtendedProperties>> modelVMList, bool isAdding)
+        public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList, bool isAdding)
         {
 
             if (isAdding)
@@ -365,7 +404,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return modelVMList;
         }
 
-        public async Task<IEnumerable<IViewModel<Employee, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<Employee, IModelExtendedProperties>> modelVMList)
+        public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList)
         {
             var list = modelVMList.ToList();
 
@@ -379,7 +418,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 
             return list;
         }
-
+         
     }
 }
 

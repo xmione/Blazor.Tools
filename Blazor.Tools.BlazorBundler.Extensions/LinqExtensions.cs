@@ -31,6 +31,24 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return propertyValue;
         }
 
+        public static T GetPropertyValue<T>(this object obj, string propertyName)
+        {
+            var property = obj.GetType().GetProperty(propertyName);
+            if (property != null)
+            {
+                var value = property.GetValue(obj);
+                if (value is T typedValue)
+                {
+                    return typedValue;
+                }
+                else if (value != null && typeof(T) == typeof(string))
+                {
+                    return (T)(object)value.ToString()!;
+                }
+            }
+            return default!;
+        }
+
         public static decimal GetPropertyDecimalValue<T>(this T model, string propertyName)
         {
             decimal propertyValue = default!;

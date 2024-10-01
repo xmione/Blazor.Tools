@@ -7,6 +7,8 @@ using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using System.Reflection;
+using Blazor.Tools.BlazorBundler.Interfaces;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 {
@@ -30,9 +32,9 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             set { _employee = value; }
         }
         
-        private EmployeeVM _employeeVM;
+        private IViewModel<IBase, IModelExtendedProperties> _employeeVM;
 
-        public EmployeeVM EmployeeVM
+        public IViewModel<IBase, IModelExtendedProperties> EmployeeVM
         {
             get { return _employeeVM; }
             set { _employeeVM = value; }
@@ -46,24 +48,24 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             set { _country = value; }
         }
         
-        private CountryVM _countryVM;
+        private IViewModel<IBase, IModelExtendedProperties> _countryVM;
 
-        public CountryVM CountryVM
+        public IViewModel<IBase, IModelExtendedProperties> CountryVM
         {
             get { return _countryVM; }
             set { _countryVM = value; }
         }
 
-        private List<EmployeeVM> _employees;
+        private List<IViewModel<IBase, IModelExtendedProperties>> _employees;
 
-        public List<EmployeeVM> Employees {
+        public List<IViewModel<IBase, IModelExtendedProperties>> Employees {
             get { return _employees; }
             set { _employees = value; }
         }
 
-        private List<CountryVM> _countries;
+        private List<IViewModel<IBase, IModelExtendedProperties>> _countries;
 
-        public List<CountryVM> Countries
+        public List<IViewModel<IBase, IModelExtendedProperties>> Countries
         {
             get { return _countries; }
             set { _countries = value; }
@@ -170,8 +172,8 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             _country = new Country();
             _employeeVM = new EmployeeVM(new ContextProvider());
             _countryVM = new CountryVM(new ContextProvider());
-            _employees = new List<EmployeeVM>();
-            _countries = new List<CountryVM>();
+            _employees = new List<IViewModel<IBase, IModelExtendedProperties>>();
+            _countries = new List<IViewModel<IBase, IModelExtendedProperties>>();
 
             _employeeDataTable = new DataTable("Employee");
             _employeeDataTable.Columns.Add("ID", typeof(int));
@@ -289,7 +291,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             DataSources.Add("EmployeeDS", _employees);
             DataSources.Add("CountryDS", _countries);
 
-            _employees = Items.Cast<EmployeeVM>().ToList();
+            _employees = Items.Cast<IViewModel<IBase, IModelExtendedProperties>>().ToList();
 
             _hiddenEmployeeColumns.Add("ID");
             _hiddenCountryColumns.Add("ID");
@@ -364,16 +366,16 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
             }
         }
 
-        public void OnIDValueChanged(object newValue, EmployeeVM employeeVM)
+        public void OnIDValueChanged(object newValue, IViewModel<IBase, IModelExtendedProperties> employeeVM)
         {
-            employeeVM.ID = int.Parse(newValue?.ToString() ?? "0");
+            var newIdValue = int.Parse(newValue?.ToString() ?? "0");
+            
             // Update employee list
-
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.ID = employeeVM.ID;
+                foundEmployee.SetValue("ID", newIdValue);
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method
@@ -382,14 +384,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 
         public void OnFirstNameValueChanged(object newValue, EmployeeVM employeeVM)
         {
-            employeeVM.FirstName = newValue?.ToString() ?? string.Empty;
+            var firstName = newValue?.ToString() ?? string.Empty;
+            
             // Update employee list
-
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.FirstName = employeeVM.FirstName;
+                foundEmployee.SetValue("FirstName", firstName);
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method
@@ -398,14 +400,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 
         public void OnMiddleNameValueChanged(object newValue, EmployeeVM employeeVM)
         {
-            employeeVM.MiddleName = newValue?.ToString() ?? string.Empty;
+            var middleName = newValue?.ToString() ?? string.Empty;
+            
             // Update employee list
-
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.MiddleName = employeeVM.MiddleName;
+                foundEmployee.SetValue("MiddleName", middleName);
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method
@@ -414,14 +416,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 
         public void OnLastNameValueChanged(object newValue, EmployeeVM employeeVM)
         {
-            employeeVM.LastName = newValue?.ToString() ?? string.Empty;
-            // Update employee list
+            var lastName = newValue?.ToString() ?? string.Empty;
 
+            // Update employee list
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.LastName = employeeVM.LastName;
+                foundEmployee.SetValue("LastName", lastName);
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method
@@ -430,15 +432,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 
         public void OnDateOfBirthValueChanged(DateOnly? newValue, EmployeeVM employeeVM)
         {
-            employeeVM.DateOfBirth = newValue.GetValueOrDefault();
+            var dateOfBirth = newValue.GetValueOrDefault();
 
             // Update employee list
-
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.DateOfBirth = employeeVM.DateOfBirth;
+                foundEmployee.SetValue("DateOfBirth", dateOfBirth);
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method
@@ -446,14 +447,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 
         public void OnDropdownValueChanged(object newValue, EmployeeVM employeeVM)
         {
-            employeeVM.CountryID = Convert.ToInt32(newValue);
+            var countryID = Convert.ToInt32(newValue);
+            
             // Update employee list
-
             var foundEmployee = _employees.FirstOrDefault(e => e.RowID == employeeVM.RowID);
 
             if (foundEmployee != null)
             {
-                foundEmployee.CountryID = employeeVM.CountryID;
+                foundEmployee.SetValue("CountryID", countryID);
             }
 
             //StateHasChanged(); this should be triggered on the calling program after calling this method

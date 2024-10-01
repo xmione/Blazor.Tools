@@ -1,20 +1,110 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 {
 
-    public class CountryVM : Country, IValidatableObject, ICloneable<CountryVM>, IViewModel<Country, IModelExtendedProperties>
+    public class CountryVM : IBase, IValidatableObject, ICloneable<CountryVM>, IViewModel<IBase, IModelExtendedProperties>
     {
-        private List<CountryVM> _countries = new List<CountryVM>(); // Initialize the list
-        public int RowID { get; set; } // Integer property to indicate row ID
-        public bool IsEditMode { get; set; } // Boolean property to indicate editing mode
-        public bool IsVisible { get; set; } // Boolean property to indicate editing mode
-        public int StartCell { get; set; } // Integer property to indicate start of cell range selection
-        public int EndCell { get; set; } // Integer property to indicate end of cell range selection
-        public bool IsFirstCellClicked { get; set; } // Boolean property to indicate if StartCell control is clicked
+        private List<CountryVM> _countries = new List<CountryVM>(); 
         private readonly IContextProvider _contextProvider;
+
+
+        public int _id;
+        public string _name;
+
+        public int _rowID;
+        public bool _isEditMode;
+        public bool _isVisible;
+        public int _startCell;
+        public int _endCell;
+        public bool _isFirstCellClicked;
+
+        public int ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+        
+        public int RowID
+        {
+            get
+            {
+                return _rowID;
+            }
+            set
+            {
+                _rowID = value;
+            }
+        }
+
+        public bool IsEditMode
+        {
+            get
+            {
+                return _isEditMode;
+            }
+            set
+            {
+                _isEditMode = value;
+            }
+        }
+
+        public bool IsVisible
+        {
+            get
+            {
+                return _isVisible;
+            }
+            set
+            {
+                _isVisible = value;
+            }
+        }
+
+        public int StartCell
+        {
+            get
+            {
+                return _startCell;
+            }
+            set
+            {
+                _startCell = value;
+            }
+        }
+
+        public int EndCell
+        {
+            get
+            {
+                return _endCell;
+            }
+            set
+            {
+                _endCell = value;
+            }
+        }
+
+        public bool IsFirstCellClicked
+        {
+            get
+            {
+                return _isFirstCellClicked;
+            }
+            set
+            {
+                _isFirstCellClicked = value;
+            }
+        }
 
         public CountryVM()
         {
@@ -25,11 +115,12 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             _contextProvider = contextProvider;
         }
 
-        public CountryVM(IContextProvider contextProvider, Country model)
+        public CountryVM(IContextProvider contextProvider, IBase model)
         {
             _contextProvider = contextProvider;
-            ID = model.ID;
-            Name = model.Name;
+            _id = model.ID;
+            _name = (string)model.GetPropertyValue("Name")!;
+
         }
 
         public CountryVM(IContextProvider contextProvider, CountryVM modelVM)
@@ -93,7 +184,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 
             return alreadyExists;
         }
-        public async Task<IViewModel<Country, IModelExtendedProperties>> FromModel(Country model)
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> FromModel(IBase model)
         {
             try
             {
@@ -101,8 +192,8 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
                 {
                     await Task.Run(() =>
                     {
-                        ID = model.ID;
-                        Name = model.Name;
+                        _id = model.ID;
+                        _name = (string)model.GetPropertyValue("Name")!;
                     });
 
                 }
@@ -114,7 +205,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 
             return this;
         }
-        public Country ToNewModel()
+        public IBase ToNewModel()
         {
             return new Country
             {
@@ -138,14 +229,14 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             };
         }
 
-        public async Task<IViewModel<Country, IModelExtendedProperties>> SetEditMode(bool isEditMode)
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> SetEditMode(bool isEditMode)
         {
             IsEditMode = isEditMode;
             await Task.CompletedTask;
             return this;
         }
 
-        public async Task<IViewModel<Country, IModelExtendedProperties>> SaveModelVM()
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> SaveModelVM()
         {
             IsEditMode = false;
             await Task.CompletedTask;
@@ -153,7 +244,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return this;
         }
 
-        public async Task<IViewModel<Country, IModelExtendedProperties>> SaveModelVMToNewModelVM()
+        public async Task<IViewModel<IBase, IModelExtendedProperties>> SaveModelVMToNewModelVM()
         {
             var newModelVM = new CountryVM(_contextProvider)
             {
@@ -172,7 +263,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return newModelVM;
         }
 
-        public async Task<IEnumerable<IViewModel<Country, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<Country, IModelExtendedProperties>> modelVMList)
+        public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> AddItemToList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList)
         {
             var list = modelVMList.ToList();
 
@@ -193,7 +284,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return list;
         }
 
-        public async Task<IEnumerable<IViewModel<Country, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<Country, IModelExtendedProperties>> modelVMList, bool isAdding)
+        public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList, bool isAdding)
         {
             CountryVM? modelVM = null;
 
@@ -229,7 +320,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             return modelVMList;
         }
 
-        public async Task<IEnumerable<IViewModel<Country, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<Country, IModelExtendedProperties>> modelVMList)
+        public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> DeleteItemFromList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList)
         {
             var list = modelVMList.ToList();
 

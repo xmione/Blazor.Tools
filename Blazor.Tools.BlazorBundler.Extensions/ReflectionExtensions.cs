@@ -307,6 +307,16 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             }
             return ms.ToArray();
         }
+
+        public static void SetValue<T>(this T obj, string propertyName, object propertyValue)
+        {
+            var property = obj.GetType().GetProperty(propertyName);
+            if (property != null && property.CanWrite)
+            {
+                property.SetValue(obj, propertyValue);
+            }
+        }
+
         private static string FormatType(Type type)
         {
             if (type.IsGenericType)

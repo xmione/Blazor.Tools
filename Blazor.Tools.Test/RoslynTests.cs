@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Emit;
+using Moq;
 
 namespace Blazor.Tools.Test
 {
@@ -52,9 +53,6 @@ namespace Blazor.Tools.Test
             string iViewModelFullyQualifiedName = $"{interfaceAssemblyName}.IViewModel";
             string baseClassCode = string.Empty;
             string vmClassCode = string.Empty;
-            string iCloneableCode = "C:\\repo\\Blazor.Tools\\Blazor.Tools.BlazorBundler.Interfaces\\ICloneable.cs".ReadFileContents();
-            string iViewModelCode = "C:\\repo\\Blazor.Tools\\Blazor.Tools.BlazorBundler.Interfaces\\IViewModel.cs".ReadFileContents();
-            string iModelExtendedPropertiesCode = "C:\\repo\\Blazor.Tools\\Blazor.Tools.BlazorBundler.Interfaces\\IModelExtendedProperties.cs".ReadFileContents();
 
             var sampleData = new SampleData();
 
@@ -62,48 +60,73 @@ namespace Blazor.Tools.Test
             var tableName = selectedTable.TableName;
             string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
 
-            var usingStatements = new List<string>
-            {
-                "System"
-            };
-
-            string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            Type baseClassType = default!;
-            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements))
-            {
-                baseClassCode = baseClassGenerator.ToString();
-                baseClassGenerator.Save(baseDLLPath);
-            }
-
-            //baseClassCode = baseClassCode.RemoveLines("using System");
-            string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
 
             var vmClassName = $"{tableName}VM";
             Type vmClassType = default!;
-            Assembly vmClassAssembly = default!;
-            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
+            //Assembly vmClassAssembly = default!;
+
+            var usingStatements = new List<string>
             {
-                viewModelClassGenerator.CreateFromDataTable(selectedTable);
-                vmClassCode = viewModelClassGenerator.ToString() + iCloneableCode + iModelExtendedPropertiesCode + iViewModelCode;
-                //vmClassCode = viewModelClassGenerator.ToString() + baseClassCode + iCloneableCode + iModelExtendedPropertiesCode + iViewModelCode;
-                //vmClassCode = viewModelClassGenerator.ToString() + baseClassCode + iCloneableCode + iViewModelCode;
-                viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseClassCode, baseDLLPath);
-                vmClassType = viewModelClassGenerator.ClassType ?? default!;
-                vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
+                "System"
+            };
+            
+            Type baseClassType = default!;
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, selectedTable, usingStatements))
+            {
+                baseClassCode = baseClassGenerator.ToString();
+                baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
+                //baseClassGenerator.LoadAssembly();
+                baseClassType = baseClassGenerator?.ClassType!;
 
-                var references = viewModelClassGenerator?.Compilation?.References.ToList();
+                //baseClassCode = baseClassCode.RemoveLines("using System");
 
-                if (references != null)
+                using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, baseClassType))
                 {
-                    AppLogger.WriteInfo("Start displaying references...");
-                    foreach (var reference in references)
+                    vmClassGenerator.CreateFromDataTable(selectedTable);
+
+                    vmClassCode = vmClassGenerator.ToString();
+                    vmClassGenerator.EmitAssemblyToMemorySave(vmClassAssemblyName, version, vmDllPath, baseClassCode, vmClassCode);
+                    //vmClassGenerator.LoadAssembly();
+                    vmClassType = vmClassGenerator?.ClassType!;
+
+                    // Create an instance of the dynamically generated type
+                    var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(vmClassType)!;
+
+                    // Use reflection to set the FirstName property
+                    var firstNameProperty = vmClassType.GetProperty("FirstName");
+                    if (firstNameProperty != null)
                     {
-                        AppLogger.WriteInfo(reference.Display!);
+                        firstNameProperty.SetValue(dynamicInstance, "John");
                     }
-                    AppLogger.WriteInfo("Displaying references has ended.");
+
+                    // Create a mock of the interface implemented by TestVM using Moq
+                    var mockDynamicInstance = new Mock<IViewModel<IBase, IModelExtendedProperties>>();
+                    mockDynamicInstance.SetupGet(x => x.IsEditMode).Returns(true);
+
+                    // Assert that the FirstName property is set correctly using reflection
+                    var firstNameValue = firstNameProperty?.GetValue(dynamicInstance);
+                    Assert.AreEqual("John", firstNameValue);
+
+                    //vmClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassAssemblyName, vmClassName, vmDllPath, baseClassType, baseClassCode, baseDLLPath);
+                    //vmClassType = vmClassGenerator.ClassType ?? default!;
+                    //vmClassAssembly = vmClassGenerator?.DisposableAssembly?.Assembly ?? default!;
+
+                    //var references = vmClassGenerator?.Compilation?.References.ToList();
+
+                    //if (references != null)
+                    //{
+                    //    AppLogger.WriteInfo("Start displaying references...");
+                    //    foreach (var reference in references)
+                    //    {
+                    //        AppLogger.WriteInfo(reference.Display!);
+                    //    }
+                    //    AppLogger.WriteInfo("Displaying references has ended.");
+                    //}
                 }
+
             }
+
 
             //baseClassType = null;
             while (baseDLLPath.IsFileInUse())
@@ -131,101 +154,101 @@ namespace Blazor.Tools.Test
 
             //// Create an instance of the ViewModel dynamically
             //object viewModelInstance = Activator.CreateInstance(vmClassType) ?? default!;
-            using (var assembly = DisposableAssembly.LoadFile(vmDllPath))
-            {
-                using (var baseAssembly = DisposableAssembly.LoadFile(baseDLLPath))
-                {
-                    // Load types dynamically from the assembly
-                    baseClassType = baseAssembly.GetType($"{baseClassAssemblyName}.{selectedTable.TableName}");
-                    var iModelExtendedPropertiesType = assembly.GetType(iModelExtendedPropertiesFullyQualifiedName);
-                    var viewModelType = assembly.GetType($"{vmClassAssemblyName}.EmployeeVM");
-                    var iViewModelGenericType = assembly.GetType("Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2");
+            //using (var assembly = DisposableAssembly.LoadFile(vmDllPath))
+            //{
+            //    using (var baseAssembly = DisposableAssembly.LoadFile(baseDLLPath))
+            //    {
+            //        // Load types dynamically from the assembly
+            //        baseClassType = baseAssembly.GetType($"{baseClassAssemblyName}.{selectedTable.TableName}");
+            //        var iModelExtendedPropertiesType = assembly.GetType(iModelExtendedPropertiesFullyQualifiedName);
+            //        var viewModelType = assembly.GetType($"{vmClassAssemblyName}.EmployeeVM");
+            //        var iViewModelGenericType = assembly.GetType("Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2");
 
-                    if (baseClassType == null || viewModelType == null || iModelExtendedPropertiesType == null)
-                    {
-                        AppLogger.WriteInfo("Base class, ViewModel type, or IModelExtendedProperties type not found.");
-                        return;
-                    }
+            //        if (baseClassType == null || viewModelType == null || iModelExtendedPropertiesType == null)
+            //        {
+            //            AppLogger.WriteInfo("Base class, ViewModel type, or IModelExtendedProperties type not found.");
+            //            return;
+            //        }
 
-                    // Create the specific IViewModel<Employee, IModelExtendedProperties>
-                    Type IViewModelType = iViewModelGenericType.MakeGenericType(baseClassType, iModelExtendedPropertiesType);
+            //        // Create the specific IViewModel<Employee, IModelExtendedProperties>
+            //        Type IViewModelType = iViewModelGenericType.MakeGenericType(baseClassType, iModelExtendedPropertiesType);
 
-                    // Create an instance of ViewModel (e.g., EmployeeVM)
-                    var viewModelInstance = Activator.CreateInstance(viewModelType); // Assuming you create an instance dynamically
-                    if (viewModelInstance == null)
-                    {
-                        AppLogger.WriteInfo("Failed to create an instance of the ViewModel.");
-                        return;
-                    }
+            //        // Create an instance of ViewModel (e.g., EmployeeVM)
+            //        var viewModelInstance = Activator.CreateInstance(viewModelType); // Assuming you create an instance dynamically
+            //        if (viewModelInstance == null)
+            //        {
+            //            AppLogger.WriteInfo("Failed to create an instance of the ViewModel.");
+            //            return;
+            //        }
 
-                    // Check if the ViewModel implements IViewModel<Employee, IModelExtendedProperties>
-                    Type EmployeeVMType = viewModelInstance.GetType();
-                    bool implementsViewModelInterface = IViewModelType.IsAssignableFrom(EmployeeVMType);
+            //        // Check if the ViewModel implements IViewModel<Employee, IModelExtendedProperties>
+            //        Type EmployeeVMType = viewModelInstance.GetType();
+            //        bool implementsViewModelInterface = IViewModelType.IsAssignableFrom(EmployeeVMType);
 
-                    AppLogger.WriteInfo($"baseClassType == typeof(Employee): {(baseClassType == typeof(Employee)).ToString()}");
-                    AppLogger.WriteInfo($"EmployeeVMType == viewModelType: {(EmployeeVMType == viewModelType).ToString()}");
-                    AppLogger.WriteInfo($"EmployeeVMType == typeof(IViewModel<Employee, IModelExtendedProperties>): {(EmployeeVMType == typeof(IViewModel<Employee, IModelExtendedProperties>)).ToString()}");
-                    AppLogger.WriteInfo($"viewModelType == typeof(IViewModel<Employee, IModelExtendedProperties>): {(viewModelType == typeof(IViewModel<Employee, IModelExtendedProperties>)).ToString()}");
-                    AppLogger.WriteInfo($"Implements IViewModel<{baseClassType.Name}, IModelExtendedProperties>: {implementsViewModelInterface}");
-                    baseClassType.DisplayTypeDifferences(typeof(Employee));
-                    EmployeeVMType.DisplayTypeDifferences(typeof(IViewModel<Employee, IModelExtendedProperties>));
+            //        AppLogger.WriteInfo($"baseClassType == typeof(Employee): {(baseClassType == typeof(Employee)).ToString()}");
+            //        AppLogger.WriteInfo($"EmployeeVMType == viewModelType: {(EmployeeVMType == viewModelType).ToString()}");
+            //        AppLogger.WriteInfo($"EmployeeVMType == typeof(IViewModel<Employee, IModelExtendedProperties>): {(EmployeeVMType == typeof(IViewModel<Employee, IModelExtendedProperties>)).ToString()}");
+            //        AppLogger.WriteInfo($"viewModelType == typeof(IViewModel<Employee, IModelExtendedProperties>): {(viewModelType == typeof(IViewModel<Employee, IModelExtendedProperties>)).ToString()}");
+            //        AppLogger.WriteInfo($"Implements IViewModel<{baseClassType.Name}, IModelExtendedProperties>: {implementsViewModelInterface}");
+            //        baseClassType.DisplayTypeDifferences(typeof(Employee));
+            //        EmployeeVMType.DisplayTypeDifferences(typeof(IViewModel<Employee, IModelExtendedProperties>));
 
-                    if (implementsViewModelInterface)
-                    {
-                        // Now cast the instance to the interface type (IViewModel<Employee, IModelExtendedProperties>)
-                        var viewModelInterfaceInstance = (IViewModel<Employee, IModelExtendedProperties>)viewModelInstance; // Casting to the interface (with generics resolved)
-                                                                                                                            // Note: object is used because you have runtime types (replace with the actual types if possible)
+            //        if (implementsViewModelInterface)
+            //        {
+            //            // Now cast the instance to the interface type (IViewModel<Employee, IModelExtendedProperties>)
+            //            var viewModelInterfaceInstance = (IViewModel<Employee, IModelExtendedProperties>)viewModelInstance; // Casting to the interface (with generics resolved)
+            //                                                                                                                // Note: object is used because you have runtime types (replace with the actual types if possible)
 
-                        if (viewModelInterfaceInstance != null)
-                        {
-                            AppLogger.WriteInfo("Successfully casted to the interface type.");
-                        }
-                        else
-                        {
-                            AppLogger.WriteInfo("Casting to the interface type failed.");
-                        }
-                    }
-                    else
-                    {
-                        AppLogger.WriteInfo("The ViewModel instance does not implement the expected interface.");
-                    }
+            //            if (viewModelInterfaceInstance != null)
+            //            {
+            //                AppLogger.WriteInfo("Successfully casted to the interface type.");
+            //            }
+            //            else
+            //            {
+            //                AppLogger.WriteInfo("Casting to the interface type failed.");
+            //            }
+            //        }
+            //        else
+            //        {
+            //            AppLogger.WriteInfo("The ViewModel instance does not implement the expected interface.");
+            //        }
 
-                    if (implementsViewModelInterface)
-                    {
-                        // Cast the instance to the interface type (IViewModel<Employee, IModelExtendedProperties>)
-                        //var viewModelInterfaceInstance = Convert.ChangeType(viewModelInstance, IViewModelType); // for primitive types only like int, string
-                        var viewModelInterfaceInstance = viewModelInstance as dynamic; // use dynamic casting for custom classes
+            //        if (implementsViewModelInterface)
+            //        {
+            //            // Cast the instance to the interface type (IViewModel<Employee, IModelExtendedProperties>)
+            //            //var viewModelInterfaceInstance = Convert.ChangeType(viewModelInstance, IViewModelType); // for primitive types only like int, string
+            //            var viewModelInterfaceInstance = viewModelInstance as dynamic; // use dynamic casting for custom classes
 
-                        viewModelInterfaceInstance = viewModelInterfaceInstance as IViewModel<Employee, IModelExtendedProperties>;
-                        if (viewModelInterfaceInstance != null)
-                        {
-                            AppLogger.WriteInfo("Successfully casted to the interface type.");
-                        }
-                        else
-                        {
-                            AppLogger.WriteInfo("Casting to the interface type failed.");
-                        }
-                    }
-                    else
-                    {
-                        AppLogger.WriteInfo("The ViewModel instance does not implement the expected interface.");
-                    }
+            //            viewModelInterfaceInstance = viewModelInterfaceInstance as IViewModel<Employee, IModelExtendedProperties>;
+            //            if (viewModelInterfaceInstance != null)
+            //            {
+            //                AppLogger.WriteInfo("Successfully casted to the interface type.");
+            //            }
+            //            else
+            //            {
+            //                AppLogger.WriteInfo("Casting to the interface type failed.");
+            //            }
+            //        }
+            //        else
+            //        {
+            //            AppLogger.WriteInfo("The ViewModel instance does not implement the expected interface.");
+            //        }
 
-                    if (IViewModelType.IsAssignableFrom(viewModelType))
-                    {
-                        AppLogger.WriteInfo("The ViewModel implements the expected interface.");
-                    }
-                    else
-                    {
-                        AppLogger.WriteInfo("The ViewModel does not implement the expected interface.");
-                    }
+            //        if (IViewModelType.IsAssignableFrom(viewModelType))
+            //        {
+            //            AppLogger.WriteInfo("The ViewModel implements the expected interface.");
+            //        }
+            //        else
+            //        {
+            //            AppLogger.WriteInfo("The ViewModel does not implement the expected interface.");
+            //        }
 
-                    AppLogger.WriteInfo(viewModelInstance.GetType().AssemblyQualifiedName!);
-                    AppLogger.WriteInfo(IViewModelType.AssemblyQualifiedName!);
+            //        AppLogger.WriteInfo(viewModelInstance.GetType().AssemblyQualifiedName!);
+            //        AppLogger.WriteInfo(IViewModelType.AssemblyQualifiedName!);
 
-                }
+            //    }
 
-            }
+            //}
 
         }
 

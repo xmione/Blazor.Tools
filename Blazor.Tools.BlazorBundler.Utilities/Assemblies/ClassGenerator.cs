@@ -93,7 +93,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var reference = MetadataReference.CreateFromImage(assemblyBytes);
             _compilation = _compilation?.AddReferences(reference);
         }
-         
+
         public Type? CreateType(string nameSpace, string className, params string[] sourceCodes)
         {
             Type? type = null;
@@ -112,7 +112,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     var failures = result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                     foreach (var diagnostic in failures)
                     {
-                        AppLogger.WriteInfo($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+                        var lineSpan = diagnostic.Location.GetLineSpan();
+                        var lineNumber = lineSpan.StartLinePosition.Line + 1;
+                        var filePath = lineSpan.Path;
+
+                        AppLogger.WriteInfo($"{diagnostic.Id}: {diagnostic.GetMessage()} at {filePath} line {lineNumber}");
                     }
 
                     throw new CompilationException(result.Diagnostics);
@@ -128,13 +132,9 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                     type = _assembly.GetType($"{nameSpace}.{className}");
                     AppLogger.WriteInfo($"Module name: {_assembly?.GetModules().FirstOrDefault()?.Name ?? "<Unknown Module>"}");
                 }
-                catch (ReflectionTypeLoadException ex)
+                catch (Exception ex)
                 {
-                    var loaderExceptions = ex.LoaderExceptions;
-                    foreach (var loaderException in loaderExceptions)
-                    {
-                        AppLogger.WriteInfo(loaderException?.Message!);
-                    }
+                    AppLogger.HandleException(ex);
                 }
 
             }
@@ -145,6 +145,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             return type;
         }
+
 
         //public void SaveAssemblyToTempFolder(string dllPath)
         //{

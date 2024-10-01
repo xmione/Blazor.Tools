@@ -325,7 +325,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             var vmClassName = $"{tableName}VM";
             Type vmClassType = default!;
             Assembly vmClassAssembly = default!;
-            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
+            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace, baseClassType))
             {
                 viewModelClassGenerator.CreateFromDataTable(selectedTable);
                 vmClassCode = viewModelClassGenerator.ToString() + baseClassCode;
