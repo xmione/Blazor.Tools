@@ -7,6 +7,7 @@
 using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using Humanizer;
 using Microsoft.CodeAnalysis.CSharp;
 using System.ComponentModel.DataAnnotations;
@@ -41,6 +42,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         }
 
         private Type? _classType;
+        private byte[] _assemblyBytes;
 
         public Type? ClassType
         {
@@ -56,6 +58,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         }
 
         private DisposableAssembly? _disposableAssembly;
+        private string _className;
 
         public DisposableAssembly? DisposableAssembly
         {
@@ -97,6 +100,51 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             return stringValue;
         }
 
+        public byte[] EmitAssemblyToMemorySave(string assemblyName, string version, string dllPath, params string[] sourceCodes)
+        {
+
+            foreach (var sourceCode in sourceCodes)
+            {
+                AppLogger.WriteInfo(sourceCode);
+            }
+
+            var classGenerator = new ClassGenerator(assemblyName, version);
+            var systemPrivateCoreLibLocation = typeof(object).Assembly.Location;
+            var systemLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.dll");
+            var systemRuntimeLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Runtime.dll");
+            var systemCollectionsLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Collections.dll");
+            var systemConsoleLocation = typeof(System.Console).Assembly.Location;
+            var systemLinqLocation = typeof(System.Linq.Enumerable).Assembly.Location;
+            var systemThreadingTasksLocation = Path.Combine(Path.GetDirectoryName(systemPrivateCoreLibLocation)!, "System.Threading.Tasks.dll");
+
+            // Add references to existing assemblies that contain types used in the dynamic class
+            classGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
+            classGenerator.AddReference(systemLocation);  // System.dll
+            classGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
+            classGenerator.AddReference(systemCollectionsLocation);  // System.Collections.dll
+            classGenerator.AddReference(systemConsoleLocation);  // System.Console.dll
+            classGenerator.AddReference(systemLinqLocation);  // System.Collections.dll
+            classGenerator.AddReference(systemThreadingTasksLocation);  // System.Threading.Tasks.dll
+
+            // Add references to assemblies containing other required types
+            //classGenerator.AddReference(baseClassTypeLocation);
+            classGenerator.AddReference(typeof(IValidatableObject).Assembly.Location); // System.ComponentModel.DataAnnotations.dll
+            classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location); // Blazor.Tools.BlazorBundler.Interfaces, same with ICloneable, IViewModel and IContextProvider
+            classGenerator.AddReference(typeof(ContextProvider).Assembly.Location); // Blazor.Tools.BlazorBundler.Entities
+
+            // Create the type from the provided class code
+            _classType = classGenerator.CreateType(_nameSpace!, _className!, sourceCodes);
+            _assemblyBytes = classGenerator.AssemblyBytes;
+            return _assemblyBytes;
+        }
+
+        public void LoadAssembly()
+        {
+            using (var disposableAssembly = DisposableAssembly.LoadAssembly(_assemblyBytes!))
+            {
+                _disposableAssembly = disposableAssembly;
+            }
+        }
         public void Save(string assemblyName, string version, string classCode, string nameSpace, string className, string dllPath, Type baseClassType, string baseClassCode, string baseClassTypeLocation)
         {
             Console.WriteLine("//Class Code: \r\n{0}", classCode);
@@ -124,11 +172,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             classGenerator.AddReference(typeof(IValidatableObject).Assembly.Location); // System.ComponentModel.DataAnnotations.dll
             classGenerator.AddReference(typeof(ICloneable<>).Assembly.Location); // Blazor.Tools.BlazorBundler.Interfaces, same with ICloneable, IViewModel and IContextProvider
             classGenerator.AddReference(typeof(ContextProvider).Assembly.Location); // Blazor.Tools.BlazorBundler.Entities
-
-            // Add the class code as a module if provided
-            classGenerator.AddModule(classCode, nameSpace); 
-            //classGenerator.AddModule(baseClassCode, nameSpace);
-
+ 
             _compilation = classGenerator.Compilation;
             _classType = classGenerator.CreateType(classCode, nameSpace, className, baseClassCode);
 

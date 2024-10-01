@@ -21,6 +21,16 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         // Public property to access the underlying Assembly
         public Assembly Assembly => _assembly;
 
+        public static DisposableAssembly LoadAssembly(byte[] assemblyBytes)
+        {
+            // Create a new AssemblyLoadContext to manage the assembly
+            var context = new AssemblyLoadContext(null, true);
+
+            Assembly assembly = context.LoadFromStream(new MemoryStream(assemblyBytes));
+
+            return new DisposableAssembly(assembly, context);
+        }
+
         // Static method to load an assembly from a file and return a DisposableAssembly
         public static DisposableAssembly LoadFile(string path)
         {

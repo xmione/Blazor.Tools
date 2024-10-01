@@ -72,7 +72,7 @@ namespace Blazor.Tools.Test
             using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable, usingStatements))
             {
                 baseClassCode = baseClassGenerator.ToString();
-                baseClassGenerator.Save(baseClassAssemblyName, version, baseClassCode, baseClassNameSpace, tableName, baseDLLPath);
+                baseClassGenerator.Save(baseDLLPath);
             }
 
             //baseClassCode = baseClassCode.RemoveLines("using System");

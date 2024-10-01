@@ -24,16 +24,22 @@ namespace Blazor.Tools.Test
         [TestMethod]
         public void TestGenericComponent_ShouldRenderCorrectly()
         {
-            var classCSourceCode = @"
+            var combinedSourceCode = @"
 using System;
 using System.Threading.Tasks;
 using Blazor.Tools.BlazorBundler.Interfaces;
 
 namespace Models
 {
-    public class ClassC : ITestVM<IBase, ITestMEP>, IBase, ITestMEP
+    public class TestM : IBase
     {
         public int ID { get; set; }
+    }
+
+    public class TestVM : ITestVM<IBase, ITestMEP>, IBase, ITestMEP
+    {
+        public int ID { get; set; }
+        public string FirstName { get; set; }
         public virtual bool IsEditMode { get; set; }
 
         private string _message;
@@ -59,16 +65,23 @@ namespace Models
 ";
             // Compile the class dynamically
             var assemblyEmitter = new AssemblyEmitter();
-            var combinedAssemblyBytes = assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", classCSourceCode);
+            assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", combinedSourceCode);
             assemblyEmitter.LoadAssembly();
 
-            // Get the dynamically generated type ClassC
-            var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.ClassC")!;
+            // Get the dynamically generated type TestVM
+            var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.TestVM")!;
 
             // Create an instance of the dynamically generated type
             var dynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
 
-            // Create a mock of the interface implemented by ClassC using Moq
+            // Use reflection to set the FirstName property
+            var firstNameProperty = dynamicType.GetProperty("FirstName");
+            if (firstNameProperty != null)
+            {
+                firstNameProperty.SetValue(dynamicInstance, "John");
+            }
+
+            // Create a mock of the interface implemented by TestVM using Moq
             var mockDynamicInstance = new Mock<ITestVM<IBase, ITestMEP>>();
             mockDynamicInstance.SetupGet(x => x.IsEditMode).Returns(true);
 
@@ -87,6 +100,13 @@ namespace Models
 
             // Assert that the rendered markup matches the expected output
             cut.MarkupMatches(@"<div><input type=""text"" value=""Hello from Mock""></div>");
+
+
+            // Assert that the FirstName property is set correctly using reflection
+            var firstNameValue = firstNameProperty?.GetValue(dynamicInstance);
+            Assert.AreEqual("John", firstNameValue);
+
         }
+
     }
 }

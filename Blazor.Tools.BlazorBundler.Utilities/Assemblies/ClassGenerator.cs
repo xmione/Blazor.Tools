@@ -20,7 +20,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         private string? _assemblyName;
         private bool _disposed = false;
-
+        private byte[] _assemblyBytes;
         private Assembly? _assembly;
 
         public Assembly? Assembly
@@ -35,6 +35,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         {
             get { return _compilation; }
             set { _compilation = value; }
+        }
+
+        public byte[] AssemblyBytes
+        {
+            get { return _assemblyBytes; }
         }
 
         private OutputKind _outputKind;
@@ -88,46 +93,14 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             var reference = MetadataReference.CreateFromImage(assemblyBytes);
             _compilation = _compilation?.AddReferences(reference);
         }
-
-        public void AddModule(string moduleCode, string moduleName)
-        {
-            var syntaxTree = CSharpSyntaxTree.ParseText(moduleCode);
-            var moduleCompilation = CSharpCompilation.Create(moduleName,
-                options: new CSharpCompilationOptions(OutputKind.NetModule),
-                syntaxTrees: new[] { syntaxTree },
-                references: _compilation?.References);
-
-            using (var ms = new MemoryStream())
-            {
-                var result = moduleCompilation.Emit(ms);
-                if (!result.Success)
-                {
-                    // Handle compilation errors
-                    throw new CompilationException(result.Diagnostics);
-                }
-
-                ms.Seek(0, SeekOrigin.Begin);
-                var moduleReference = MetadataReference.CreateFromStream(ms);
-                _compilation = _compilation?.AddReferences(moduleReference);
-            }
-        }
-
-        public Type? CreateType(string classCode, string nameSpace, string className, string? baseClassCode = null)
+         
+        public Type? CreateType(string nameSpace, string className, params string[] sourceCodes)
         {
             Type? type = null;
 
             try
             {
-                var syntaxTrees = new List<SyntaxTree>();
-
-                //if (baseClassCode != null)
-                //{
-                //    var baseClassSyntaxTree = CSharpSyntaxTree.ParseText(baseClassCode);
-                //    syntaxTrees.Add(baseClassSyntaxTree);
-                //}
-
-                var classSyntaxTree = CSharpSyntaxTree.ParseText(classCode);
-                syntaxTrees.Add(classSyntaxTree);
+                var syntaxTrees = sourceCodes.Select(code => CSharpSyntaxTree.ParseText(code)).ToList();
 
                 _compilation = _compilation?.AddSyntaxTrees(syntaxTrees);
 
@@ -146,8 +119,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 }
 
                 ms.Seek(0, SeekOrigin.Begin);
-                byte[] rawAssembly = ms.ToArray();
-                _assembly = Assembly.Load(rawAssembly);
+                _assemblyBytes = ms.ToArray();
+                _assembly = Assembly.Load(_assemblyBytes);
 
                 try
                 {

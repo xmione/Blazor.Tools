@@ -5,6 +5,7 @@ using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using BlazorBootstrap;
+using Humanizer;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -257,51 +258,51 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             string iViewModelFullyQualifiedName = $"{interfaceAssemblyName}.IViewModel";
             string baseClassCode = string.Empty;
             string vmClassCode = string.Empty;
-            string iCloneableCode = @"
-namespace Blazor.Tools.BlazorBundler.Interfaces
-{
-    public interface ICloneable<T>
-    {
-        T Clone();
-    }
-}
+//            string iCloneableCode = @"
+//namespace Blazor.Tools.BlazorBundler.Interfaces
+//{
+//    public interface ICloneable<T>
+//    {
+//        T Clone();
+//    }
+//}
 
-";
-            string iViewModelCode = @"
-namespace Blazor.Tools.BlazorBundler.Interfaces
-{
-    public interface IViewModel<TModel, TIModel> : IModelExtendedProperties
-    {
-        TModel ToNewModel();
-        TIModel ToNewIModel();
-        Task<IViewModel<TModel, TIModel>> FromModel(TModel model);
-        Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
-        Task<IViewModel<TModel, TIModel>> SaveModelVM();
-        Task<IViewModel<TModel, TIModel>> SaveModelVMToNewModelVM();
-        Task<IEnumerable<IViewModel<TModel, TIModel>>> AddItemToList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
-        Task<IEnumerable<IViewModel<TModel, TIModel>>> UpdateList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList, bool isAdding);
-        Task<IEnumerable<IViewModel<TModel, TIModel>>> DeleteItemFromList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
-    }
+//";
+//            string iViewModelCode = @"
+//namespace Blazor.Tools.BlazorBundler.Interfaces
+//{
+//    public interface IViewModel<TModel, TIModel> : IModelExtendedProperties
+//    {
+//        TModel ToNewModel();
+//        TIModel ToNewIModel();
+//        Task<IViewModel<TModel, TIModel>> FromModel(TModel model);
+//        Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
+//        Task<IViewModel<TModel, TIModel>> SaveModelVM();
+//        Task<IViewModel<TModel, TIModel>> SaveModelVMToNewModelVM();
+//        Task<IEnumerable<IViewModel<TModel, TIModel>>> AddItemToList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
+//        Task<IEnumerable<IViewModel<TModel, TIModel>>> UpdateList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList, bool isAdding);
+//        Task<IEnumerable<IViewModel<TModel, TIModel>>> DeleteItemFromList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
+//    }
 
-}
+//}
 
-";
-            string iModelExtendedPropertiesCode = @"
-namespace Blazor.Tools.BlazorBundler.Interfaces
-{
-    public interface IModelExtendedProperties
-    {
-        public int RowID { get; set; }
-        public bool IsEditMode { get; set; }
-        public bool IsVisible { get; set; }
-        public int StartCell { get; set; }
-        public int EndCell { get; set; }
-        public bool IsFirstCellClicked { get; set; }
+//";
+//            string iModelExtendedPropertiesCode = @"
+//namespace Blazor.Tools.BlazorBundler.Interfaces
+//{
+//    public interface IModelExtendedProperties
+//    {
+//        public int RowID { get; set; }
+//        public bool IsEditMode { get; set; }
+//        public bool IsVisible { get; set; }
+//        public int StartCell { get; set; }
+//        public int EndCell { get; set; }
+//        public bool IsFirstCellClicked { get; set; }
 
-    }
-}
+//    }
+//}
 
-";
+//";
 
             var selectedTable =  _selectedTableVM;
             var tableName = selectedTable.TableName;
@@ -309,9 +310,13 @@ namespace Blazor.Tools.BlazorBundler.Interfaces
 
             string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             Type baseClassType = default!;
+
             using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable))
             {
                 baseClassCode = baseClassGenerator.ToString();
+                baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
+                baseClassGenerator.LoadAssembly();
+                baseClassType = baseClassGenerator?.DisposableAssembly?.GetType($"{baseClassNameSpace}.{tableName}")!;
             }
 
             string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
@@ -323,7 +328,7 @@ namespace Blazor.Tools.BlazorBundler.Interfaces
             using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace))
             {
                 viewModelClassGenerator.CreateFromDataTable(selectedTable);
-                vmClassCode = viewModelClassGenerator.ToString() + baseClassCode + iCloneableCode + iModelExtendedPropertiesCode + iViewModelCode;
+                vmClassCode = viewModelClassGenerator.ToString() + baseClassCode;
                 viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseClassCode, baseDLLPath);
                 vmClassType = viewModelClassGenerator.ClassType ?? default!;
                 vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
