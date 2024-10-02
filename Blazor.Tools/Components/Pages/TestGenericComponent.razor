@@ -12,14 +12,12 @@
 
 @code {
     [Parameter] public ITestVM<IBase, ITestMEP> DynamicInstance { get; set; } = default!;
-
+    private string _classASource = string.Empty;
+    private string _classBSource = string.Empty;
     protected override async Task OnInitializedAsync()
     {
-
-
-
         // Define the source code for ClassA
-        var classASource = @"
+        _classASource = @"
 using System;
 using System.Threading.Tasks;
 using Blazor.Tools.BlazorBundler.Interfaces;
@@ -53,7 +51,7 @@ namespace Models
 }";
 
         // Define the source code for ClassB
-        var classBSource = @"
+        _classBSource = @"
 using System;
 using System.Threading.Tasks;
 using Blazor.Tools.BlazorBundler.Interfaces;
@@ -74,6 +72,11 @@ namespace Models
 
         public string GetMessage()
         {
+            if(string.IsNullOrEmpty(_message))
+            {
+                _message = ""Hello from ClassB"";
+            }
+
             return _message;
         }
 
@@ -85,36 +88,45 @@ namespace Models
         }
     }
 }";
+        await base.OnInitializedAsync();
 
-        var assemblyEmitter = new AssemblyEmitter();
-        // Compile all sources into a single in-memory assembly
-        var combinedAssemblyBytes = assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
-        assemblyEmitter.LoadAssembly();
+    }
 
-        // Get the type of ClassB
-        var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.ClassB")!;
-        DynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
-
-        bool isAssignable = typeof(ITestVM<IBase, ITestMEP>).IsAssignableFrom(dynamicType);
-
-        var message = DynamicInstance.GetMessage();
-        if (string.IsNullOrEmpty(message))
+    protected override async Task OnParametersSetAsync()
+    {
+        string message = string.Empty;
+        bool paramIsNull = DynamicInstance == null;
+        if (paramIsNull)
         {
             message = "Hello from DynamicInstance!";
+
+            var assemblyEmitter = new AssemblyEmitter();
+            // Compile all sources into a single in-memory assembly
+            var combinedAssemblyBytes = assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", _classASource, _classBSource);
+            assemblyEmitter.LoadAssembly();
+
+            // Get the type of ClassB
+            var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.ClassB")!;
+            DynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
+
+            bool isAssignable = typeof(ITestVM<IBase, ITestMEP>).IsAssignableFrom(dynamicType);
+
+            // Invoke SetMessage
+            var setMessageMethod = dynamicType.GetMethod("SetMessage");
+            if (setMessageMethod != null)
+            {
+                setMessageMethod.Invoke(DynamicInstance, new object[] { message });
+            }
+            // Set IsEditMode to true and verify the change
+            var setEditModeMethod = dynamicType.GetMethod("SetEditMode");
+            if (setEditModeMethod != null)
+            {
+                await (Task)setEditModeMethod.Invoke(DynamicInstance, new object[] { true })!;
+            }
         }
 
-        // Invoke SetMessage
-        var setMessageMethod = dynamicType.GetMethod("SetMessage");
-        if (setMessageMethod != null)
-        {
-            setMessageMethod.Invoke(DynamicInstance, new object[] { message });
-        }
-        // Set IsEditMode to true and verify the change
-        var setEditModeMethod = dynamicType.GetMethod("SetEditMode");
-        if (setEditModeMethod != null)
-        {
-            await (Task)setEditModeMethod.Invoke(DynamicInstance, new object[] { true })!;
-        }
+        
+
+        await base.OnParametersSetAsync();    
     }
-     
 }
