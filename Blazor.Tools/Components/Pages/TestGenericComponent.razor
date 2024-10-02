@@ -15,7 +15,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var message = DynamicInstance.GetMessage();
+
 
 
         // Define the source code for ClassA
@@ -90,10 +90,18 @@ namespace Models
         // Compile all sources into a single in-memory assembly
         var combinedAssemblyBytes = assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", classASource, classBSource);
         assemblyEmitter.LoadAssembly();
-         
+
         // Get the type of ClassB
         var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.ClassB")!;
         DynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
+
+        bool isAssignable = typeof(ITestVM<IBase, ITestMEP>).IsAssignableFrom(dynamicType);
+
+        var message = DynamicInstance.GetMessage();
+        if (string.IsNullOrEmpty(message))
+        {
+            message = "Hello from DynamicInstance!";
+        }
 
         // Invoke SetMessage
         var setMessageMethod = dynamicType.GetMethod("SetMessage");

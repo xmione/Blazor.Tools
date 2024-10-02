@@ -349,6 +349,8 @@ public class ClassB : ClassA
                 throw new InvalidOperationException("ClassB type could not be found in the assembly.");
             }
 
+            bool isAssignable = classAType.IsAssignableFrom(classBType);
+            Assert.IsTrue(isAssignable, "ClassA is not assignable from ClassB");
             // Create an instance of ClassB and assign it to a variable of type ClassA
             var classBInstance = Activator.CreateInstance(classBType);
             var classAInstance = (dynamic)classBInstance!;

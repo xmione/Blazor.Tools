@@ -1,5 +1,6 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
+using Moq;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -47,7 +49,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private object? _modelVMInstance;
         private Type _modelType = default!;
         private Type _modelVMType = default!;
-        private Type _interfaceType = default!;
+        private Type _iModelExtendedPropertiesType = default!;
         private object? _modelInstance;
         private bool _isFirstCellClicked = true;
         private string _startCell = string.Empty;
@@ -60,6 +62,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //private object? _tableGridInstance;
         private object? _tableGridComponentReference;
         private string _tableID = string.Empty;
+        private Type _iViewModelType;
 
         //private IList<SessionItem>? _sessionItems;
 
@@ -81,7 +84,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 //await CreateDynamicBundlerDLL();
                 await CreateBundlerDLL();
                 // Get the TableGrid component type with the correct generic types
-                _tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _interfaceType);
+                _tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _iModelExtendedPropertiesType);
 
                 //_sessionItems = new List<SessionItem>
                 //{
@@ -190,7 +193,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     }
 
                     var tIModelTypeFullName = tiModelType.FullName ?? default!;
-                    _interfaceType = _modelVMType.GetInterface(tIModelTypeFullName) ?? default!;
+                    _iModelExtendedPropertiesType = _modelVMType.GetInterface(tIModelTypeFullName) ?? default!;
                 }
 
                 await DefineTableColumns(modelVMTempDllPath, ModelsAssemblyName, ViewModelsAssemblyName);
@@ -253,98 +256,51 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
             string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string interfaceAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
-            string version = "3.1.9.0";
+            string version = "3.1.20.0";
             string iModelExtendedPropertiesFullyQualifiedName = $"{interfaceAssemblyName}.IModelExtendedProperties";
             string iViewModelFullyQualifiedName = $"{interfaceAssemblyName}.IViewModel";
             string baseClassCode = string.Empty;
             string vmClassCode = string.Empty;
-//            string iCloneableCode = @"
-//namespace Blazor.Tools.BlazorBundler.Interfaces
-//{
-//    public interface ICloneable<T>
-//    {
-//        T Clone();
-//    }
-//}
 
-//";
-//            string iViewModelCode = @"
-//namespace Blazor.Tools.BlazorBundler.Interfaces
-//{
-//    public interface IViewModel<TModel, TIModel> : IModelExtendedProperties
-//    {
-//        TModel ToNewModel();
-//        TIModel ToNewIModel();
-//        Task<IViewModel<TModel, TIModel>> FromModel(TModel model);
-//        Task<IViewModel<TModel, TIModel>> SetEditMode(bool isEditMode);
-//        Task<IViewModel<TModel, TIModel>> SaveModelVM();
-//        Task<IViewModel<TModel, TIModel>> SaveModelVMToNewModelVM();
-//        Task<IEnumerable<IViewModel<TModel, TIModel>>> AddItemToList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
-//        Task<IEnumerable<IViewModel<TModel, TIModel>>> UpdateList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList, bool isAdding);
-//        Task<IEnumerable<IViewModel<TModel, TIModel>>> DeleteItemFromList(IEnumerable<IViewModel<TModel, TIModel>> modelVMList);
-//    }
-
-//}
-
-//";
-//            string iModelExtendedPropertiesCode = @"
-//namespace Blazor.Tools.BlazorBundler.Interfaces
-//{
-//    public interface IModelExtendedProperties
-//    {
-//        public int RowID { get; set; }
-//        public bool IsEditMode { get; set; }
-//        public bool IsVisible { get; set; }
-//        public int StartCell { get; set; }
-//        public int EndCell { get; set; }
-//        public bool IsFirstCellClicked { get; set; }
-
-//    }
-//}
-
-//";
-
-            var selectedTable =  _selectedTableVM;
+            var selectedTable = _selectedTableVM;
             var tableName = selectedTable.TableName;
             string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
 
-            string baseClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            Type baseClassType = default!;
-
-            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassNameSpace, selectedTable))
-            {
-                baseClassCode = baseClassGenerator.ToString();
-                baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
-                baseClassGenerator.LoadAssembly();
-                baseClassType = baseClassGenerator?.DisposableAssembly?.GetType($"{baseClassNameSpace}.{tableName}")!;
-            }
-
-            string vmClassNameSpace = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
 
             var vmClassName = $"{tableName}VM";
             Type vmClassType = default!;
-            Assembly vmClassAssembly = default!;
-            using (var viewModelClassGenerator = new ViewModelClassGenerator(vmClassNameSpace, baseClassType))
+            //Assembly vmClassAssembly = default!;
+
+            var usingStatements = new List<string>
             {
-                viewModelClassGenerator.CreateFromDataTable(selectedTable);
-                vmClassCode = viewModelClassGenerator.ToString() + baseClassCode;
-                viewModelClassGenerator.Save(vmClassAssemblyName, version, vmClassCode, vmClassNameSpace, vmClassName, vmDllPath, baseClassType, baseClassCode, baseDLLPath);
-                vmClassType = viewModelClassGenerator.ClassType ?? default!;
-                vmClassAssembly = viewModelClassGenerator?.DisposableAssembly?.Assembly ?? default!;
+                "System"
+            };
 
-                var references = viewModelClassGenerator?.Compilation?.References.ToList();
+            Type baseClassType = default!;
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, selectedTable, usingStatements))
+            {
+                baseClassCode = baseClassGenerator.ToString();
+                baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
+                //baseClassGenerator.LoadAssembly();
+                baseClassType = baseClassGenerator?.ClassType!;
 
-                if (references != null)
+                //baseClassCode = baseClassCode.RemoveLines("using System");
+
+                using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, baseClassType))
                 {
-                    Console.WriteLine("Start displaying references...");
-                    foreach (var reference in references)
-                    {
-                        Console.WriteLine(reference.Display);
-                    }
-                    Console.WriteLine("Displaying references has ended.");
+                    vmClassGenerator.CreateFromDataTable(selectedTable);
+
+                    vmClassCode = vmClassGenerator.ToString();
+                    vmClassGenerator.EmitAssemblyToMemorySave(vmClassAssemblyName, version, vmDllPath, baseClassCode, vmClassCode);
+                    //vmClassGenerator.LoadAssembly();
+                    vmClassType = vmClassGenerator?.ClassType!;
+
+                     
                 }
+
             }
+
 
             //baseClassType = null;
             while (baseDLLPath.IsFileInUse())
@@ -360,97 +316,33 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 Thread.Sleep(1000);
             }
 
-            // Get the types from the assemblies
-            //Type baseClassType = baseClassAssembly.GetTypes()
-            //.FirstOrDefault(t => t.Name == "Employee"); // Adjust the name as needed
+            // Create an instance of the dynamically generated type
+            //var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(vmClassType)!;
+            var dynamicInstance =  Activator.CreateInstance(vmClassType)!;
 
-            //Type vmClassType = vmClassAssembly.GetTypes()
-            //    .FirstOrDefault(t => t.Name == "EmployeeVM"); // Adjust the name as needed
+            
+            _modelType = baseClassType;
+            _modelVMType = vmClassType;
 
-            //Type iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
-            //Type iViewModelGenericType = typeof(IViewModel<,>);
+            _modelInstance = Activator.CreateInstance(_modelType);
+            _modelVMInstance = dynamicInstance;
+            _iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
 
-            //// Create an instance of the ViewModel dynamically
-            //object viewModelInstance = Activator.CreateInstance(vmClassType) ?? default!;
-            using (var assembly = DisposableAssembly.LoadFile(vmDllPath))
-            {
-                // Load types dynamically from the assembly
-                baseClassType = assembly.GetType($"{baseClassAssemblyName}.{selectedTable.TableName}");
-                var iModelExtendedPropertiesType = assembly.GetType(iModelExtendedPropertiesFullyQualifiedName);
-                var viewModelType = assembly.GetType($"{vmClassAssemblyName}.EmployeeVM");
-                var iViewModelGenericType = assembly.GetType("Blazor.Tools.BlazorBundler.Interfaces.IViewModel`2");
+            _iViewModelType = typeof(IViewModel<,>).MakeGenericType(_modelType,_iModelExtendedPropertiesType);
+            var iViewModelType = vmClassType.Assembly.GetType(_iViewModelType.FullName!);
 
-                if (baseClassType == null || viewModelType == null || iModelExtendedPropertiesType == null)
-                {
-                    Console.WriteLine("Base class, ViewModel type, or IModelExtendedProperties type not found.");
-                    return;
-                }
+            _iViewModelType.DisplayTypeDifferences(iViewModelType!);
+            typeof(Employee).DisplayTypeDifferences(_modelType);
+            typeof(EmployeeVM).DisplayTypeDifferences(_modelVMType);
 
-                // Create the specific IViewModel<Employee, IModelExtendedProperties>
-                Type specificIViewModelType = iViewModelGenericType.MakeGenericType(baseClassType, iModelExtendedPropertiesType);
-
-                // Create an instance of ViewModel (e.g., EmployeeVM)
-                var viewModelInstance = Activator.CreateInstance(viewModelType); // Assuming you create an instance dynamically
-                if (viewModelInstance == null)
-                {
-                    Console.WriteLine("Failed to create an instance of the ViewModel.");
-                    return;
-                }
-
-                // Check if the ViewModel implements IViewModel<Employee, IModelExtendedProperties>
-                Type viewModelInstanceType = viewModelInstance.GetType();
-                bool implementsViewModelInterface = specificIViewModelType.IsAssignableFrom(viewModelInstanceType);
-
-                Console.WriteLine($"Implements IViewModel<{baseClassType.Name}, IModelExtendedProperties>: {implementsViewModelInterface}");
-
-                if (implementsViewModelInterface)
-                {
-                    // Cast the instance to the interface type (IViewModel<Employee, IModelExtendedProperties>)
-                    //var viewModelInterfaceInstance = Convert.ChangeType(viewModelInstance, specificIViewModelType); // for primitive types only like int, string
-                    var viewModelInterfaceInstance = viewModelInstance as dynamic; // use dynamic casting for custom classes
-
-                    viewModelInterfaceInstance = viewModelInterfaceInstance as IViewModel<Employee, IModelExtendedProperties>;
-                    if (viewModelInterfaceInstance != null)
-                    {
-                        Console.WriteLine("Successfully casted to the interface type.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Casting to the interface type failed.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("The ViewModel instance does not implement the expected interface.");
-                }
-
-                _modelType = baseClassType;
-                _modelVMType = viewModelType;
-
-                _modelInstance = Activator.CreateInstance(_modelType);
-                _modelVMInstance = Activator.CreateInstance(_modelVMType);
-
-                // Ensure that the ViewModel implements IViewModel<TModel, TIModel>
-                if (specificIViewModelType.IsAssignableFrom(viewModelType))
-                {
-                    Console.WriteLine("The ViewModel implements the expected interface.");
-                }
-                else
-                {
-                    Console.WriteLine("The ViewModel does not implement the expected interface.");
-                }
-
-                // Use reflection to work with IViewModel
-            }
-
+            bool isAssignable = _modelVMType.IsAssignableFrom(iViewModelType);
             await DefineTableColumns();
             await Task.CompletedTask;
         }
 
         private async Task DefineTableColumns()
         {
-            // Get the type of the dynamic TModel and TModelVM classes
-            _interfaceType = typeof(IModelExtendedProperties);
+            
             var modelExtendedProperties = new ModelExtendedProperties();
             var excludedColumns = modelExtendedProperties.GetProperties();
             // TableColumnDefinition should be based on model type, e.g.: Employee class and not EmployeeVM

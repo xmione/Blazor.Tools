@@ -1,16 +1,15 @@
-﻿using Bunit;
-using Moq;
-using Blazor.Tools.BlazorBundler.Interfaces;
-using Blazor.Tools.BlazorBundler.Components.Grid;
-using BunitContext = Bunit.TestContext;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Blazor.Tools.BlazorBundler.Components.Grid;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data;
-using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
-using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
-using System.Data;
-using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
+using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
+using Bunit;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using System.Data;
 
 namespace Blazor.Tools.BlazorBundler.Tests
 {
@@ -45,10 +44,10 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _iModelExtendedProperties = new Mock<IModelExtendedProperties>();
             // Define the open generic type and type arguments
             var openGenericType = typeof(IViewModel<,>);
-            var typeArguments = new[] { typeof(Employee), typeof(EmployeeVM) };
+            var typeArguments = new[] { typeof(Employee), typeof(IModelExtendedProperties) };
 
             // Create a mock for the closed generic type using the extension method
-            var mock = new Mock<IViewModel<Employee, EmployeeVM>>()
+            var mock = new Mock<IViewModel<Employee, IModelExtendedProperties>>()
                 .CreateMockForGenericType(typeArguments);
 
             // Register the mock service with the test context's dependency injection
