@@ -274,31 +274,35 @@ using System.Threading.Tasks;";
             _sb?.AppendLine($"\t\t{items}");
             _sb?.AppendLine($"\t\t{contextProvider}");
             _sb?.AppendLine();
-
-            _baseClassProperties = _baseClassType?.GetProperties()!;
-            foreach (var property in _baseClassProperties)
-            {
-                string propertyName = property.Name;
-                string aliasTypeName = property.PropertyType.ToAliasType();
-                string fieldName = propertyName == "ID"? "_id" : $"_{propertyName.ToCamelCase()}";
-                string fieldDeclaration = $"\t\tprivate {aliasTypeName} {fieldName};";
-                _sb?.AppendLine(fieldDeclaration);
-                _sb?.AppendLine();
-
-                _sb?.AppendLine($"\t\tpublic {aliasTypeName} {propertyName}");
-                _sb?.AppendLine("\t\t{");
-                _sb?.AppendLine("\t\t\tget");
-                _sb?.AppendLine("\t\t\t{");
-                _sb?.AppendLine($"\t\t\t\treturn {fieldName};");
-                _sb?.AppendLine("\t\t\t}");
-                _sb?.AppendLine("\t\t\tset");
-                _sb?.AppendLine("\t\t\t{");
-                _sb?.AppendLine($"\t\t\t\t{fieldName} = value;");
-                _sb?.AppendLine("\t\t\t}");
-                _sb?.AppendLine("\t\t}");
-                _sb?.AppendLine();
-            }
             
+            if (_baseClassType != null)
+            {
+                _baseClassProperties = _baseClassType?.GetProperties()!;
+                foreach (var property in _baseClassProperties)
+                {
+                    string propertyName = property.Name;
+                    string aliasTypeName = property.PropertyType.ToAliasType();
+                    string fieldName = propertyName == "ID" ? "_id" : $"_{propertyName.ToCamelCase()}";
+                    string fieldDeclaration = $"\t\tprivate {aliasTypeName} {fieldName};";
+                    _sb?.AppendLine(fieldDeclaration);
+                    _sb?.AppendLine();
+
+                    _sb?.AppendLine($"\t\tpublic {aliasTypeName} {propertyName}");
+                    _sb?.AppendLine("\t\t{");
+                    _sb?.AppendLine("\t\t\tget");
+                    _sb?.AppendLine("\t\t\t{");
+                    _sb?.AppendLine($"\t\t\t\treturn {fieldName};");
+                    _sb?.AppendLine("\t\t\t}");
+                    _sb?.AppendLine("\t\t\tset");
+                    _sb?.AppendLine("\t\t\t{");
+                    _sb?.AppendLine($"\t\t\t\t{fieldName} = value;");
+                    _sb?.AppendLine("\t\t\t}");
+                    _sb?.AppendLine("\t\t}");
+                    _sb?.AppendLine();
+                }
+
+            }
+
             _iModelExtendedPropertiesProperties = typeof(IModelExtendedProperties).GetProperties();
             foreach (var property in _iModelExtendedPropertiesProperties)
             {

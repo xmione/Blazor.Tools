@@ -254,7 +254,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 AppLogger.HandleException(ex);
             }
-            
 
         }
 

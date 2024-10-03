@@ -9,8 +9,10 @@ using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualBasic.FileIO;
 using System.Data;
 using System.Reflection;
 using System.Text;
@@ -109,6 +111,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         {
             if (_columns != null)
             {
+                bool isIDNotFound = !_columns.Contains("ID");
+                if (isIDNotFound)
+                {
+                    _sb?.Append($"\t\tpublic int ID ");
+                    _sb?.AppendLine("{get; set;}");
+                }
+
                 foreach (DataColumn dc in _columns)
                 {
                     string fieldName = dc.ColumnName;
