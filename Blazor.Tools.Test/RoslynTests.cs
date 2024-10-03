@@ -429,5 +429,6 @@ public class ClassB : ClassA
             //_tableGridMock.Verify(m => m.InitializeVariablesAsync(), Times.Once);
             //_tableGridMock.Verify(m => m.RenderMainContentAsync(It.IsAny<RenderTreeBuilder>()), Times.Once);
         }
+
     }
 }

@@ -260,6 +260,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         public async Task CreateBundlerDLLAsync()
         {
+            CreateTableGrid(_tableName, _tableID, _selectedTableVM);
+
+            await DefineTableColumnsAsync();
+            await Task.CompletedTask;
+        }
+
+        private void CreateTableGrid(string tableName, string tableID, DataTable selectedTableVM)
+        {
+
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
             string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
@@ -275,7 +284,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
 
-            var vmClassName = $"{_tableName}VM";
+            var vmClassName = $"{tableName}VM";
             //Assembly vmClassAssembly = default!;
 
             var assemblyLocations = new List<string>
@@ -289,7 +298,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 "System"
             };
 
-            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, _selectedTableVM!, assemblyLocations, usingStatements))
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, selectedTableVM, assemblyLocations, usingStatements))
             {
                 baseClassCode = baseClassGenerator.ToString();
                 baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
@@ -300,7 +309,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, _modelType))
                 {
-                    vmClassGenerator.CreateFromDataTable(_selectedTableVM!);
+                    vmClassGenerator.CreateFromDataTable(selectedTableVM!);
 
                     vmClassCode = vmClassGenerator.ToString();
                     vmClassGenerator.EmitAssemblyToMemorySave(vmClassAssemblyName, version, vmDllPath, baseClassCode, vmClassCode);
@@ -310,13 +319,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     // Create an instance of the dynamically generated type
                     var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
 
-                    // Use reflection to set the FirstName property
-                    var firstNameProperty = _modelVMType.GetProperty("FirstName");
-                    if (firstNameProperty != null)
-                    {
-                        firstNameProperty.SetValue(dynamicInstance, "John");
-                    }
-
+                    //_modelType = null;
                     while (baseDLLPath.IsFileInUse())
                     {
                         //baseDLLPath.KillLockingProcesses();
@@ -338,13 +341,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     _iViewModelType = typeof(IViewModel<,>).MakeGenericType(typeof(IBase), _iModelExtendedPropertiesType);
                     bool isAssignable = _iViewModelType.IsAssignableFrom(_modelVMType);
 
-
                 }
 
             }
-
-            await DefineTableColumnsAsync();
-            await Task.CompletedTask;
+             
         }
 
         private async Task DefineTableColumnsAsync()
