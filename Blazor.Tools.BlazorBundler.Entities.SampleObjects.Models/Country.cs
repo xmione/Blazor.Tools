@@ -1,4 +1,5 @@
 ﻿using Blazor.Tools.BlazorBundler.Interfaces;
+using System;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models
 {

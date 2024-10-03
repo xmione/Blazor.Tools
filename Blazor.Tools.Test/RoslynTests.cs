@@ -114,144 +114,22 @@ namespace Blazor.Tools.Test
         }
 
         [TestMethod]
-        public void CreateBundlerDLL_Test()
+        public void CreateEmployeeTableGrid()
         {
 
-            // Define the paths in the Temp folder
-            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
-            string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
-            string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
-            string interfaceAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
-            string version = "3.1.20.0";
-            string iModelExtendedPropertiesFullyQualifiedName = $"{interfaceAssemblyName}.IModelExtendedProperties";
-            string iViewModelFullyQualifiedName = $"{interfaceAssemblyName}.IViewModel";
-            string baseClassCode = string.Empty;
-            string vmClassCode = string.Empty;
-
-            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
-
-            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
-
-            var vmClassName = $"{_tableName}VM";
-            //Assembly vmClassAssembly = default!;
-
-            var assemblyLocations = new List<string>
-            {
-                typeof(IBase).Assembly.Location
-            };
-
-            var usingStatements = new List<string>
-            {
-                "Blazor.Tools.BlazorBundler.Interfaces",
-                "System"
-            };
-            
-            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, _selectedTableVM!, assemblyLocations, usingStatements))
-            {
-                baseClassCode = baseClassGenerator.ToString();
-                baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
-                //baseClassGenerator.LoadAssembly();
-                _modelType = baseClassGenerator?.ClassType!;
-
-                //baseClassCode = baseClassCode.RemoveLines("using System");
-
-                using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, _modelType))
-                {
-                    vmClassGenerator.CreateFromDataTable(_selectedTableVM!);
-
-                    vmClassCode = vmClassGenerator.ToString();
-                    vmClassGenerator.EmitAssemblyToMemorySave(vmClassAssemblyName, version, vmDllPath, baseClassCode, vmClassCode);
-                    //vmClassGenerator.LoadAssembly();
-                    _modelVMType = vmClassGenerator?.ClassType!;
-
-                    // Create an instance of the dynamically generated type
-                    var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
-
-                    // Use reflection to set the FirstName property
-                    var firstNameProperty = _modelVMType.GetProperty("FirstName");
-                    if (firstNameProperty != null)
-                    {
-                        firstNameProperty.SetValue(dynamicInstance, "John");
-                    }
-
-                    // Create a mock of the interface implemented by TestVM using Moq
-                    var mockDynamicInstance = new Mock<IViewModel<IBase, IModelExtendedProperties>>();
-                    mockDynamicInstance.SetupGet(x => x.IsEditMode).Returns(true);
-
-                    // Assert that the FirstName property is set correctly using reflection
-                    var firstNameValue = firstNameProperty?.GetValue(dynamicInstance);
-                    Assert.AreEqual("John", firstNameValue);
-
-                    //_modelType = null;
-                    while (baseDLLPath.IsFileInUse())
-                    {
-                        //baseDLLPath.KillLockingProcesses();
-
-                        Thread.Sleep(1000);
-                    }
-
-                    while (vmDllPath.IsFileInUse())
-                    {
-                        //vmDllPath.KillLockingProcesses();
-                        Thread.Sleep(1000);
-                    }
-
-                    // Create an instance of the dynamically generated type
-                    //var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
-                    _modelInstance = (IBase)Activator.CreateInstance(_modelType)!;
-                    _modelVMInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
-                    _iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
-                    _iViewModelType = typeof(IViewModel<,>).MakeGenericType(typeof(IBase), _iModelExtendedPropertiesType);
-                    bool isAssignable = _iViewModelType.IsAssignableFrom(_modelVMType);
-                    // Create an EventCallback for ItemsChanged
-                    _itemsChangedCallback = EventCallback.Factory.Create<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>>(this, _sampleData.OnItemsChanged);
-                }
-
-            }
-
-            //_tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _iModelExtendedPropertiesType);
-            //// Create an instance of the dynamically created component type
-            //var componentInstance = Activator.CreateInstance(_tableGridType);
-            //
-            //// Use reflection to set the parameters
-            //var parameters = new Dictionary<string, object>
-            //{
-            //    { "Title", _tableName },
-            //    { "TableID", _tableID },
-            //    { "ColumnDefinitions", _sampleData.ColumnDefinitions },
-            //    { "Model", _modelInstance },
-            //    { "IModel", iModel },
-            //    { "ModelVM", _modelVMInstance },
-            //    { "Items", _sampleData.Items },
-            //    { "DataSources", _sampleData.DataSources },
-            //    { "ItemsChanged", _itemsChangedCallback },
-            //    { "AllowCellRangeSelection", true }
-            //};
-
-            //foreach (var param in parameters)
-            //{
-            //    var property = _tableGridType.GetProperty(param.Key);
-            //    if (property != null && property.CanWrite)
-            //    {
-            //        property.SetValue(componentInstance, param.Value);
-            //    }
-            //}
-
-            _tableGridComponent = _tableGridContext?.Render<TableGrid<IBase, IModelExtendedProperties>>(parameters => parameters
-                    .Add(p => p.Title, _tableName) 
-                    .Add(p => p.TableID, _tableID )
-                    .Add(p => p.ColumnDefinitions, _sampleData.ColumnDefinitions )
-                    .Add(p => p.Model, _modelInstance)
-                    .Add(p => p.ModelVM, _modelVMInstance)
-                    .Add(p => p.Items, _sampleData.Items)
-                    .Add(p => p.DataSources, _sampleData.DataSources)
-                    .Add(p => p.ItemsChanged, _sampleData.OnItemsChanged)
-                    .Add(p => p.AllowCellRangeSelection, true)
-                );
-
-            // These codes below will be useful for testing the specific methods mentioned therein:
-            //_tableGridMock.Verify(m => m.InitializeVariablesAsync(), Times.Once);
-            //_tableGridMock.Verify(m => m.RenderMainContentAsync(It.IsAny<RenderTreeBuilder>()), Times.Once);
+            var selectedTableVM = _sampleData.EmployeeDataTable;
+            var tableName = selectedTableVM.TableName;
+            var tableID = tableName.ToLower();
+            CreateTableGrid(tableName, tableID, selectedTableVM);
+        }
+        
+        [TestMethod]
+        public void CreateCountryTableGrid()
+        {
+            var selectedTableVM = _sampleData.CountryDataTable;
+            var tableName = selectedTableVM.TableName;
+            var tableID = tableName.ToLower();
+            CreateTableGrid(tableName, tableID, selectedTableVM);
         }
 
         [TestMethod]
@@ -428,5 +306,128 @@ public class ClassB : ClassA
             return ms.ToArray();
         }
 
+        private void CreateTableGrid(string tableName, string tableID, DataTable selectedTableVM)
+        {
+
+            // Define the paths in the Temp folder
+            var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
+            string baseClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models";
+            string vmClassAssemblyName = "Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels";
+            string interfaceAssemblyName = "Blazor.Tools.BlazorBundler.Interfaces";
+            string version = "3.1.20.0";
+            string iModelExtendedPropertiesFullyQualifiedName = $"{interfaceAssemblyName}.IModelExtendedProperties";
+            string iViewModelFullyQualifiedName = $"{interfaceAssemblyName}.IViewModel";
+            string baseClassCode = string.Empty;
+            string vmClassCode = string.Empty;
+
+            string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
+
+            string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
+
+            var vmClassName = $"{tableName}VM";
+            //Assembly vmClassAssembly = default!;
+
+            var assemblyLocations = new List<string>
+            {
+                typeof(IBase).Assembly.Location
+            };
+
+            var usingStatements = new List<string>
+            {
+                "Blazor.Tools.BlazorBundler.Interfaces",
+                "System"
+            };
+
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, selectedTableVM, assemblyLocations, usingStatements))
+            {
+                baseClassCode = baseClassGenerator.ToString();
+                baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
+                //baseClassGenerator.LoadAssembly();
+                _modelType = baseClassGenerator?.ClassType!;
+
+                //baseClassCode = baseClassCode.RemoveLines("using System");
+
+                using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, _modelType))
+                {
+                    vmClassGenerator.CreateFromDataTable(selectedTableVM!);
+
+                    vmClassCode = vmClassGenerator.ToString();
+                    vmClassGenerator.EmitAssemblyToMemorySave(vmClassAssemblyName, version, vmDllPath, baseClassCode, vmClassCode);
+                    //vmClassGenerator.LoadAssembly();
+                    _modelVMType = vmClassGenerator?.ClassType!;
+
+                    // Create an instance of the dynamically generated type
+                    var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
+
+                    //_modelType = null;
+                    while (baseDLLPath.IsFileInUse())
+                    {
+                        //baseDLLPath.KillLockingProcesses();
+
+                        Thread.Sleep(1000);
+                    }
+
+                    while (vmDllPath.IsFileInUse())
+                    {
+                        //vmDllPath.KillLockingProcesses();
+                        Thread.Sleep(1000);
+                    }
+
+                    // Create an instance of the dynamically generated type
+                    //var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
+                    _modelInstance = (IBase)Activator.CreateInstance(_modelType)!;
+                    _modelVMInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
+                    _iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
+                    _iViewModelType = typeof(IViewModel<,>).MakeGenericType(typeof(IBase), _iModelExtendedPropertiesType);
+                    bool isAssignable = _iViewModelType.IsAssignableFrom(_modelVMType);
+                    
+                }
+
+            }
+
+            //_tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _iModelExtendedPropertiesType);
+            //// Create an instance of the dynamically created component type
+            //var componentInstance = Activator.CreateInstance(_tableGridType);
+            //
+            //// Use reflection to set the parameters
+            //var parameters = new Dictionary<string, object>
+            //{
+            //    { "Title", tableName },
+            //    { "TableID", _tableID },
+            //    { "ColumnDefinitions", _sampleData.ColumnDefinitions },
+            //    { "Model", _modelInstance },
+            //    { "IModel", iModel },
+            //    { "ModelVM", _modelVMInstance },
+            //    { "Items", _sampleData.Items },
+            //    { "DataSources", _sampleData.DataSources },
+            //    { "ItemsChanged", _itemsChangedCallback },
+            //    { "AllowCellRangeSelection", true }
+            //};
+
+            //foreach (var param in parameters)
+            //{
+            //    var property = _tableGridType.GetProperty(param.Key);
+            //    if (property != null && property.CanWrite)
+            //    {
+            //        property.SetValue(componentInstance, param.Value);
+            //    }
+            //}
+
+            _tableGridComponent = _tableGridContext?.Render<TableGrid<IBase, IModelExtendedProperties>>(parameters => parameters
+                    .Add(p => p.Title, _tableName)
+                    .Add(p => p.TableID, _tableID)
+                    .Add(p => p.ColumnDefinitions, _sampleData.ColumnDefinitions)
+                    .Add(p => p.Model, _modelInstance)
+                    .Add(p => p.ModelVM, _modelVMInstance)
+                    .Add(p => p.Items, _sampleData.Items)
+                    .Add(p => p.DataSources, _sampleData.DataSources)
+                    .Add(p => p.ItemsChanged, _sampleData.OnItemsChanged)
+                    .Add(p => p.AllowCellRangeSelection, true)
+                );
+
+            // These codes below will be useful for testing the specific methods mentioned therein:
+            //_tableGridMock.Verify(m => m.InitializeVariablesAsync(), Times.Once);
+            //_tableGridMock.Verify(m => m.RenderMainContentAsync(It.IsAny<RenderTreeBuilder>()), Times.Once);
+        }
     }
 }

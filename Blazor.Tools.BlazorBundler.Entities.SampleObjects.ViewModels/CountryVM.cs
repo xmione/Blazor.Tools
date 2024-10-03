@@ -1,7 +1,22 @@
-﻿using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
-using Blazor.Tools.BlazorBundler.Extensions;
+﻿/*====================================================================================================
+    Class Name  : CountryVM.cs
+    Created By  : Solomio S. Sisante
+    Created On  : August 15, 2024
+    Purpose     : To provide a view model class for the Country class.
+  ====================================================================================================*/
+
+// Do not remove the declared usings here even if they are unnecessary.
+// They are used to dynamically create the assembly dll file.
 using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.Extensions;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
+using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 
 namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 {
@@ -108,45 +123,59 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 
         public CountryVM()
         {
+            _countries = new List<CountryVM>();
             _contextProvider = new ContextProvider();
+            _rowID = 0;
+            _isEditMode = false;
+            _isVisible = false;
+            _startCell = 0;
+            _endCell = 0;
+            _isFirstCellClicked = false;
         }
         public CountryVM(IContextProvider contextProvider)
         {
+            _countries = new List<CountryVM>();
             _contextProvider = contextProvider;
+            _rowID = 0;
+            _isEditMode = false;
+            _isVisible = false;
+            _startCell = 0;
+            _endCell = 0;
+            _isFirstCellClicked = false;
         }
 
         public CountryVM(IContextProvider contextProvider, IBase model)
         {
             _contextProvider = contextProvider;
             _id = model.ID;
-            _name = (string)model.GetPropertyValue("Name")!;
+            _name = model.GetPropertyValue<string>("Name")!;
 
         }
 
         public CountryVM(IContextProvider contextProvider, CountryVM modelVM)
         {
             _contextProvider = contextProvider;
-            IsEditMode = modelVM.IsEditMode;
-            IsVisible = modelVM.IsVisible;
-            IsFirstCellClicked = modelVM.IsFirstCellClicked;
-            StartCell = modelVM.StartCell;
-            EndCell = modelVM.EndCell;
-            RowID = modelVM.RowID;
-            ID = modelVM.ID;
-            Name = modelVM.Name;
+            _isEditMode = modelVM.IsEditMode;
+            _isVisible = modelVM.IsVisible;
+            _isFirstCellClicked = modelVM.IsFirstCellClicked;
+            _startCell = modelVM.StartCell;
+            _endCell = modelVM.EndCell;
+            _rowID = modelVM.RowID;
+            _id = modelVM.ID;
+            _name = modelVM.Name;
         }
         public CountryVM Clone()
         {
             return new CountryVM(_contextProvider)
             {
-                IsEditMode = this.IsEditMode,
-                IsVisible = this.IsVisible,
-                IsFirstCellClicked = this.IsFirstCellClicked,
-                StartCell = this.StartCell,
-                EndCell = this.EndCell,
-                RowID = this.RowID,
-                ID = this.ID,
-                Name = this.Name,
+                _isEditMode = this.IsEditMode,
+                _isVisible = this.IsVisible,
+                _isFirstCellClicked = this.IsFirstCellClicked,
+                _startCell = this.StartCell,
+                _endCell = this.EndCell,
+                _rowID = this.RowID,
+                _id = this.ID,
+                _name = this.Name,
             };
         }
 
@@ -178,7 +207,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             if (name != null)
             {
                 // Exclude the current item from the search
-                var foundItem = _countries.FirstOrDefault(p => p.Name == name && p.ID != currentItemId);
+                var foundItem = _countries.FirstOrDefault(p => p.ID != currentItemId);
                 alreadyExists = foundItem != null;
             }
 
@@ -193,7 +222,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
                     await Task.Run(() =>
                     {
                         _id = model.ID;
-                        _name = (string)model.GetPropertyValue("Name")!;
+                        _name = model.GetPropertyValue<string>("Name")!;
                     });
 
                 }
@@ -207,11 +236,13 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
         }
         public IBase ToNewModel()
         {
-            return new Country
-            {
-                ID = this.ID,
-                Name = this.Name,
-            };
+            var type = typeof(IBase);
+            var typeInstance = (IBase)Activator.CreateInstance(type)!;
+
+            typeInstance.SetValue("ID", this.ID);
+            typeInstance.SetValue("Name", this.Name);
+
+            return typeInstance;
         }
 
         public IModelExtendedProperties ToNewIModel()
@@ -240,7 +271,6 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
         {
             IsEditMode = false;
             await Task.CompletedTask;
-
             return this;
         }
 
@@ -286,12 +316,15 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 
         public async Task<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> UpdateList(IEnumerable<IViewModel<IBase, IModelExtendedProperties>> modelVMList, bool isAdding)
         {
+
             CountryVM? modelVM = null;
 
             if (isAdding)
             {
+
                 var list = modelVMList.ToList();
                 list.Remove(this);
+
                 modelVMList = list;
             }
             else
@@ -312,7 +345,6 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
                     modelVM.ID = ID;
                     modelVM.Name = Name;
                 }
-
             }
 
             await Task.CompletedTask;

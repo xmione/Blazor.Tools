@@ -245,7 +245,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             if (name != null)
             {
                 // Exclude the current item from the search
-                var foundItem = _employees.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);
+                var foundItem = _employees.FirstOrDefault(p => p.ID != currentItemId);
                 alreadyExists = foundItem != null;
             }
 
@@ -357,6 +357,9 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
             if (listCount > 0)
             {
                 var firstItem = list.First();
+                IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                StartCell = firstItem.StartCell;
+                EndCell = firstItem.EndCell;
             }
 
             list.Add(this);
@@ -397,7 +400,6 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
                     modelVM.CountryID = CountryID;
                 }
             }
-
 
             await Task.CompletedTask;
 

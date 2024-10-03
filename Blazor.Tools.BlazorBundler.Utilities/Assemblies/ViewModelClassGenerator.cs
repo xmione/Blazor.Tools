@@ -581,7 +581,7 @@ using System.Threading.Tasks;";
             _sb?.AppendLine();
             _sb?.AppendLine("\t\t\tif (name != null)");
             _sb?.AppendLine("\t\t\t{");
-            _sb?.AppendLine($"\t\t\t\tvar foundItem = {listVarName}.FirstOrDefault(p => p.FirstName == name && p.ID != currentItemId);");
+            _sb?.AppendLine($"\t\t\t\tvar foundItem = {listVarName}.FirstOrDefault(p => p.ID != currentItemId);");
             _sb?.AppendLine($"\t\t\t\talreadyExists = foundItem != null;");
             _sb?.AppendLine("\t\t\t}");
             _sb?.AppendLine();
@@ -861,6 +861,9 @@ using System.Threading.Tasks;";
                 if (listCount > 0)
                 {
                     var firstItem = list.First();
+                    IsFirstCellClicked = firstItem.IsFirstCellClicked;
+                    StartCell = firstItem.StartCell;
+                    EndCell = firstItem.EndCell;
                 }
 
                 list.Add(this);
@@ -882,6 +885,9 @@ using System.Threading.Tasks;";
             _sb?.AppendLine("\t\t\tif (listCount > 0)");
             _sb?.AppendLine("\t\t\t{");
             _sb?.AppendLine("\t\t\t\tvar firstItem = list.First();");
+            _sb?.AppendLine("\t\t\t\tIsFirstCellClicked = firstItem.IsFirstCellClicked;");
+            _sb?.AppendLine("\t\t\t\tStartCell = firstItem.StartCell;");
+            _sb?.AppendLine("\t\t\t\tEndCell = firstItem.EndCell;");
             _sb?.AppendLine("\t\t\t}");
             _sb?.AppendLine();
             _sb?.AppendLine("\t\t\tlist.Add(this);");
