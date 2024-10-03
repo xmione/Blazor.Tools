@@ -68,6 +68,35 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _columns = dataTable.Columns;
             _sb = new StringBuilder();
 
+            bool isIDNotFound = !_columns.Contains("ID");
+            if (isIDNotFound)
+            {
+                DataColumn idColumn = new DataColumn("ID", typeof(int))
+                {
+                    AutoIncrement = true,
+                    AutoIncrementSeed = 1,
+                    AutoIncrementStep = 1
+                };
+
+                // Add the new column at the beginning
+                _dataTable.Columns.Add(idColumn);
+                idColumn.SetOrdinal(0);
+
+                _dataTable?.BeginLoadData();
+                try
+                {
+                    int idValue = 1;
+                    foreach (DataRow row in _dataTable?.Rows!)
+                    {
+                        row["ID"] = idValue++;
+                    }
+                }
+                finally
+                {
+                    _dataTable?.EndLoadData();
+                }
+            }
+
             AddUsings();
             AddNameSpace();
         }
@@ -111,13 +140,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         {
             if (_columns != null)
             {
-                bool isIDNotFound = !_columns.Contains("ID");
-                if (isIDNotFound)
-                {
-                    _sb?.Append($"\t\tpublic int ID ");
-                    _sb?.AppendLine("{get; set;}");
-                }
-
+               
                 foreach (DataColumn dc in _columns)
                 {
                     string fieldName = dc.ColumnName;
