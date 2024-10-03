@@ -229,7 +229,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     // DataTableGrid component
                     builder.OpenComponent<DataTableGrid>(sequence++);
-                    builder.AddAttribute(sequence++, "Title", _selectedTableName);
+                    builder.AddAttribute(sequence++, "Title", ""); // Too many Titles already so you need to blank this.
+                    //builder.AddAttribute(sequence++, "Title", _selectedTableName);
                     builder.AddAttribute(sequence++, "SelectedTable", _selectedTable);
                     builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
                     builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);

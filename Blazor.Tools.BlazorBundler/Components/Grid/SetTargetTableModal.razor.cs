@@ -48,7 +48,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             await InitializeVariables();
             await RetrieveDataFromSessionTableAsync();
-            await UpdateVariablesAfterSessionRetrieval();
+            //await UpdateVariablesAfterSessionRetrieval();
 
             await base.OnParametersSetAsync();
         }

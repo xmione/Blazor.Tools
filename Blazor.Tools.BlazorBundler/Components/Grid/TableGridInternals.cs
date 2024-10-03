@@ -880,7 +880,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             List<DataRow> dataInRange = new List<DataRow>();
 
             var tModelList = Items.OfType<TModel>().ToList();
-            _dataTable = tModelList.Any() ? tModelList.ToDataTable() : default!;
+            //_dataTable = tModelList.Any() ? tModelList.ToDataTable() : default!;
+            _dataTable = tModelList.GetDataTableFromClass();
 
             if (_dataTable != null)
             {
@@ -898,7 +899,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     for (int j = startCol - 1; j < endCol - 1; j++)
                     {
-                        newRow[j] = _dataTable.Rows[i][j];
+                        DataRow currentRow = _dataTable.Rows[i];
+                        var currentCol = _dataTable.Columns[j];
+                        var columnName = currentCol.ColumnName;
+                        newRow[columnName] = currentRow[j];
                     }
 
                     dataInRange.Add(newRow);

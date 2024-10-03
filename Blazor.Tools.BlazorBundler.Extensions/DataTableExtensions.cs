@@ -105,37 +105,6 @@ namespace Blazor.Tools.BlazorBundler.Extensions
             return table;
         }
 
-        public static DataTable ToDataTable<T>(this List<T> data) where T : class
-        {
-            DataTable table = new DataTable(typeof(T).Name);
-
-            // Get all the properties
-            PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-            // Create columns in the DataTable based on the properties
-            foreach (var prop in properties)
-            {
-                table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
-            }
-
-            // Iterate over the list of objects
-            foreach (T item in data)
-            {
-                DataRow row = table.NewRow();
-
-                // Populate the DataRow with the values from the object properties
-                foreach (var prop in properties)
-                {
-                    var value = prop.GetValue(item);
-                    row[prop.Name] = value ?? DBNull.Value;
-                }
-
-                table.Rows.Add(row);
-            }
-
-            return table;
-        }
-
         public static List<(string TableName, string ColumnName, Type ColumnType)>? GetColumnDefinitions(this DataTable source)
         {
             List<(string TableName, string ColumnName, Type ColumnType)>? columns = null!;
