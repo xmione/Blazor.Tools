@@ -63,17 +63,18 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private object? _tableGridComponentReference;
         private string _tableID = string.Empty;
         private Type _iViewModelType;
+        private EventCallback<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> _itemsChangedCallBack;
 
         //private IList<SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
         {
-            await InitializeVariables();
+            await InitializeVariablesAsync();
             //await RetrieveDataFromSessionTableAsync();
             await base.OnParametersSetAsync();
         }
 
-        public async Task InitializeVariables()
+        public async Task InitializeVariablesAsync()
         {
             try 
             {
@@ -81,8 +82,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _tableName = SelectedTable?.TableName ?? _tableName; //Employee
                 _tableID = _tableName.ToLower();
 
-                //await CreateDynamicBundlerDLL();
-                await CreateBundlerDLL();
+                //await CreateDynamicBundlerDLLAsync();
+                await CreateBundlerDLLAsync();
                 // Get the TableGrid component type with the correct generic types
                 _tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _iModelExtendedPropertiesType);
 
@@ -105,6 +106,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 //        Key = $"{Title}_addSetTargetTableModal", Value = _addSetTargetTableModal, Type = typeof(bool), Serialize = true
                 //    }
                 //};
+
+                // Handle ItemsChanged EventCallback
+                var callbackMethod = typeof(EventCallbackFactory).GetMethod("Create", new[] { typeof(object), typeof(Action<>) });
+                if (callbackMethod != null)
+                {
+                    var genericCallbackMethod = callbackMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(_modelVMType));
+                    _itemsChangedCallBack = (EventCallback<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>>)genericCallbackMethod.Invoke(null, new object[] { this, ItemsChanged })!;
+                }
             }
             catch (Exception ex)
             {
@@ -115,7 +124,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        public async Task CreateDynamicBundlerDLL()
+        public async Task CreateDynamicBundlerDLLAsync()
         {
             try 
             {
@@ -176,8 +185,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     // Create the TModelVM class from the DataTable
                     modelVMClassBuilder.CreateClassFromDataTable(SelectedTable);
 
-                    await DefineConstructors(modelVMClassBuilder, modelVMClassBuilder.AssemblyFilePath ?? default!);
-                    await DefineMethods(modelVMClassBuilder, _modelType, tiModelType);
+                    await DefineConstructorsAsync(modelVMClassBuilder, modelVMClassBuilder.AssemblyFilePath ?? default!);
+                    await DefineMethodsAsync(modelVMClassBuilder, _modelType, tiModelType);
 
                     // Save the model view assembly to the Temp folder
                     modelVMClassBuilder.SaveAssembly();
@@ -196,7 +205,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     _iModelExtendedPropertiesType = _modelVMType.GetInterface(tIModelTypeFullName) ?? default!;
                 }
 
-                await DefineTableColumns(modelVMTempDllPath, ModelsAssemblyName, ViewModelsAssemblyName);
+                await DefineTableColumnsAsync(modelVMTempDllPath, ModelsAssemblyName, ViewModelsAssemblyName);
 
                 _modelInstance = Activator.CreateInstance(_modelType);
                 _modelVMInstance = Activator.CreateInstance(_modelVMType);
@@ -249,7 +258,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         }
 
-        public async Task CreateBundlerDLL()
+        public async Task CreateBundlerDLLAsync()
         {
             // Define the paths in the Temp folder
             var tempFolderPath = Path.GetTempPath(); // Gets the system Temp directory
@@ -262,85 +271,83 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             string baseClassCode = string.Empty;
             string vmClassCode = string.Empty;
 
-            var selectedTable = _selectedTableVM;
-            var tableName = selectedTable.TableName;
             string baseDLLPath = Path.Combine(tempFolderPath, $"{baseClassAssemblyName}.dll") ?? default!;
 
             string vmDllPath = Path.Combine(tempFolderPath, $"{vmClassAssemblyName}.dll") ?? default!;
 
-            var vmClassName = $"{tableName}VM";
-            Type vmClassType = default!;
+            var vmClassName = $"{_tableName}VM";
             //Assembly vmClassAssembly = default!;
+
+            var assemblyLocations = new List<string>
+            {
+                typeof(IBase).Assembly.Location
+            };
 
             var usingStatements = new List<string>
             {
+                "Blazor.Tools.BlazorBundler.Interfaces",
                 "System"
             };
 
-            Type baseClassType = default!;
-            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, selectedTable, usingStatements))
+            using (var baseClassGenerator = new EntityClassDynamicBuilder(baseClassAssemblyName, _selectedTableVM!, assemblyLocations, usingStatements))
             {
                 baseClassCode = baseClassGenerator.ToString();
                 baseClassGenerator.EmitAssemblyToMemorySave(baseClassAssemblyName, version, baseDLLPath, baseClassCode);
                 //baseClassGenerator.LoadAssembly();
-                baseClassType = baseClassGenerator?.ClassType!;
+                _modelType = baseClassGenerator?.ClassType!;
 
                 //baseClassCode = baseClassCode.RemoveLines("using System");
 
-                using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, baseClassType))
+                using (var vmClassGenerator = new ViewModelClassGenerator(vmClassAssemblyName, _modelType))
                 {
-                    vmClassGenerator.CreateFromDataTable(selectedTable);
+                    vmClassGenerator.CreateFromDataTable(_selectedTableVM!);
 
                     vmClassCode = vmClassGenerator.ToString();
                     vmClassGenerator.EmitAssemblyToMemorySave(vmClassAssemblyName, version, vmDllPath, baseClassCode, vmClassCode);
                     //vmClassGenerator.LoadAssembly();
-                    vmClassType = vmClassGenerator?.ClassType!;
+                    _modelVMType = vmClassGenerator?.ClassType!;
 
-                     
+                    // Create an instance of the dynamically generated type
+                    var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
+
+                    // Use reflection to set the FirstName property
+                    var firstNameProperty = _modelVMType.GetProperty("FirstName");
+                    if (firstNameProperty != null)
+                    {
+                        firstNameProperty.SetValue(dynamicInstance, "John");
+                    }
+
+                    while (baseDLLPath.IsFileInUse())
+                    {
+                        //baseDLLPath.KillLockingProcesses();
+
+                        Thread.Sleep(1000);
+                    }
+
+                    while (vmDllPath.IsFileInUse())
+                    {
+                        //vmDllPath.KillLockingProcesses();
+                        Thread.Sleep(1000);
+                    }
+
+                    // Create an instance of the dynamically generated type
+                    //var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
+                    _modelInstance = (IBase)Activator.CreateInstance(_modelType)!;
+                    _modelVMInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(_modelVMType)!;
+                    _iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
+                    _iViewModelType = typeof(IViewModel<,>).MakeGenericType(typeof(IBase), _iModelExtendedPropertiesType);
+                    bool isAssignable = _iViewModelType.IsAssignableFrom(_modelVMType);
+
+
                 }
 
             }
 
-
-            //baseClassType = null;
-            while (baseDLLPath.IsFileInUse())
-            {
-                //baseDLLPath.KillLockingProcesses();
-
-                Thread.Sleep(1000);
-            }
-
-            while (vmDllPath.IsFileInUse())
-            {
-                //vmDllPath.KillLockingProcesses();
-                Thread.Sleep(1000);
-            }
-
-            // Create an instance of the dynamically generated type
-            //var dynamicInstance = (IViewModel<IBase, IModelExtendedProperties>)Activator.CreateInstance(vmClassType)!;
-            var dynamicInstance =  Activator.CreateInstance(vmClassType)!;
-
-            
-            _modelType = baseClassType;
-            _modelVMType = vmClassType;
-
-            _modelInstance = Activator.CreateInstance(_modelType);
-            _modelVMInstance = dynamicInstance;
-            _iModelExtendedPropertiesType = typeof(IModelExtendedProperties);
-
-            _iViewModelType = typeof(IViewModel<,>).MakeGenericType(_modelType,_iModelExtendedPropertiesType);
-            var iViewModelType = vmClassType.Assembly.GetType(_iViewModelType.FullName!);
-
-            _iViewModelType.DisplayTypeDifferences(iViewModelType!);
-            typeof(Employee).DisplayTypeDifferences(_modelType);
-            typeof(EmployeeVM).DisplayTypeDifferences(_modelVMType);
-
-            bool isAssignable = _modelVMType.IsAssignableFrom(iViewModelType);
-            await DefineTableColumns();
+            await DefineTableColumnsAsync();
             await Task.CompletedTask;
         }
 
-        private async Task DefineTableColumns()
+        private async Task DefineTableColumnsAsync()
         {
             
             var modelExtendedProperties = new ModelExtendedProperties();
@@ -395,7 +402,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        public async Task DefineConstructors(IDynamicClassBuilder vmClassBuilder, string modelVMTempDllPath)
+        public async Task DefineConstructorsAsync(IDynamicClassBuilder vmClassBuilder, string modelVMTempDllPath)
         {
             // Define the field for the contextProvider only once
             FieldBuilder contextProviderField = vmClassBuilder.DefineField("contextProvider", typeof(IContextProvider), FieldAttributes.Private);
@@ -512,7 +519,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        public async Task DefineMethods(IDynamicClassBuilder vmClassBuilder, Type tModelType, Type tiModelType)
+        public async Task DefineMethodsAsync(IDynamicClassBuilder vmClassBuilder, Type tModelType, Type tiModelType)
         {
 
             // Define methods dynamically
@@ -830,7 +837,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        public async Task DefineTableColumns(string dllPath, string modelTypeName, string modelVMTypeName)
+        public async Task DefineTableColumnsAsync(string dllPath, string modelTypeName, string modelVMTypeName)
         {
             var modelExtendedProperties = new ModelExtendedProperties();
             var excludedColumns = modelExtendedProperties.GetProperties() ?? default!;
@@ -1012,19 +1019,19 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private async Task HandleSelectedDataComb(DataRow[] selectedData)
+        private async Task HandleSelectedDataCombAsync(DataRow[] selectedData)
         {
             _selectedData = selectedData;
 
             //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
-            //await _tableGrid.HandleSelectedDataComb(selectedData);
+            //await _tableGrid.HandleSelectedDataCombAsync(selectedData);
 
             StateHasChanged();
 
             await Task.CompletedTask;
         }
 
-        private async Task HandleSetTargetTableColumnList(List<TargetTableColumn> targetTableColumnList)
+        private async Task HandleSetTargetTableColumnListAsync(List<TargetTableColumn> targetTableColumnList)
         {
             await Task.CompletedTask;
         }
@@ -1083,7 +1090,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private async Task UploadData()
+        private async Task UploadDataAsync()
         {
             if (_targetTables != null)
             {
@@ -1095,35 +1102,32 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        protected override async void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            await RenderMainContentAsync(builder);
+        }
+
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
         {
             if (_tableGridType != null)
             {
                 var seq = 0;
 
                 // Open the component using the resolved type
-                builder.OpenComponent(seq++, _tableGridType);
+                //builder.OpenComponent(seq++, _tableGridType);
+                builder.OpenComponent<TableGrid<IBase, IModelExtendedProperties>>(seq++);
                 builder.AddAttribute(seq++, "Title", Title);
                 builder.AddAttribute(seq++, "TableID", _tableName.ToLower());
                 builder.AddAttribute(seq++, "Model", _modelInstance);
                 builder.AddAttribute(seq++, "ModelVM", _modelVMInstance);
-                builder.AddAttribute(seq++, "IModel", default(IModelExtendedProperties)); // Use default or provide an actual instance if needed
-
                 // Add the items as an attribute to the TableGrid component
                 builder.AddAttribute(seq++, "Items", _items);
-
                 builder.AddAttribute(seq++, "DataSources", DataSources);
-                // Handle ItemsChanged EventCallback
-                var callbackMethod = typeof(EventCallbackFactory).GetMethod("Create", new[] { typeof(object), typeof(Action<>) });
-                if (callbackMethod != null)
-                {
-                    var genericCallbackMethod = callbackMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(_modelVMType));
-                    var callback = genericCallbackMethod.Invoke(null, new object[] { this, ItemsChanged });
-                    builder.AddAttribute(seq++, "ItemsChanged", callback);
-                }
+                builder.AddAttribute(seq++, "ItemsChanged", _itemsChangedCallBack);
+
                 builder.AddAttribute(seq++, "ColumnDefinitions", _columnDefinitions);
                 builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
-                
+
                 // Capture the component reference
                 builder.AddComponentReferenceCapture(seq++, inst =>
                 {
@@ -1160,7 +1164,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "Name", IconName.CloudUpload);
                 builder.AddAttribute(seq++, "Class", "cursor-pointer");
                 builder.AddAttribute(seq++, "title", "Upload to existing AccSol tables");
-                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, UploadData));
+                builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, UploadDataAsync));
                 builder.CloseComponent();
 
                 builder.OpenComponent<SetTargetTableModal>(seq++);
@@ -1168,13 +1172,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseSetTargetTableModalAsync));
                 builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
                 builder.AddAttribute(seq++, "SelectedData", _selectedData);
-                builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataComb));
+                builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataCombAsync));
                 builder.AddAttribute(seq++, "TableList", TableList);
                 builder.CloseComponent();
 
             }
 
+            await Task.CompletedTask;
         }
-         
     }
 }

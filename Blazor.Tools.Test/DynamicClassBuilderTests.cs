@@ -65,10 +65,10 @@ namespace Blazor.Tools.BlazorBundler.Tests
             Type iViewModelGenericType = typeof(IViewModel<,>);
             var iViewModelTypes = new Type[] { iViewModelGenericType.MakeGenericType(_modelType, tiModelType), tiModelType };
 
-            _dataTableGridMock.Setup(m => m.CreateDynamicBundlerDLL()).Returns(Task.CompletedTask);
-            _dataTableGridMock.Setup(m => m.DefineConstructors(_dynamicClassBuilderMock.Object,_modelVMTempDllPath)).Returns(Task.CompletedTask);
-            //_dataTableGridMock.Setup(m => m.DefineMethods(_dynamicClassBuilderMock.Object, _dynamicClassBuilderMock.Object.DynamicType)).Returns(Task.CompletedTask);
-            //_dataTableGridMock.Setup(m => m.DefineTableColumns()).Returns(Task.CompletedTask);
+            _dataTableGridMock.Setup(m => m.CreateDynamicBundlerDLLAsync()).Returns(Task.CompletedTask);
+            _dataTableGridMock.Setup(m => m.DefineConstructorsAsync(_dynamicClassBuilderMock.Object,_modelVMTempDllPath)).Returns(Task.CompletedTask);
+            //_dataTableGridMock.Setup(m => m.DefineMethodsAsync(_dynamicClassBuilderMock.Object, _dynamicClassBuilderMock.Object.DynamicType)).Returns(Task.CompletedTask);
+            //_dataTableGridMock.Setup(m => m.DefineTableColumnsAsync()).Returns(Task.CompletedTask);
 
             // Set up the dynamic class builder mock
             _dynamicClassBuilderMock.Setup(m => m.CreateClassFromDataTable(It.IsAny<DataTable>())).Verifiable();
@@ -120,12 +120,12 @@ namespace Blazor.Tools.BlazorBundler.Tests
 
                 if (_dataTableGridComponent != null)
                 {
-                    await _dataTableGridComponent.Instance.CreateDynamicBundlerDLL();
+                    await _dataTableGridComponent.Instance.CreateDynamicBundlerDLLAsync();
                 }
 
                 // Assert
-                // Verify that CreateDynamicBundlerDLL was called
-                _dataTableGridMock?.Verify(m => m.CreateDynamicBundlerDLL(), Times.Once);
+                // Verify that CreateDynamicBundlerDLLAsync was called
+                _dataTableGridMock?.Verify(m => m.CreateDynamicBundlerDLLAsync(), Times.Once);
             }
             catch (Exception ex) 
             {
@@ -195,8 +195,8 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 _dynamicClassBuilderMock?.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
 
                 _dynamicClassBuilderMock?.Object.CreateClassFromDataTable(EmployeeDataTable);
-                //await DefineConstructors(_dynamicClassBuilderMock.Object, _modelTempDllPath);
-                //await DefineMethods(_dynamicClassBuilderMock.Object, _modelType, tiModelType);
+                //await DefineConstructorsAsync(_dynamicClassBuilderMock.Object, _modelTempDllPath);
+                //await DefineMethodsAsync(_dynamicClassBuilderMock.Object, _modelType, tiModelType);
 
                 var vmAssembly = _dynamicClassBuilderMock?.Object.Assembly;
                 _modelVMType = _dynamicClassBuilderMock?.Object.DynamicType;

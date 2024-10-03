@@ -50,10 +50,11 @@ namespace Blazor.Tools.Test
             };
 
             _testContext = new BunitContext();
-            // Initialize the mock object
+            // Initialize the mock objects
             _dataTableGridMock = new Mock<IDataTableGrid>();
             _dynamicClassBuilderMock = new Mock<IDynamicClassBuilder>();
             _iModelExtendedProperties = new Mock<IModelExtendedProperties>();
+            
             // Define the open generic type and type arguments
             var openGenericType = typeof(IViewModel<,>);
             var typeArguments = new[] { typeof(Employee), typeof(IModelExtendedProperties) };
@@ -77,10 +78,10 @@ namespace Blazor.Tools.Test
             Type iViewModelGenericType = typeof(IViewModel<,>);
             var iViewModelTypes = new Type[] { iViewModelGenericType.MakeGenericType(_modelType, tiModelType), tiModelType };
 
-            _dataTableGridMock.Setup(m => m.CreateDynamicBundlerDLL()).Returns(Task.CompletedTask);
-            _dataTableGridMock.Setup(m => m.DefineConstructors(_dynamicClassBuilderMock.Object, _modelVMTempDllPath)).Returns(Task.CompletedTask);
-            //_dataTableGridMock.Setup(m => m.DefineMethods(_dynamicClassBuilderMock.Object, _dynamicClassBuilderMock.Object.DynamicType)).Returns(Task.CompletedTask);
-            //_dataTableGridMock.Setup(m => m.DefineTableColumns()).Returns(Task.CompletedTask);
+            _dataTableGridMock.Setup(m => m.CreateDynamicBundlerDLLAsync()).Returns(Task.CompletedTask);
+            _dataTableGridMock.Setup(m => m.DefineConstructorsAsync(_dynamicClassBuilderMock.Object, _modelVMTempDllPath)).Returns(Task.CompletedTask);
+            //_dataTableGridMock.Setup(m => m.DefineMethodsAsync(_dynamicClassBuilderMock.Object, _dynamicClassBuilderMock.Object.DynamicType)).Returns(Task.CompletedTask);
+            //_dataTableGridMock.Setup(m => m.DefineTableColumnsAsync()).Returns(Task.CompletedTask);
 
             // Set up the dynamic class builder mock
             _dynamicClassBuilderMock.Setup(m => m.CreateClassFromDataTable(It.IsAny<DataTable>())).Verifiable();
@@ -103,7 +104,7 @@ namespace Blazor.Tools.Test
         {
             try
             {
-                _dataTableGrid?.InitializeVariables();
+                _dataTableGrid?.InitializeVariablesAsync();
 
                 //protected override void BuildRenderTree(RenderTreeBuilder builder)
             }
@@ -137,7 +138,7 @@ namespace Blazor.Tools.Test
             var renderedMarkup = dataTableGrid.Markup;
 
             // Assert
-            dataTableGrid.Find("table").MarkupMatches("<table id='test_table'>...</table>");
+            dataTableGrid.Find("table").MarkupMatches("<table class=\"data-table-grid\">");
             Assert.IsTrue(renderedMarkup.Contains("Test Title"));
             // Add more assertions to verify other parameters
         }

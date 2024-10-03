@@ -14,13 +14,14 @@ using DocumentFormat.OpenXml.EMMA;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGrid<TModel, TIModel> : ComponentBase where TModel : class
+    public partial class TableGrid<TModel, TIModel> : ComponentBase, ITableGrid
+        where TModel : class, IBase // TModel must derive from IBase
+        where TIModel : IModelExtendedProperties // Optionally constrain TIModel if applicable
     {
         [Parameter] public string Title { get; set; } = string.Empty;
         [Parameter] public string TableID { get; set; } = string.Empty;
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public TModel Model { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
         [Parameter] public IViewModel<TModel, TIModel> ModelVM { get; set; } = default!;
         [Parameter] public IEnumerable<IViewModel<TModel, TIModel>> Items { get; set; } = Enumerable.Empty<IViewModel<TModel, TIModel>>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
@@ -36,12 +37,28 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         protected override async Task OnParametersSetAsync()
         {
             Logger.LogDebug("Parameters have been set.");
-            // Get the TableGrid component type with the correct generic types
-            _tableGridInternalsType = typeof(TableGridInternals<,>).MakeGenericType(typeof(TModel), typeof(TIModel));
+            await InitializeVariablesAsync();
             await Task.CompletedTask;
         }
 
-        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        public async Task InitializeVariablesAsync() 
+        {
+            // Get the TableGrid component type with the correct generic types
+            _tableGridInternalsType = typeof(TableGridInternals<,>).MakeGenericType(typeof(TModel), typeof(TIModel));
+
+            await Task.CompletedTask;
+        }
+
+        protected override async void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            await RenderMainContentAsync(builder);
+        }
+
+        /// <summary>
+        /// Renders main content. This is method was created for testability.
+        /// </summary>
+        /// <param name="builder">RenderTreeBuilder for the main content</param>
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
         {
             if (_tableGridInternalsType != null)
             {
@@ -51,7 +68,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "TableID", TableID);
                 builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
                 builder.AddAttribute(seq++, "ModelVM", ModelVM);
-                builder.AddAttribute(seq++, "IModel", IModel);
                 builder.AddAttribute(seq++, "Items", Items);
                 builder.AddAttribute(seq++, "DataSources", DataSources);
                 builder.AddAttribute(seq++, "ItemsChanged", ItemsChanged);
@@ -68,6 +84,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 builder.CloseComponent(); // TableGridInternals            
             }
+
+            await Task.CompletedTask;
         }
 
         private RenderFragment RenderStartContent()
@@ -248,7 +266,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await JSRuntime.InvokeVoidAsync("logToConsole", message);
         }
 
-        //public async Task HandleSelectedDataComb(DataRow[] selectedData)
+        //public async Task HandleSelectedDataCombAsync(DataRow[] selectedData)
         //{
         //    _nodeSelectedData = selectedData;
 

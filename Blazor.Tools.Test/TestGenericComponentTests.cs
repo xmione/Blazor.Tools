@@ -37,6 +37,7 @@ namespace Models
     public class TestM : IBase
     {
         public int ID { get; set; }
+        public string FirstName { get; set; }
     }
 
     public class TestVM : ITestVM<IBase, ITestMEP>, IBase, ITestMEP

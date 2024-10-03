@@ -1,6 +1,6 @@
 ﻿namespace Blazor.Tools.BlazorBundler.Interfaces
 {
-    public interface IViewModel<TModel, TIModel> : IModelExtendedProperties
+    public interface IViewModel<TModel, TIModel> : IModelExtendedProperties where TModel : IBase
     {
         TModel ToNewModel();
         TIModel ToNewIModel();

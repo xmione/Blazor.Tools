@@ -386,7 +386,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 iImplementations: iImplementations
                 );
 
-            //DefineMethods(typeCreator, tbBeforeCreate, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
+            //DefineMethodsAsync(typeCreator, tbBeforeCreate, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
             // Save the assembly to a file
             typeCreator.Save(dllPath);
 
@@ -402,8 +402,8 @@ namespace Blazor.Tools.BlazorBundler.Tests
             //object listOfEmployeeVMInstance = Activator.CreateInstance(listOfEmployeeVMType)!;
             //employeesField.SetValue(employeeVMInstance, listOfEmployeeVMInstance);
 
-            ////typeBuilder = DefineConstructors(typeCreator, typeBuilder, _employeeType);
-            //typeBuilder = DefineMethods(typeCreator, typeBuilder, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
+            ////typeBuilder = DefineConstructorsAsync(typeCreator, typeBuilder, _employeeType);
+            //typeBuilder = DefineMethodsAsync(typeCreator, typeBuilder, iViewModelType, _employeeType, iModelExtendedPropertiesConstructedType);
 
         }
 

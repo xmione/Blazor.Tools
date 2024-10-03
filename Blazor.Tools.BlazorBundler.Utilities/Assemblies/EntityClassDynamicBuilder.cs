@@ -37,6 +37,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
         private DisposableAssembly? _disposableAssembly;
         private byte[]? _assemblyBytes;
         private ClassGenerator _classGenerator;
+        private List<string>? _assemblyLocations;
 
         public DisposableAssembly? DisposableAssembly
         {
@@ -44,10 +45,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             set { _disposableAssembly = value; }
         }
 
-        public EntityClassDynamicBuilder(string nameSpace, DataTable dataTable, List<string>? usingStatements = null)
+        public EntityClassDynamicBuilder(string nameSpace, DataTable dataTable, List<string>? assemblyLocations = null, List<string>? usingStatements = null)
         {
             _nameSpace = nameSpace;
             _dataTable = dataTable;
+            _assemblyLocations = assemblyLocations;
             _usingStatements = usingStatements;
 
             if (nameSpace == null)
@@ -66,6 +68,11 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
             AddUsings();
             AddNameSpace();
+        }
+
+        public void AddReferences(List<string> assemblyLocations)
+        {
+            _assemblyLocations = assemblyLocations;
         }
 
         private void AddUsings()
@@ -92,7 +99,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
 
         private void AddClass()
         {
-            _sb?.AppendLine($"\tpublic class {_className}");
+            _sb?.AppendLine($"\tpublic class {_className}: IBase");
             _sb?.AppendLine("\t{");
             AddProperties();
             _sb?.AppendLine("\t}");
@@ -145,6 +152,12 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             _classGenerator.AddReference(systemPrivateCoreLibLocation);  // Object types
             _classGenerator.AddReference(systemLocation);  // System.dll
             _classGenerator.AddReference(systemRuntimeLocation);  // System.Runtime.dll
+
+            // Add references from the assembly location list
+            foreach (var assemblyLocation in _assemblyLocations!)
+            {
+                _classGenerator.AddReference(assemblyLocation);
+            }
             
             // Create the type from the provided class code
             _classType = _classGenerator.CreateType(_nameSpace!, _className!, sourceCodes);

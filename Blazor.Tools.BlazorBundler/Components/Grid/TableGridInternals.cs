@@ -11,13 +11,14 @@ using Blazor.Tools.BlazorBundler.Extensions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGridInternals<TModel, TIModel> : ComponentBase where TModel : class
+    public partial class TableGridInternals<TModel, TIModel> : ComponentBase, ITableGridInternals
+        where TModel : class, IBase // TModel must derive from IBase
+        where TIModel : IModelExtendedProperties // Optionally constrain TIModel if applicable
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public IViewModel<TModel, IModelExtendedProperties> ModelVM { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
         [Parameter] public IEnumerable<IViewModel<TModel, IModelExtendedProperties>> Items { get; set; } = Enumerable.Empty<IViewModel<TModel, IModelExtendedProperties>>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<IViewModel<TModel, IModelExtendedProperties>>> ItemsChanged { get; set; }
@@ -50,11 +51,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override async Task OnInitializedAsync()
         {
-            await base.OnInitializedAsync();
             _isComponentInitialized = true;
+            await base.OnInitializedAsync();
         }
 
         protected override async Task OnParametersSetAsync()
+        {
+            await InitializeVariablesAsync();
+        }
+
+        public async Task InitializeVariablesAsync()
         {
             // Important note to self:
             // It is best not to change the value of the [Parameter] variables within the component
@@ -62,7 +68,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // It is better to use private variables to play with within the component.
 
             _items = Items;
-            
+
             int currentId = 1;
 
             _items.ToList().ForEach(item =>
@@ -73,8 +79,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await GetPageRowsAsync(_items);
         }
-
         protected override async void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            await RenderMainContentAsync(builder);
+        }
+
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
         {
             int seq = 0;
 
@@ -92,7 +102,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             //Render the table with headers and rows
             //<div>
-            //  <div class="data-table-grid-div">
+            //  <div id=$"{TableID}-div" class="data-table-grid-div">
             //      <table class="data-table-grid">
             //          <thead>
             //              <tr>
@@ -177,9 +187,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await RenderFooterAsync(builder, seq);
 
             await RenderAllowSelection(builder, seq);
-
         }
-        
         private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, IViewModel<TModel, IModelExtendedProperties>? row)
         {
             builder.OpenElement(seq++, "td");
