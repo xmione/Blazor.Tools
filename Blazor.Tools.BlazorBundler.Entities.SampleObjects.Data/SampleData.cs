@@ -146,6 +146,7 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
         public SampleData()
         {
             HostAssemblies.LoadAssemblyFromDLLFile = true; // Default value should be true;
+            HostAssemblies.IsInterface = true; // Default value should be true;
             Create();
         }
 

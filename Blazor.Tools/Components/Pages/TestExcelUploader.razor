@@ -9,22 +9,32 @@
 
 @inherits SampleData
 
-<ExcelUploader Title="Upload Excel Files"
-               ModelsAssemblyName="@ModelsAssemblyName"
-               ViewModelsAssemblyName="@ViewModelsAssemblyName"
-               HostAssemblies="@HostAssemblies"
-               />
+@if (!_isInitialized)
+{ 
+    <h1>Loading...</h1>
+
+}
+else
+{
+    <ExcelUploader Title="Upload Excel Files"
+                   ModelsAssemblyName="@ModelsAssemblyName"
+                   ViewModelsAssemblyName="@ViewModelsAssemblyName"
+                   HostAssemblies="@HostAssemblies" />
+}
 
 @code {
 
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
-    protected override async Task OnParametersSetAsync()
+    private bool _isInitialized = false;
+    protected override async Task OnInitializedAsync()
     {
-        
-        var sessionManager = SessionManager.GetInstance(_sessionTableService);
+        _isInitialized = true;
+        var apiDLLPath = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll";
+        var sessionManager = SessionManager.GetInstance(_sessionTableService, apiDLLPath);
 
-        await base.OnParametersSetAsync();
+        await base.OnInitializedAsync();
+
 
     }
 }

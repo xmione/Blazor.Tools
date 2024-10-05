@@ -48,7 +48,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             await InitializeVariables();
             await RetrieveDataFromSessionTableAsync();
-            //await UpdateVariablesAfterSessionRetrieval();
+            await UpdateVariablesAfterSessionRetrieval();
 
             await base.OnParametersSetAsync();
         }
@@ -204,7 +204,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
 
             // Handle the selected value here
-            Console.WriteLine("selectedValue: {0}", _selectedTableID);
+            AppLogger.WriteInfo($"_selectedTableID: {_selectedTableID}");
 
             //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableID", _selectedTableID, serialize: true);
             //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableValue", _selectedTableValue);
@@ -1044,7 +1044,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch (Exception ex)
             {
-                AppLogger.HandleException(ex);
+                AppLogger.HandleError(ex);
             }
             
         }

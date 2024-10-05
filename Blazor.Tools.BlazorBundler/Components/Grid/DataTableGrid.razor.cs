@@ -3,6 +3,7 @@ using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models;
 using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using BlazorBootstrap;
@@ -39,8 +40,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private DataTable _selectedTableVM = default!;
         private DataRow[]? _selectedData = default!;
         private string _selectedFieldValue = string.Empty;
-        //private SessionManager _sessionManager = SessionManager.Instance;
-        //private bool _isRetrieved = false;
+        private SessionManager _sessionManager = SessionManager.Instance;
+        private bool _isRetrieved = false;
         private Type? _tableGridType = default!;
 
         private List<TargetTable>? _targetTables;
@@ -65,12 +66,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private Type _iViewModelType;
         private EventCallback<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> _itemsChangedCallBack;
 
-        //private IList<SessionItem>? _sessionItems;
+        private IList<SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
         {
             await InitializeVariablesAsync();
-            //await RetrieveDataFromSessionTableAsync();
+            await RetrieveDataFromSessionTableAsync();
             await base.OnParametersSetAsync();
         }
 
@@ -87,25 +88,17 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Get the TableGrid component type with the correct generic types
                 _tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _iModelExtendedPropertiesType);
 
-                //_sessionItems = new List<SessionItem>
-                //{
-                //    new SessionItem()
-                //    {
-                //        Key = $"{Title}_selectedData", Value = _selectedData, Type = typeof(DataRow[]), Serialize = true
-                //    },
-                //    new SessionItem()
-                //    {
-                //        Key = $"{Title}_targetTables", Value = _targetTables, Type = typeof(List<TargetTable>), Serialize = true
-                //    },
-                //    new SessionItem()
-                //    {
-                //        Key = $"{Title}_tableSourceName", Value = _tableSourceName, Type = typeof(string), Serialize = true
-                //    },
-                //    new SessionItem()
-                //    {
-                //        Key = $"{Title}_addSetTargetTableModal", Value = _addSetTargetTableModal, Type = typeof(bool), Serialize = true
-                //    }
-                //};
+                _sessionItems = new List<SessionItem>
+                {
+                    new SessionItem()
+                    {
+                        Key = $"{Title}_selectedData", Value = _selectedData, Type = typeof(DataRow[]), Serialize = true
+                    },
+                    new SessionItem()
+                    {
+                        Key = $"{Title}_targetTables", Value = _targetTables, Type = typeof(List<TargetTable>), Serialize = true
+                    }
+                };
 
                 // Handle ItemsChanged EventCallback
                 var callbackMethod = typeof(EventCallbackFactory).GetMethod("Create", new[] { typeof(object), typeof(Action<>) });
@@ -117,9 +110,31 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch (Exception ex)
             {
-                AppLogger.HandleException(ex);
+                AppLogger.HandleError(ex);
             }   
             
+
+            await Task.CompletedTask;
+        }
+
+        private async Task RetrieveDataFromSessionTableAsync()
+        {
+            try
+            {
+                if (!_isRetrieved && _sessionItems != null)
+                {
+                    _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
+                    _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
+                    _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTables"))?.Value;
+
+                    _isRetrieved = true;
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: {0}", ex.Message);
+            }
 
             await Task.CompletedTask;
         }
@@ -252,7 +267,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch(Exception ex) 
             {
-                AppLogger.HandleException(ex);
+                AppLogger.HandleError(ex);
             }
 
         }
@@ -971,29 +986,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 var totalCols = _columnDefinitions?.Count;
                 await JSRuntime.InvokeVoidAsync("toggleCellBorders", _startRow, _endRow, _startCol, _endCol, totalRows, totalCols, _tableID, true);
             }
-
-            await Task.CompletedTask;
-        }
-
-        private async Task RetrieveDataFromSessionTableAsync()
-        {
-            //try
-            //{
-            //    if (!_isRetrieved && _sessionItems != null)
-            //    {
-            //        _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-            //        _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
-            //        _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTables"))?.Value;
-            //        _addSetTargetTableModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_addSetTargetTableModal"))?.Value ?? false);
-
-            //        _isRetrieved = true;
-            //        StateHasChanged();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Error: {0}", ex.Message);
-            //}
 
             await Task.CompletedTask;
         }

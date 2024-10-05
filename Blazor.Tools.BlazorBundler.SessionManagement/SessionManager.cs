@@ -1,7 +1,11 @@
 ﻿using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
+using Blazor.Tools.BlazorBundler.Utilities.Others;
+using System.Buffers.Text;
 using System.Data;
+using System.Net.Http;
 
 namespace Blazor.Tools.BlazorBundler.SessionManagement
 {
@@ -19,29 +23,32 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         private static Lazy<SessionManager> _instance = new Lazy<SessionManager>(() => new SessionManager());
 
         private ICommonService<SessionTable, ISessionTable, IReportItem>? _sessionTableService;
+        private string? _apiDLLPath;
         private SessionTable _sessionTable;
         private string _selectedFieldValue = string.Empty;
-
         public static SessionManager Instance => _instance.Value;
-
 
         /// <summary>
         /// Constructor to use the Serialize and Deserialize methods
+        /// <param name="apiDLLPath">The full path name of the API dll file.</param>
         /// </summary>
-        private SessionManager()
+        private SessionManager(string? apiDLLPath = null)
         {
             _sessionTable = new SessionTable();
             _sessionTableService = null;
+            _apiDLLPath = apiDLLPath;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SessionManager"/> class with the specified session table service.
         /// </summary>
         /// <param name="sessionTableService">The session table service to interact with session data.</param>
-        private SessionManager(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService)
+        /// <param name="apiDLLPath">The full path name of the API dll file.</param>
+        private SessionManager(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService, string? apiDLLPath = null)
         {
             _sessionTable = new SessionTable();
             _sessionTableService = sessionTableService;
+            _apiDLLPath = apiDLLPath;
         }
 
         /// <summary>
@@ -49,11 +56,10 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         /// </summary> 
         /// <param name="sessionTableService">The session table service to interact with session data.</param>
         /// <returns>SessionManager - The SessionManager class with service instance.</returns>
-        public static SessionManager GetInstance(ICommonService<SessionTable, ISessionTable, IReportItem>? sessionTableService = null)
+        public static SessionManager GetInstance(ICommonService<SessionTable, ISessionTable, IReportItem>? sessionTableService = null, string? apiDLLPath = null)
         {
             // Access the singleton instance
             var instance = _instance.Value;
-
             // If the singleton is already created
             if (_instance.IsValueCreated)
             {
@@ -62,13 +68,19 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
                 {
                     instance._sessionTableService = sessionTableService;
                 }
+                
+                // If we need to check the Web API health and it hasn't been set yet
+                if (instance._apiDLLPath == null)
+                {
+                    instance._apiDLLPath = apiDLLPath;
+                }
             }
             else
             {
                 // If it's the first creation and we have a service to set
                 if (sessionTableService != null)
                 {
-                    _instance = new Lazy<SessionManager>(() => new SessionManager(sessionTableService));
+                    _instance = new Lazy<SessionManager>(() => new SessionManager(sessionTableService, apiDLLPath));
                 }
             }
 
@@ -96,6 +108,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
                 if (_sessionTableService != null)
                 {
+                    await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!);
                     // Check first if Name exists
                     var foundSessionItem = await _sessionTableService.GetByNameAsync(name) as SessionTable ?? default!;
                     var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
@@ -111,7 +124,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                AppLogger.HandleError(ex);
             }
 
             return _sessionTable;
@@ -142,6 +155,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
                         if (_sessionTableService != null)
                         {
+                            await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!);
                             // Check first if Name exists
                             var foundSessionItem = await _sessionTableService.GetByNameAsync(sessionItem.Key) ?? default!;
                             var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
@@ -158,7 +172,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                AppLogger.HandleError(ex);
             }
 
             return _sessionTable;
@@ -177,6 +191,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             {
                 if (_sessionTableService != null)
                 {
+                    await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!);
                     var sessionTable = await _sessionTableService.GetByNameAsync(name);
                     if (sessionTable != null)
                     {
@@ -200,7 +215,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
                 return default;
             }
         }
@@ -320,7 +335,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
 
             return sessionItems;
@@ -347,7 +362,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
 
             await Task.CompletedTask;

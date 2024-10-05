@@ -191,7 +191,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex) 
             {
-                AppLogger.HandleException(ex);
+                AppLogger.HandleError(ex);
             }
             
         }
@@ -521,7 +521,7 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
             }
             catch (Exception ex)
             {
-                AppLogger.HandleException(ex);
+                AppLogger.HandleError(ex);
                 throw;
             }
 

@@ -134,13 +134,13 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Assemblies
                 }
                 catch (Exception ex)
                 {
-                    AppLogger.HandleException(ex);
+                    AppLogger.HandleError(ex);
                 }
 
             }
             catch (Exception ex)
             {
-                AppLogger.HandleException(ex);
+                AppLogger.HandleError(ex);
             }
 
             return type;
