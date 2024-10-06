@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Version>$(PackageVersion)</Version>
+		<FileVersion>$(FileVersion)</FileVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>true</IsPackable>
+		<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0-rc.1.24452.1" />
+		<PackageReference Include="Mono.Cecil" Version="0.11.5" />
+		<PackageReference Include="Moq" Version="4.20.72" />
+		<PackageReference Include="System.Management" Version="9.0.0-rc.1.24431.7" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
+		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Interfaces\Blazor.Tools.BlazorBundler.Interfaces.csproj" />
+	</ItemGroup>
+</Project>

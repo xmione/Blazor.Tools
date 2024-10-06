@@ -13,3 +13,53 @@ SELECT TOP (1000) [ID]
 UPDATE [AccSol].[dbo].[SessionTable]
 SET [Value] = CONVERT(varbinary(max), 'R7C0')
 WHERE [Name] = '_nodeStartCell';
+
+## How to git rebase a commit with secret
+
+1. Use DOS Command Prompt and set notepad as the rebase editor.
+git config --global core.editor "notepad"
+
+2. Find out which commit/s has a secret and rebase it/them. 
+    You can use git log but if you have many commits it would be difficult to use.
+    2.1. In case you want to use git log:
+        2.1.1. Run git log in the command prompt and use the arrow keys to see the red colored commits.
+        2.1.2. Press Q or q to quit git log.
+
+    2.2. In case you want to use Command Prompt: (Recommended)
+        2.2.1. Run this command to start rebasing:
+            git rebase -i <commit id>~1 
+            git rebase -i 8afb710f~1
+
+        2.2.2. The notepad will open the rebase file:
+            pick 8afb710 Added Set-EnvVars module to Get-Tools and Cleanup-Tools modules and publish.ps1 file.
+            pick b5a5ec0 #8 - Added missing powershell modules to the package.
+
+        2.2.3. Replace pick wit edit. You can edit multiple commits at the same time.
+            edit 8afb710 Added Set-EnvVars module to Get-Tools and Cleanup-Tools modules and publish.ps1 file.
+            edit b5a5ec0 #8 - Added missing powershell modules to the package.
+
+        2.2.3. Save and close the notepad.
+        2.2.4. Remove the secret from your code. You need to manually search for the code that has the secret and 
+               remove the secret or replace it by a placeholder.
+        2.2.5. Stage, commit, pull and push:
+            git add .
+            git commit --amend
+            git pull
+            git push
+            git push origin HEAD:<branch name>
+            e.g.:
+            git push origin HEAD:8-set-target-table-column-list-modal-window-component-not-working-properly
+
+            or you can use the Git Changes window in Visual Studio if you are using it.
+
+            Note: If there are multiple commits that you want to rebase, after amending a commit, continue on the next commit to rebase:
+            git rebase --continue
+
+            Repeat for each commit.
+
+        2.2.6. If there are conflicts, you can use Visual Studio to fix the conflicts and merge them and finally commit and push them.
+
+
+
+
+    

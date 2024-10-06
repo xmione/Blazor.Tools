@@ -110,18 +110,8 @@ Function Install-Pkgs
         @{ PackageName = "bogus"; Version = "35.6.0" },
         @{ PackageName = "closedxml"; Version = "0.102.3" },
         @{ PackageName = "dapper"; Version = "2.1.35" },
-        @{ PackageName = "htmlagilitypack"; Version = "1.11.61" },
-        @{ PackageName = "microsoft.aspnetcore.diagnostics.entityframeworkcore"; Version = "8.0.6" },
-        @{ PackageName = "microsoft.aspnetcore.identity.entityframeworkcore"; Version = "8.0.6" },
-        @{ PackageName = "microsoft.build"; Version = "17.10.4" },
-        @{ PackageName = "microsoft.entityframeworkcore.sqlserver"; Version = "8.0.6" },
-        @{ PackageName = "microsoft.entityframeworkcore.tools"; Version = "8.0.6" },
-        @{ PackageName = "microsoft.ml"; Version = "3.0.1" },
         @{ PackageName = "microsoft.visualstudio.azure.containers.tools.targets"; Version = "1.21.0" },
-        @{ PackageName = "newtonsoft.json"; Version = "13.0.3" },
-        @{ PackageName = "system.configuration.configurationmanager"; Version = "8.0.0" },
-        @{ PackageName = "system.data.oledb"; Version = "8.0.0" },
-        @{ PackageName = "system.diagnostics.performancecounter"; Version = "8.0.0" }
+        @{ PackageName = "newtonsoft.json"; Version = "13.0.3" }
     )
  
     # Install NuGet packages

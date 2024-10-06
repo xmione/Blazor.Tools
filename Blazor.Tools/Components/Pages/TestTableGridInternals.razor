@@ -1,8 +1,10 @@
 ﻿@page "/test-table-grid-internals"
 @rendermode InteractiveServer
-
+ 
 @using Blazor.Tools.BlazorBundler.Entities
-@using Blazor.Tools.BlazorBundler.Entities.SampleObjects
+@using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
+@using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Models
+@using Blazor.Tools.BlazorBundler.Entities.SampleObjects.ViewModels
 @using Blazor.Tools.BlazorBundler.Extensions
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Components.Grid
@@ -17,7 +19,7 @@
 <TableGridInternals Title="@Title"
                     TableID="@TableID"
                     ColumnDefinitions="@ColumnDefinitions"
-                    TModel="Employee"
+                    TModel="IBase"
                     ModelVM="@EmployeeVM"
                     TIModel="IModelExtendedProperties"
                     Items="Employees"

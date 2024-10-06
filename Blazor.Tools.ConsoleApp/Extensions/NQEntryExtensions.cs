@@ -47,7 +47,8 @@ namespace Blazor.Tools.ConsoleApp.Extensions
             var totalStopwatch = Stopwatch.StartNew();
             var jsonlReadStopwatch = Stopwatch.StartNew();
             var dateToday = DateTime.Now.ToString("yyyy-dd-MM_HH-mm-ss");
-            var logFilePath = Path.Combine(Path.GetDirectoryName(jsonlFilePath), $"parsing_log-{dateToday}.txt");
+            var fileFolderName = Path.GetDirectoryName(jsonlFilePath) ?? string.Empty;
+            var logFilePath = Path.Combine(fileFolderName, $"parsing_log-{dateToday}.txt");
 
             using (var logWriter = new StreamWriter(logFilePath, append: false))
             {
@@ -103,26 +104,28 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                             // Populate TrainingData from properties
                             foreach (var kvp in properties)
                             {
-                                switch (kvp.Key)
+                                var kvpKey = kvp.Key;
+                                var kvpValue = kvp.Value.ToString() ?? string.Empty;
+                                switch (kvpKey)
                                 {
                                     case "annotations":
-                                        trainingData.Annotations = kvp.Value.ToString();
+                                        trainingData.Annotations = kvpValue;
                                         break;
                                     case "question_text":
-                                        trainingData.QuestionText = kvp.Value.ToString();
-                                        Console.WriteLine($"Question {kvp.Value}");
-                                        logWriter.WriteLine($"Question {kvp.Value}");
+                                        trainingData.QuestionText = kvpValue;
+                                        Console.WriteLine($"Question {kvpValue}");
+                                        logWriter.WriteLine($"Question {kvpValue}");
 
                                         break;
                                     case "document_text": // Example of adding non-specific property to Context
                                     case "long_answer_candidates":
                                     case "document_url":
                                     case "example_id":
-                                        trainingData.Context += kvp.Value.ToString() + "\n";
+                                        trainingData.Context += kvpValue + "\n";
                                         break;
                                     default:
                                         // Add to Context if not directly related to annotations or question_text
-                                        trainingData.Context += kvp.Value.ToString() + "\n";
+                                        trainingData.Context += kvpValue + "\n";
                                         break;
                                 }
                             }

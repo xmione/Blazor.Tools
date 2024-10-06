@@ -46,8 +46,9 @@ namespace Blazor.Tools.ConsoleApp.Extensions
 
 
         // Read
-        public OriginalQuestionAnsweringData Read(int id)
+        public OriginalQuestionAnsweringData? Read(int id)
         {
+            OriginalQuestionAnsweringData? data = null;
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 string query = "SELECT * FROM OriginalQuestionAnsweringData WHERE ID = @ID";
@@ -61,7 +62,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                     {
                         if (reader.Read())
                         {
-                            return new OriginalQuestionAnsweringData
+                            data =  new OriginalQuestionAnsweringData
                             {
                                 ID = reader.GetInt32(reader.GetOrdinal("ID")),
                                 Annotations = reader.GetString(reader.GetOrdinal("Annotations")),
@@ -80,7 +81,7 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                 }
             }
 
-            return null;
+            return data;
         }
 
         // Update
@@ -139,21 +140,21 @@ namespace Blazor.Tools.ConsoleApp.Extensions
 
                 using (var reader = command.ExecuteReader())
                 {
-                    while (reader.Read())
+                    while (reader != null && reader.Read())
                     {
                         var data = new OriginalQuestionAnsweringData
                         {
                             ID = reader.GetInt32(0),
                             Annotations = reader.GetString(1),
-                            DocumentHtml = reader.IsDBNull(2) ? null : reader.GetString(2),
-                            DocumentTitle = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            DocumentTokens = reader.IsDBNull(4) ? null : reader.GetString(4),
-                            DocumentUrl = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            DocumentHtml = reader.IsDBNull(2) ? default! : reader.GetString(2),
+                            DocumentTitle = reader.IsDBNull(3) ? default! : reader.GetString(3),
+                            DocumentTokens = reader.IsDBNull(4) ? default! : reader.GetString(4),
+                            DocumentUrl = reader.IsDBNull(5) ? default! : reader.GetString(5),
                             ExampleId = reader.GetString(6),
-                            LongAnswerCandidates = reader.IsDBNull(7) ? null : reader.GetString(7),
+                            LongAnswerCandidates = reader.IsDBNull(7) ? default! : reader.GetString(7),
                             QuestionText = reader.GetString(8),
-                            QuestionTokens = reader.IsDBNull(9) ? null : reader.GetString(9),
-                            DocumentText = reader.IsDBNull(10) ? null : reader.GetString(10)
+                            QuestionTokens = reader.IsDBNull(9) ? default! : reader.GetString(9),
+                            DocumentText = reader.IsDBNull(10) ? default! : reader.GetString(10)
                         };
 
                         dataList.Add(data);
@@ -194,15 +195,15 @@ namespace Blazor.Tools.ConsoleApp.Extensions
                             {
                                 ID = reader.GetInt32(0),
                                 Annotations = reader.GetString(1),
-                                DocumentHtml = reader.IsDBNull(2) ? null : reader.GetString(2),
-                                DocumentTitle = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                DocumentTokens = reader.IsDBNull(4) ? null : reader.GetString(4),
-                                DocumentUrl = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                DocumentHtml = reader.IsDBNull(2) ? default! : reader.GetString(2),
+                                DocumentTitle = reader.IsDBNull(3) ? default! : reader.GetString(3),
+                                DocumentTokens = reader.IsDBNull(4) ? default! : reader.GetString(4),
+                                DocumentUrl = reader.IsDBNull(5) ? default! : reader.GetString(5),
                                 ExampleId = reader.GetString(6),
-                                LongAnswerCandidates = reader.IsDBNull(7) ? null : reader.GetString(7),
+                                LongAnswerCandidates = reader.IsDBNull(7) ? default! : reader.GetString(7),
                                 QuestionText = reader.GetString(8),
-                                QuestionTokens = reader.IsDBNull(9) ? null : reader.GetString(9),
-                                DocumentText = reader.IsDBNull(10) ? null : reader.GetString(10)
+                                QuestionTokens = reader.IsDBNull(9) ? default! : reader.GetString(9),
+                                DocumentText = reader.IsDBNull(10) ? default! : reader.GetString(10)
                             };
 
                             dataList.Add(data);

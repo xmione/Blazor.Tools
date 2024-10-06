@@ -6,16 +6,19 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using System.Data;
 using Microsoft.JSInterop;
+using Blazor.Tools.BlazorBundler.SessionManagement;
+using Blazor.Tools.BlazorBundler.Extensions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGridInternals<TModel, TIModel> : ComponentBase
+    public partial class TableGridInternals<TModel, TIModel> : ComponentBase, ITableGridInternals
+        where TModel : class, IBase // TModel must derive from IBase
+        where TIModel : IModelExtendedProperties // Optionally constrain TIModel if applicable
     {
         [Parameter] public string Title { get; set; } = "Sample List";
         [Parameter] public string TableID { get; set; } = "table-id";
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public IViewModel<TModel, IModelExtendedProperties> ModelVM { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
         [Parameter] public IEnumerable<IViewModel<TModel, IModelExtendedProperties>> Items { get; set; } = Enumerable.Empty<IViewModel<TModel, IModelExtendedProperties>>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
         [Parameter] public EventCallback<IEnumerable<IViewModel<TModel, IModelExtendedProperties>>> ItemsChanged { get; set; }
@@ -39,19 +42,25 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private bool _isAdding;
         private IViewModel<TModel, IModelExtendedProperties>? _editedRow;
         private IViewModel<TModel, IModelExtendedProperties>? _editedRowSaved;
-        private IViewModel<TModel, IModelExtendedProperties>? _newRowData;
+        //private IViewModel<TModel, IModelExtendedProperties>? _newRowData;
         private string _startCell = string.Empty;
         private string _endCell = string.Empty;
         private bool _isFirstCellClicked;
         private bool _isComponentInitialized;
+        private DataTable? _dataTable;
 
         protected override async Task OnInitializedAsync()
         {
-            await base.OnInitializedAsync();
             _isComponentInitialized = true;
+            await base.OnInitializedAsync();
         }
 
         protected override async Task OnParametersSetAsync()
+        {
+            await InitializeVariablesAsync();
+        }
+
+        public async Task InitializeVariablesAsync()
         {
             // Important note to self:
             // It is best not to change the value of the [Parameter] variables within the component
@@ -59,7 +68,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // It is better to use private variables to play with within the component.
 
             _items = Items;
-            
+
             int currentId = 1;
 
             _items.ToList().ForEach(item =>
@@ -71,6 +80,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await GetPageRowsAsync(_items);
         }
         protected override async void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            await RenderMainContentAsync(builder);
+        }
+
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
         {
             int seq = 0;
 
@@ -88,7 +102,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             //Render the table with headers and rows
             //<div>
-            //  <div class="data-table-grid-div">
+            //  <div id=$"{TableID}-div" class="data-table-grid-div">
             //      <table class="data-table-grid">
             //          <thead>
             //              <tr>
@@ -173,9 +187,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await RenderFooterAsync(builder, seq);
 
             await RenderAllowSelection(builder, seq);
-
         }
-        
         private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, IViewModel<TModel, IModelExtendedProperties>? row)
         {
             builder.OpenElement(seq++, "td");
@@ -473,13 +485,56 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async void EditRowAsync(IViewModel<TModel, IModelExtendedProperties>? modelVM)
         {
-            if (_items != null && modelVM != null && ModelVM != null)
+            if (_items != null && modelVM != null)
             {
                 _isEditing = true;
-                
-                var item = await modelVM.SetEditMode(_isEditing);
-                _editedRow = item;
-                _editedRowSaved = await item.SaveModelVMToNewModelVM();
+                var vmType = modelVM.GetType();
+                //var dllPath = vmType.Assembly.Location;
+                //var vmCodePath = Path.Combine(Path.GetTempPath(), "DecompiledCode.cs");
+                //dllPath.DecompileWholeModuleToClass(vmCodePath);
+
+                //var typeName = vmType.FullName;
+                //var methodName = "HelloWorld";
+                //var instance = Activator.CreateInstance(vmType);
+                //await vmType.Assembly.InvokeMethodAsync(typeName, methodName, instance, "Sol"); // Pass parameters as needed
+
+                //var methodILContents = modelVM.GetType().GetILCode("SetEditMode");
+                //var methodContents = modelVM.GetType().GetMethodCode("SetEditMode");
+                //Console.WriteLine("SetEditMode Contents: \r\n\t{0}", methodContents);
+
+                var setEditModeMethod = modelVM.GetType().GetMethod("SetEditMode");
+                if (setEditModeMethod == null)
+                {
+                    throw new InvalidOperationException("SetEditMode method is missing.");
+                }
+
+                var isEditModeProperty = modelVM.GetType().GetProperty("IsEditMode");
+                if (isEditModeProperty == null)
+                {
+                    throw new InvalidOperationException("IsEditMode property is missing.");
+                }
+
+                // Print the current value before changing
+                var currentValue = isEditModeProperty.GetValue(modelVM);
+                Console.WriteLine($"Before changing IsEditMode value: {currentValue}");
+
+                // Invoke SetEditMode
+                var result = setEditModeMethod.Invoke(modelVM, new object[] { _isEditing });
+                if (result is Task<IViewModel<TModel, IModelExtendedProperties>> task)
+                {
+                    var item = await task;
+                    _editedRow = item;
+
+                    // Print the value after changing
+                    currentValue = isEditModeProperty.GetValue(modelVM);
+                    Console.WriteLine($"After changing IsEditMode value: {currentValue}");
+
+                    _editedRowSaved = await item.SaveModelVMToNewModelVM();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unexpected result type from SetEditMode.");
+                }
 
                 StateHasChanged();
             }
@@ -501,7 +556,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task SaveRowAsync(IViewModel<TModel, IModelExtendedProperties>? modelVM)
         {
-            if (modelVM != null && _editedRow != null && ModelVM != null)
+            if (modelVM != null && _editedRow != null)
             {
                 _isEditing = false;
                 var item = await modelVM.SetEditMode(_isEditing);
@@ -524,7 +579,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 return;
             }
 
-            if (_editedRow != null && _editedRowSaved != null && ModelVM != null)
+            if (_editedRow != null && _editedRowSaved != null )
             {
                 var item = await _editedRowSaved.SetEditMode(false);
                 _items = await item.UpdateList(_items, _isAdding);
@@ -557,13 +612,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await Task.CompletedTask;
         }
+
         private async Task HandleFilterDataTableAsync(IEnumerable<IViewModel<TModel, IModelExtendedProperties>> filteredRows)
         {
             await GetPageRowsAsync(filteredRows);
             StateHasChanged(); 
             await Task.CompletedTask;
         }
-
 
         private async Task PageSizeChangedAsync(ChangeEventArgs e)
         {
@@ -721,8 +776,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-col", "");
             await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-col", "");
 
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
+            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
 
             await Task.CompletedTask;
         }
@@ -764,13 +819,98 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             }
 
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
+                //await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
                 //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
 
             StateHasChanged(); // Refresh UI to reflect the changes in cell selection
 
             await Task.CompletedTask;
+        }
+
+        public async Task<DataRow[]?> ShowSetTargetTableModalAsync(string startCell, string endCell)
+        {
+            _startCell = startCell;
+            _endCell = endCell; 
+            DataRow[] selectedData = default!;
+
+            try
+            {
+                
+                if (!string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell))
+                {
+                    // Parsing startCell ("R1-C1")
+                    int startRow = int.Parse(startCell.Substring(1, startCell.IndexOf('-') - 1));
+                    int startCol = int.Parse(startCell.Substring(startCell.IndexOf('C') + 1));
+
+                    // Parsing endCell ("R101-C6")
+                    int endRow = int.Parse(endCell.Substring(1, endCell.IndexOf('-') - 1));
+                    int endCol = int.Parse(endCell.Substring(endCell.IndexOf('C') + 1));
+
+                    selectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+
+                    //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+
+                    await Task.CompletedTask;
+                }
+            }
+            catch (TaskCanceledException ex)
+            {
+                Console.WriteLine("JavaScript invocation was canceled: " + ex.Message);
+            }
+            catch (JSException jsEx)
+            {
+                Console.WriteLine("JavaScript exception occurred: " + jsEx.Message);
+            }
+
+            await Task.CompletedTask;
+            //StateHasChanged();
+
+            return selectedData;
+        }
+
+        public async Task ReloadComponent()
+        {
+            StateHasChanged();
+            await Task.CompletedTask;
+        }
+
+        private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
+        {
+            List<DataRow> dataInRange = new List<DataRow>();
+
+            var tModelList = Items.OfType<TModel>().ToList();
+            //_dataTable = tModelList.Any() ? tModelList.ToDataTable() : default!;
+            _dataTable = tModelList.GetDataTableFromClass();
+
+            if (_dataTable != null)
+            {
+                // Create a new DataTable with the selected columns
+                DataTable filteredDataTable = new DataTable();
+                for (int i = startCol - 1; i <= endCol - 1; i++)
+                {
+                    var column = _dataTable.Columns[i];
+                    filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
+                }
+
+                for (int i = startRow - 1; i < endRow - 1; i++)
+                {
+                    DataRow newRow = filteredDataTable.NewRow();
+
+                    for (int j = startCol - 1; j < endCol - 1; j++)
+                    {
+                        DataRow currentRow = _dataTable.Rows[i];
+                        var currentCol = _dataTable.Columns[j];
+                        var columnName = currentCol.ColumnName;
+                        newRow[columnName] = currentRow[j];
+                    }
+
+                    dataInRange.Add(newRow);
+                }
+
+            }
+
+            return dataInRange.ToArray();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -783,7 +923,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
                 
             }
-
+            
             if (_isAdding)
             {
                 await JSRuntime.InvokeVoidAsync("scrollToBottom", $"{TableID}-div");

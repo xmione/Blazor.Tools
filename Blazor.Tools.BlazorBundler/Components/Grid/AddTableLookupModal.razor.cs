@@ -14,11 +14,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     //    [Parameter] public EventCallback<List<SearchField>> OnSave { get; set; }
     //    [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
 
-    //    private string _tableName = string.Empty;
+    //    private string _baseClassName = string.Empty;
 
     //    protected override async Task OnParametersSetAsync()
     //    {
-    //        _tableName = SelectedTable?.TableName ?? _tableName;
+    //        _baseClassName = SelectedTable?.TableName ?? _baseClassName;
     //        await base.OnParametersSetAsync();
     //    }
 
@@ -142,7 +142,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
     //        // TableGrid component
     //        builder.OpenComponent<TableGrid>(sequence++);
-    //        builder.AddAttribute(sequence++, "Title", _tableName);
+    //        builder.AddAttribute(sequence++, "Title", _baseClassName);
     //        builder.AddAttribute(sequence++, "DataTable", SelectedTable);
     //        builder.CloseComponent();
 

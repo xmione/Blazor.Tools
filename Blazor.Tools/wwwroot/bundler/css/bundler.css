@@ -1,0 +1,150 @@
+﻿/* DataTableGrid */
+.data-table-grid-div {
+    width: 100%;
+    height: 55vh;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    overflow: auto;
+}
+
+.data-table-grid {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .data-table-grid thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .data-table-grid th, .data-table-grid td {
+        vertical-align: middle;
+        text-align: center;
+        padding: 8px;
+        border: 1px solid #dee2e6;
+        transition: border-color 0.3s; /* Add transition for smooth effect */
+    }
+
+        .data-table-grid th:hover, .data-table-grid td:hover {
+            border-color: #007bff; /* Change border color on hover */
+        }
+
+    .data-table-grid th {
+        background-color: #f8f9fa;
+    }
+
+    .data-table-grid .icon-button {
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+/* Specific Modal Styles for DataTableGrid */
+.data-table-grid-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden; /* Initially hidden */
+    opacity: 0; /* Initially transparent */
+    transition: visibility 0s linear 300ms, opacity 300ms; /* Smooth transition */
+    flex-direction: column;
+}
+
+    .data-table-grid-modal.show {
+        visibility: visible; /* Show when .show class is added */
+        opacity: 1; /* Fully opaque */
+        transition-delay: 0s; /* Reset transition delay */
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+.data-table-grid-modal-content {
+    position: relative;
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    height: 90vh;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.data-table-grid-modal-close-button {
+    position: relative;
+    top: -20px;
+    right: 0px;
+    width: 90%;
+    height: 25px;
+    font-size: 2rem;
+    cursor: pointer;
+    text-align: right;
+}
+
+.data-table-grid-modal-add-button {
+    font-size: 2rem;
+    text-align: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.icons-td {
+    white-space: nowrap; /* Prevents wrapping to the next line */
+    width: 30px;
+}
+
+.border-black-10px {
+    border: 10px solid black;
+}
+
+.pagination-container {
+    font-weight: bold;
+}
+
+.left-margin-5x {
+    margin-left: 5px;
+}
+
+.row-display {
+    display: flex !important;
+    align-items: center !important; /* Vertically align items */
+    gap: 10px !important; /* Space between items, adjust as needed */
+    margin-bottom: 10px;
+}
+
+#pageSize {
+    width: 100px !important;
+}
+
+#current-page {
+    width: 100px !important;
+}
+
+.icon-large {
+    font-size: 35px; /* Adjust the size as needed */
+}
+
+.marked-border {
+    border: 5px solid blue !important;
+}
+
+.show-element {
+    display: initial;
+}
+
+.hide-element {
+    display: none;
+}

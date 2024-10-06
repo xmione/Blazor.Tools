@@ -1,42 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-Blazor.Tools-47bab4b5-d3f6-4997-bdb7-7bb3827f5395</UserSecretsId>
+	<IsPackable>true</IsPackable>
+	<PackageOutputPath>$(SolutionDir)\packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.css" />
-    <None Remove="wwwroot\bundler\blazor-bootstrap\blazor.bootstrap.js" />
-    <None Remove="wwwroot\bundler\blazored-typeahead\blazored-typeahead.js" />
-    <None Remove="wwwroot\bundler\bootstrap-icons\font\bootstrap-icons.min.css" />
-    <None Remove="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff" />
-    <None Remove="wwwroot\bundler\bootstrap-icons\font\fonts\bootstrap-icons.woff2" />
-    <None Remove="wwwroot\bundler\css\bundler.css" />
-    <None Remove="wwwroot\bundler\js\bootstrap.bundle.min.js" />
-    <None Remove="wwwroot\bundler\js\site.js" />
-    <None Remove="Docs\~%24ep-by-Step Implementation.docx" />
-    <None Remove="Docs\~%24tural Language Requirements Specification Document.docx" />
-    <None Remove="Docs\~WRL0005.tmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.6.0" />
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.6" />
-    <PackageReference Include="Microsoft.Build" Version="17.10.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
+	<PackageReference Include="HtmlAgilityPack" Version="1.11.66" />
+	<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.0-preview.7.24406.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0-preview.7.24406.2" />
+    <PackageReference Include="Microsoft.Build" Version="17.11.4" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.12.0-2.final" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0-preview.7.24405.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0-preview.7.24405.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="system.configuration.configurationmanager" Version="8.0.0" />
-    <PackageReference Include="system.data.oledb" Version="8.0.0" />
-    <PackageReference Include="system.diagnostics.performancecounter" Version="8.0.0" />
+    <PackageReference Include="Microsoft.ML" Version="4.0.0-preview.24378.1" />
+    <PackageReference Include="OpenTelemetry" Version="1.9.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0-rc.1.24431.7" />
+	<PackageReference Include="System.Data.OleDb" Version="9.0.0-rc.1.24431.7" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.0-rc.1.24431.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blazor.Tools.BlazorBundler\Blazor.Tools.BlazorBundler.csproj" />

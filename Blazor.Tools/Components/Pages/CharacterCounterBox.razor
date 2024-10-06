@@ -1,6 +1,4 @@
 ﻿@page "/character-counter-box"
-@rendermode InteractiveServer
-@inject NavigationManager Navigation
 @inject IJSRuntime JS
 
 <h3>Character Counter Box</h3>
@@ -19,7 +17,10 @@
 <div>
     <button @onclick="CountCharacters">Count</button>
     <button @onclick="TrimText">Trim</button>
+    <button @onclick="CreateTabs">Create Tabs</button>
 </div>
+
+<div id="tabsContainer"></div>
 
 <style>
     .black-border {
@@ -29,36 +30,50 @@
     .resizable-text-area {
         resize: both;
         overflow: auto;
-        width: 300px;
-        height: 200px;
+        width: 100%;
+        height: 100%;
+    }
+
+    .tabs {
+        overflow: hidden;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .tablinks {
+        background-color: #f1f1f1;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        cursor: pointer;
+        float: left;
+        padding: 14px 16px;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+        .tablinks:hover {
+            background-color: #ddd;
+        }
+
+    .divcontent {
+        display: block;
+    }
+
+    .tabcontent {
+        display: block;
+        padding: 20px;
+        border: 1px solid #ccc;
+        width: 100%;
+        height: 200px; /* Adjust height as needed */
     }
 </style>
 
-@code {
-    private int CharacterLimit { get; set; }
-    private int CharacterCount { get; set; }
-
-    private async void CountCharacters()
-    {
-        CharacterCount = await JS.InvokeAsync<int>("getCharacterCount", "textArea");
-        StateHasChanged();
-    }
-
-    private async void TrimText()
-    {
-        await JS.InvokeVoidAsync("trimText", "textArea", CharacterLimit);
-        CharacterCount = await JS.InvokeAsync<int>("getCharacterCount", "textArea");
-        StateHasChanged();
-    }
-}
-
 <script>
-    window.getCharacterCount = function (textareaId) {
+    window.getCharacterCount = function(textareaId) {
         var textarea = document.getElementById(textareaId);
         return textarea ? textarea.value.length : 0;
     };
 
-    window.trimText = function (textareaId, charLimit) {
+    window.trimText = function(textareaId, charLimit) {
         var textarea = document.getElementById(textareaId);
         if (textarea) {
             var text = textarea.value;
@@ -67,4 +82,145 @@
             }
         }
     };
+
+    window.getTextAreaChunks = function(textareaId, charLimit) {
+        var textarea = document.getElementById(textareaId);
+        if (!textarea) return [];
+
+        var text = textarea.value;
+        var chunks = [];
+        var currentChunk = "";
+        var lines = text.split('\n');
+
+        lines.forEach(line => {
+            // Check if adding the current line would exceed the charLimit
+            if (currentChunk.length + line.length + 1 > charLimit) {
+                // If currentChunk is not empty, push it to chunks
+                if (currentChunk.length > 0) {
+                    chunks.push(currentChunk);
+                    currentChunk = "";
+                }
+                // Add line to a new chunk if it exceeds charLimit
+                while (line.length > charLimit) {
+                    chunks.push(line.substring(0, charLimit));
+                    line = line.substring(charLimit);
+                }
+                // Add remaining line to the current chunk
+                currentChunk = line;
+            } else {
+                // Add line to the current chunk
+                if (currentChunk.length > 0) {
+                    currentChunk += '\n'; // Add newline before appending the line
+                }
+                currentChunk += line;
+            }
+        });
+
+        // Add any remaining content as a chunk
+        if (currentChunk.length > 0) {
+            chunks.push(currentChunk);
+        }
+
+        return chunks;
+    };
+
+    window.createTabs = function(textareaId, charLimit) {
+        var container = document.getElementById('tabsContainer');
+        container.innerHTML = ''; // Clear previous tabs
+
+        var tabContentDiv = document.createElement('div');
+        tabContentDiv.className = 'tabs';
+        container.appendChild(tabContentDiv);
+
+        var contentDiv = document.createElement('div');
+        contentDiv.className = 'divcontent';
+        container.appendChild(contentDiv);
+
+        var chunks = window.getTextAreaChunks(textareaId, charLimit);
+
+        chunks.forEach((chunk, index) => {
+            var tabButton = document.createElement('button');
+            tabButton.className = 'tablinks';
+            tabButton.textContent = 'Tab ' + (index + 1);
+            tabButton.onclick = function() {
+                showTab(index);
+            };
+            tabContentDiv.appendChild(tabButton);
+
+            var textArea = document.createElement('textarea');
+            textArea.className = 'resizable-text-area black-border tabcontent';
+            textArea.value = chunk;
+            textArea.readOnly = true;
+            contentDiv.appendChild(textArea);
+        });
+
+        function showTab(index) {
+            var tabLinks = tabContentDiv.getElementsByClassName('tablinks');
+            var tabContents = container.getElementsByClassName('tabcontent');
+
+            for (var i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].style.backgroundColor = ''; // Reset button background color
+            }
+
+            for (var j = 0; j < tabContents.length; j++) {
+                tabContents[j].style.display = 'none'; // Hide all tab content
+            }
+
+            console.log(tabLinks);
+            console.log(index);
+            if (index < tabLinks.length) {
+                tabLinks[index].style.backgroundColor = '#ddd'; // Highlight the selected tab button
+                tabContents[index].style.display = 'block'; // Show the selected tab content
+            }
+        }
+
+        // Show the first tab by default
+        if (chunks.length > 0) {
+            showTab(0);
+        }
+    };
 </script>
+
+@code {
+    private int CharacterLimit { get; set; }
+    private int CharacterCount { get; set; }
+
+    private async Task CountCharacters()
+    {
+        try
+        {
+            CharacterCount = await JS.InvokeAsync<int>("getCharacterCount", "textArea");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task TrimText()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("trimText", "textArea", CharacterLimit);
+            CharacterCount = await JS.InvokeAsync<int>("getCharacterCount", "textArea");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task CreateTabs()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("createTabs", "textArea", CharacterLimit);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+}

@@ -3,7 +3,7 @@
 
 @using Blazor.Tools
 @using Blazor.Tools.BlazorBundler.Components.Grid
-@using Blazor.Tools.BlazorBundler.Entities.SampleObjects
+@using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 @using Bogus
 @using System.Data
 @inject NavigationManager Navigation
@@ -12,13 +12,24 @@
 
 <h1>Testing Sample Data Table Grid Component</h1>
 
-<DataTableGrid SelectedTable="@EmployeeDataTable" 
+<DataTableGrid  Title="@EmployeeDataTable.TableName"
+                SelectedTable="@EmployeeDataTable" 
+                ModelsAssemblyName="@ModelsAssemblyName"
+                ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenEmployeeColumns" 
                 DataSources="@DataSources"
-                ItemsChanged="@OnItemsChanged" />
+                ItemsChanged="@OnItemsChanged" 
+                AllowCellRangeSelection="true"
+                TableList="@TableList" 
+                />
 
-<DataTableGrid SelectedTable="@CountryDataTable" 
+<DataTableGrid  Title="@CountryDataTable.TableName" 
+                SelectedTable="@CountryDataTable" 
+                ModelsAssemblyName="@ModelsAssemblyName"
+                ViewModelsAssemblyName="@ViewModelsAssemblyName"
                 HiddenColumnNames="@HiddenCountryColumns"
                 DataSources="@DataSources"
-                ItemsChanged="@OnItemsChanged" />
+                ItemsChanged="@OnItemsChanged"
+               TableList="@TableList" 
+               />
   

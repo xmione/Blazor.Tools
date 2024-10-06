@@ -1,0 +1,132 @@
+﻿@page "/test-generic-component"
+@using System.Reflection
+@using Blazor.Tools.BlazorBundler.Interfaces
+@using Blazor.Tools.BlazorBundler.Utilities.Assemblies
+@using Blazor.Tools.BlazorBundler.Utilities.Exceptions
+@using Microsoft.CodeAnalysis
+@using Microsoft.CodeAnalysis.CSharp
+
+<PageTitle>Testing Generic component with Dynamically created Assembly</PageTitle>
+@* Example usage with dynamically created instances *@
+<MessageDisplay Item="DynamicInstance" />
+
+@code {
+    [Parameter] public ITestVM<IBase, ITestMEP> DynamicInstance { get; set; } = default!;
+    private string _classASource = string.Empty;
+    private string _classBSource = string.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+        // Define the source code for ClassA
+        _classASource = @"
+using System;
+using System.Threading.Tasks;
+using Blazor.Tools.BlazorBundler.Interfaces;
+
+namespace Models
+{
+    public class ClassA : ITestVM<IBase, ITestMEP>, IBase, ITestMEP
+    {
+        public int ID { get; set; }
+        public bool IsEditMode { get; set; }
+
+        private string _message;
+
+        public void SetMessage(string message)
+        {
+            _message = message;
+        }
+
+        public string GetMessage()
+        {
+            return ""Hello from ClassA"";
+        }
+
+        public async Task<ITestVM<IBase, ITestMEP>> SetEditMode(bool isEditMode)
+        {
+            IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return this;
+        }
+    }
+}";
+
+        // Define the source code for ClassB
+        _classBSource = @"
+using System;
+using System.Threading.Tasks;
+using Blazor.Tools.BlazorBundler.Interfaces;
+
+namespace Models
+{
+    public class ClassB : ITestVM<IBase, ITestMEP>, IBase, ITestMEP
+    {
+        public int ID { get; set; }
+        public bool IsEditMode { get; set; }
+
+        private string _message;
+
+        public void SetMessage(string message)
+        {
+            _message = message;
+        }
+
+        public string GetMessage()
+        {
+            if(string.IsNullOrEmpty(_message))
+            {
+                _message = ""Hello from ClassB"";
+            }
+
+            return _message;
+        }
+
+        public async Task<ITestVM<IBase, ITestMEP>> SetEditMode(bool isEditMode)
+        {
+            IsEditMode = isEditMode;
+            await Task.CompletedTask;
+            return this;
+        }
+    }
+}";
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string message = string.Empty;
+        bool paramIsNull = DynamicInstance == null;
+        if (paramIsNull)
+        {
+            message = "Hello from DynamicInstance!";
+
+            var assemblyEmitter = new AssemblyEmitter();
+            // Compile all sources into a single in-memory assembly
+            var combinedAssemblyBytes = assemblyEmitter.EmitAssemblyToMemory("CombinedAssembly", _classASource, _classBSource);
+            assemblyEmitter.LoadAssembly();
+
+            // Get the type of ClassB
+            var dynamicType = assemblyEmitter.CombinedAssembly.GetType("Models.ClassB")!;
+            DynamicInstance = (ITestVM<IBase, ITestMEP>)Activator.CreateInstance(dynamicType)!;
+
+            bool isAssignable = typeof(ITestVM<IBase, ITestMEP>).IsAssignableFrom(dynamicType);
+
+            // Invoke SetMessage
+            var setMessageMethod = dynamicType.GetMethod("SetMessage");
+            if (setMessageMethod != null)
+            {
+                setMessageMethod.Invoke(DynamicInstance, new object[] { message });
+            }
+            // Set IsEditMode to true and verify the change
+            var setEditModeMethod = dynamicType.GetMethod("SetEditMode");
+            if (setEditModeMethod != null)
+            {
+                await (Task)setEditModeMethod.Invoke(DynamicInstance, new object[] { true })!;
+            }
+        }
+
+        
+
+        await base.OnParametersSetAsync();    
+    }
+}

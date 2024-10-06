@@ -1,47 +1,40 @@
 ﻿@page "/test-excel-uploader"
 @rendermode InteractiveServer
 @using Blazor.Tools.BlazorBundler.Entities
+@using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Components.Grid
+@using Blazor.Tools.BlazorBundler.SessionManagement
+@using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces
 
-<ExcelUploader Title="Upload Excel Files"
-               ModelsAssemblyPath="@_modelsAssemblyPath"
-               ServicesAssemblyPath="@_servicesAssemblyPath"
-               LoadAssemblyFromDLLFile="true"
-               IsInterface="true" />
+@inherits SampleData
+
+@if (!_isInitialized)
+{ 
+    <h1>Loading...</h1>
+
+}
+else
+{
+    <ExcelUploader Title="Upload Excel Files"
+                   ModelsAssemblyName="@ModelsAssemblyName"
+                   ViewModelsAssemblyName="@ViewModelsAssemblyName"
+                   HostAssemblies="@HostAssemblies" />
+}
 
 @code {
+
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
-    private string _modelsAssemblyPath = string.Empty;
-    private string _servicesAssemblyPath = string.Empty;
-    private IList<SessionItem> _sessionItems = new List<SessionItem>
+
+    private bool _isInitialized = false;
+    protected override async Task OnInitializedAsync()
     {
-        new SessionItem()
-        {
-            Key = "_modelsAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll", Type = typeof(string), Serialize = false
-        },
-        new SessionItem()
-        {
-            Key = "_servicesAssemblyPath", Value=@"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll", Type = typeof(string), Serialize = false
-        }
-    };
+        _isInitialized = true;
+        var apiDLLPath = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll";
+        var sessionManager = SessionManager.GetInstance(_sessionTableService, apiDLLPath);
 
-    private bool _isRetrieved = false;
+        await base.OnInitializedAsync();
 
-    protected override async Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
 
-        var sessionManager = SessionManager.GetInstance(_sessionTableService);
-
-        if (!_isRetrieved)
-        {
-            _sessionItems = await sessionManager.RetrieveSessionListAsync(_sessionItems);
-            _modelsAssemblyPath = _sessionItems?.FirstOrDefault(s=> s.Key.Equals("_modelsAssemblyPath"))?.Value?.ToString() ?? string.Empty;
-            _servicesAssemblyPath = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_servicesAssemblyPath"))?.Value?.ToString() ?? string.Empty;
-
-            _isRetrieved = true;
-            StateHasChanged();
-        }
     }
 }

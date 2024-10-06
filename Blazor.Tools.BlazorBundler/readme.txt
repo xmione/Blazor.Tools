@@ -3,9 +3,9 @@
 BlazorBundler is a utility tool designed to simplify the process of bundling multiple packages, particularly for Blazor applications. This tool allows you to download and bundle essential files and dependencies, such as Bootstrap and Bootstrap Icons, to enhance your Blazor projects.
 
 ## Version Information
-- **Package Version**: 3.0.8
-- **Assembly Version**: 3.0.8.0
-- **File Version**: 3.0.8.0
+- **Package Version**: $packageVersion
+- **Assembly Version**: $assemblyVersion
+- **File Version**: $fileVersion
 
 ## Features
 
@@ -17,16 +17,27 @@ BlazorBundler is a utility tool designed to simplify the process of bundling mul
     - Blazored.Typeahead version 4.7.0
     - Bogus version 35.6.0
     - Bootstrap Icons version 1.11.3
+    - ClosedXml version 0.102.3
     - Dapper version 2.1.35
     - HtmlAgilityPack version 1.11.61
-    - Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore version 8.0.6
-    - Microsoft.AspNetCore.Identity.EntityFrameworkCore version 8.0.6
+    - ICSharpCode.Decompiler version version 9.0.0.7660-preview2
+    - Microsoft.AspNetCore.Components version 9.0.0-preview.7.24406.2
+    - Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore version 9.0.0-rc.1.24452.1
+    - Microsoft.AspNetCore.Identity.EntityFrameworkCore version 9.0.0-rc.1.24452.1
     - Microsoft.Build version 17.10.4
+    - Microsoft.CodeAnalysis.CSharp version 4.11.0
+    - Microsoft.Data.SqlClient version 5.2.2
+    - Microsoft.Extensions.Configuration version 9.0.0-preview.7.24405.7
     - Microsoft.EntityFrameworkCore.SqlServer version 8.0.6
     - Microsoft.EntityFrameworkCore.Tools version 8.0.6
     - Microsoft.ML version 3.0.1
     - Microsoft.VisualStudio.Azure.Containers.Tools.Targets version 1.21.0
-    - Newtonsoft.Json version 13.0.3    
+    - Mono.Cecil version 0.11.5
+    - Newtonsoft.Json version 13.0.3
+    - System.Data.OleDb version 9.0.0-preview.7.24405.7
+    - System.Configuration.ConfigurationManager version 8.0.0
+    - System.Data.SqlClient version 4.8.6
+    - System.Diagnostics.PerformanceCounter version 8.0.0
 
 ## Installation
 
@@ -47,7 +58,8 @@ dotnet add package Blazor.Tools.BlazorBundler
 
 ## After-Install Setup Commands
 
-Note: After installing the package, you have to manually run the Install-Pkgs module file to install required nuget packages.
+Note: After installing the package, you have to manually buld the project first then run the Install-Pkgs module file 
+        to install required nuget packages.
       First replace the values of the $userProfileName and $targetPath variables.
       
       $userProfileName should contain your Windows UserProfile Name
@@ -57,7 +69,7 @@ Note: After installing the package, you have to manually run the Install-Pkgs mo
 ### Open PowerShell and run: 
 
 ```
-    $version = "3.0.8"
+    $version = "$packageVersion"
     $userProfileName = "solom"
     $sourcePath = "C:\Users\$userProfileName\.nuget\packages\blazor.tools.blazorbundler\$version"
     $targetPath = "C:\repo\Blazor.Tools\Blazor.Tools\Blazor.Tools.csproj"
@@ -136,5 +148,9 @@ Open PowerShell and run:
 ```
 
 ## Change Logs
-- [changelog_3.0.8.md](https://github.com/xmione/Blazor.Tools/blob/master/Blazor.Tools.BlazorBundler/changelog_3.0.8.md)
+
+
+- [changelog_3.1.18.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.18.md)
+- [changelog_3.1.19.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.19.md)
+- [changelog_3.1.20.md](https://github.com/xmione/Blazor.Tools/blob/8-set-target-table-column-list-modal-window-component-not-working-properly/Blazor.Tools.BlazorBundler/changelog_3.1.20.md)
 

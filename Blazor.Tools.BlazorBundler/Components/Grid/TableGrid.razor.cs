@@ -7,16 +7,21 @@ using Blazor.Tools.BlazorBundler.Extensions;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Text.Json;
 using Blazor.Tools.BlazorBundler.Interfaces;
+using Blazor.Tools.BlazorBundler.Factories;
+using System.Data;
+using BlazorBootstrap;
+using DocumentFormat.OpenXml.EMMA;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
-    public partial class TableGrid<TModel, TIModel> : ComponentBase
+    public partial class TableGrid<TModel, TIModel> : ComponentBase, ITableGrid
+        where TModel : class, IBase // TModel must derive from IBase
+        where TIModel : IModelExtendedProperties // Optionally constrain TIModel if applicable
     {
         [Parameter] public string Title { get; set; } = string.Empty;
         [Parameter] public string TableID { get; set; } = string.Empty;
         [Parameter] public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
         [Parameter] public TModel Model { get; set; } = default!;
-        [Parameter] public TIModel IModel { get; set; } = default!;
         [Parameter] public IViewModel<TModel, TIModel> ModelVM { get; set; } = default!;
         [Parameter] public IEnumerable<IViewModel<TModel, TIModel>> Items { get; set; } = Enumerable.Empty<IViewModel<TModel, TIModel>>();
         [Parameter] public Dictionary<string, object> DataSources { get; set; } = default!;
@@ -26,31 +31,63 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Inject] protected ILogger<TableGrid<TModel, TIModel>> Logger { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
 
+        private Type? _tableGridInternalsType;
+        private object _tableGridInternalsComponentReference;
+
         protected override async Task OnParametersSetAsync()
         {
             Logger.LogDebug("Parameters have been set.");
+            await InitializeVariablesAsync();
             await Task.CompletedTask;
         }
 
-        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        public async Task InitializeVariablesAsync() 
         {
-            int seq = 0;
-            builder.OpenComponent<TableGridInternals<TModel, TIModel>>(seq++);
-            builder.AddAttribute(seq++, "Title", Title);
-            builder.AddAttribute(seq++, "TableID", TableID);
-            builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
-            builder.AddAttribute(seq++, "ModelVM", ModelVM);
-            builder.AddAttribute(seq++, "IModel", IModel);
-            builder.AddAttribute(seq++, "Items", Items);
-            builder.AddAttribute(seq++, "DataSources", DataSources);
-            builder.AddAttribute(seq++, "ItemsChanged", ItemsChanged);
-            builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
-            builder.AddAttribute(seq++, "StartContent", RenderStartContent());
-            builder.AddAttribute(seq++, "TableHeader", RenderTableHeader());
-            builder.AddAttribute(seq++, "RowTemplate", RenderRowTemplate());
+            // Get the TableGrid component type with the correct generic types
+            _tableGridInternalsType = typeof(TableGridInternals<,>).MakeGenericType(typeof(TModel), typeof(TIModel));
 
-            builder.CloseComponent(); // TableGridInternals
+            await Task.CompletedTask;
         }
+
+        protected override async void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            await RenderMainContentAsync(builder);
+        }
+
+        /// <summary>
+        /// Renders main content. This is method was created for testability.
+        /// </summary>
+        /// <param name="builder">RenderTreeBuilder for the main content</param>
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
+        {
+            if (_tableGridInternalsType != null)
+            {
+                int seq = 0;
+                builder.OpenComponent(seq++, _tableGridInternalsType);
+                builder.AddAttribute(seq++, "Title", Title);
+                builder.AddAttribute(seq++, "TableID", TableID);
+                builder.AddAttribute(seq++, "ColumnDefinitions", ColumnDefinitions);
+                builder.AddAttribute(seq++, "ModelVM", ModelVM);
+                builder.AddAttribute(seq++, "Items", Items);
+                builder.AddAttribute(seq++, "DataSources", DataSources);
+                builder.AddAttribute(seq++, "ItemsChanged", ItemsChanged);
+                builder.AddAttribute(seq++, "AllowCellRangeSelection", AllowCellRangeSelection);
+                builder.AddAttribute(seq++, "StartContent", RenderStartContent());
+                builder.AddAttribute(seq++, "TableHeader", RenderTableHeader());
+                builder.AddAttribute(seq++, "RowTemplate", RenderRowTemplate());
+
+                // Capture the component reference
+                builder.AddComponentReferenceCapture(seq++, inst =>
+                {
+                    _tableGridInternalsComponentReference = inst;
+                });
+
+                builder.CloseComponent(); // TableGridInternals            
+            }
+
+            await Task.CompletedTask;
+        }
+
         private RenderFragment RenderStartContent()
         {
             return new RenderFragment(BuildStartContent);
@@ -108,8 +145,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                             builder.AddAttribute(seq++, "id", id);
 
                             var itemString = JsonSerializer.Serialize(item);
-                            var paramString = $"CellClick('{itemString}',{colNo}, '{TableID}', {Items.Count()}, {ColumnDefinitions.Count})";
-                            builder.AddAttribute(seq++, "onclick", paramString);
+                            
+                            if (AllowCellRangeSelection)
+                            {
+                                var paramString = $"CellClick('{itemString}',{colNo}, '{TableID}', {Items.Count()}, {ColumnDefinitions.Count})";
+                                builder.AddAttribute(seq++, "onclick", paramString);
+                            }
+                        
                             builder.AddAttribute(seq++, "class", "cursor-pointer");
                             object? value;
                             if (column != null)
@@ -124,6 +166,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 };
             };
         }
+
         private void RenderCellContent(RenderTreeBuilder builder, TableColumnDefinition column, object? value, IViewModel<TModel, TIModel> item, string rowID)
         {
             int seq = 0;
@@ -178,7 +221,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     {
                         // Use the factory to create an instance of DropdownList
                         var dropdownList = DropdownListFactory.CreateDropdownList(
-                            typeof(object), // Pass the type of items here
+                            typeof(DropdownList), // Pass the type of items here
                             column.Items,
                             column.ColumnName,
                             column.HeaderText,
@@ -223,7 +266,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await JSRuntime.InvokeVoidAsync("logToConsole", message);
         }
 
-        //public async Task HandleSelectedDataComb(DataRow[] selectedData)
+        //public async Task HandleSelectedDataCombAsync(DataRow[] selectedData)
         //{
         //    _nodeSelectedData = selectedData;
 
@@ -243,65 +286,104 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //    await Task.CompletedTask;
         //}
 
-        //public async Task<DataRow[]?> ShowSetTargetTableModalAsync()
-        //{
-        //    if (!string.IsNullOrEmpty(_nodeStartCell) && !string.IsNullOrEmpty(_nodeEndCell))
-        //    {
-        //        // Extracting start row and column from startCell
-        //        int startRow = int.Parse(_nodeStartCell.Substring(1, _nodeStartCell.IndexOf('C') - 1));
-        //        int startCol = int.Parse(_nodeStartCell.Substring(_nodeStartCell.IndexOf('C') + 1));
+        public async Task<DataRow[]?> ShowSetTargetTableModalAsync(string startCell, string endCell)
+        {
+            DataRow[] selectedData = default!;
 
-        //        // Extracting end row and column from endCell
-        //        int endRow = int.Parse(_nodeEndCell.Substring(1, _nodeEndCell.IndexOf('C') - 1));
-        //        int endCol = int.Parse(_nodeEndCell.Substring(_nodeEndCell.IndexOf('C') + 1));
+            var method = _tableGridInternalsType?.GetMethod("ShowSetTargetTableModalAsync");
 
-        //        _nodeSelectedData = GetDataInRange(startRow, startCol, endRow, endCol);
+            if (_tableGridInternalsComponentReference != null)
+            {
+                // Cast the reference to the appropriate type (generic table grid)
+                var tableGridInstance = _tableGridInternalsComponentReference as dynamic;
 
-        //        if (TableNodeContext != null)
-        //        {
-        //            TableNodeContext.SelectedData = _nodeSelectedData;
+                // Invoke the method
+                if (tableGridInstance != null)
+                {
+                    var resultTask = tableGridInstance.ShowSetTargetTableModalAsync(startCell, endCell);
 
-        //            await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
-        //        }
+                    // Since it's a Task, you can await it or use other async handling
+                    selectedData = await resultTask;
 
-        //        await Task.CompletedTask;
-        //    }
+                    // Now you can use the 'rows' variable which is of type DataRow[]?
+                    if (selectedData != null)
+                    {
+                        foreach (var row in selectedData)
+                        {
+                            // LoadAssembly each row here
+                            Console.WriteLine(row);
+                        }
+                    }
+                }
+            }
 
-        //    StateHasChanged();
+            //if (_tableGridInternalsType != null)
+            //{
+            //    var instance = Activator.CreateInstance(_tableGridInternalsType);
 
-        //    return _nodeSelectedData;
-        //}
+            //    // Check if the method and instance are valid
+            //    if (method != null && instance != null)
+            //    {
+            //        // Invoke the async method (it returns a Task)
+            //        var result = method.Invoke(instance, null);
 
-        //private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
-        //{
-        //    List<DataRow> dataInRange = new List<DataRow>();
+            //        // Check if the result is a Task<DataRow[]?>
+            //        if (result is Task<DataRow[]?> task)
+            //        {
+            //            // Await the task to get the result
+            //            var rows = await task;
 
-        //    if (_nodeDataTable != null)
-        //    {
-        //        // Create a new DataTable with the selected columns
-        //        DataTable filteredDataTable = new DataTable();
-        //        for (int i = startCol; i <= endCol; i++)
-        //        {
-        //            DataColumn column = _nodeDataTable.Columns[i];
-        //            filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
-        //        }
+            //            // Now you can use the 'rows' variable which is of type DataRow[]?
+            //            if (rows != null)
+            //            {
+            //                foreach (var row in rows)
+            //                {
+            //                    // LoadAssembly each row here
+            //                    Console.WriteLine(row);
+            //                }
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("Method or instance not found.");
+            //    }
+            //}
 
-        //        for (int i = startRow; i <= endRow; i++)
-        //        {
-        //            DataRow newRow = filteredDataTable.NewRow();
+            await Task.CompletedTask;
+            //StateHasChanged();
 
-        //            for (int j = startCol; j <= endCol; j++)
-        //            {
-        //                newRow[j - startCol] = _nodeDataTable.Rows[i][j];
-        //            }
+            return selectedData;
+        }
 
-        //            dataInRange.Add(newRow);
-        //        }
+        public async Task ReloadTableGridInternalsComponent()
+        {
+            var reloadComponent = _tableGridInternalsType?.GetMethod("ReloadComponent");
 
-        //    }
+            if (_tableGridInternalsType != null)
+            {
+                // Create an instance of the type (_tableGridInternalsType refers to a type, not an instance)
+                var instance = Activator.CreateInstance(_tableGridInternalsType);
 
-        //    return dataInRange.ToArray();
-        //}
+                // Check if the method and instance are valid
+                if (instance != null)
+                {
+                    // Reload TableGridInternals Component
+                    if (reloadComponent != null)
+                    {
+                        // Invoke the async method (it returns a Task)
+                        reloadComponent.Invoke(instance, null);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Method ReloadTableGridInternalsComponent or instance not found.");
+                    }
+
+                }
+            }
+            
+            await Task.CompletedTask;
+        }
     }
 }
 

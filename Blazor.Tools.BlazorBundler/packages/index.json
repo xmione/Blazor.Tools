@@ -36,6 +36,16 @@
       "path": "htmlagilitypack.1.11.61.nupkg"
     },
     {
+      "version": "2.14.1",
+      "id": "humanizer",
+      "path": "humanizer.2.14.1.nupkg"
+    },
+    {
+      "version": "9.0.0.7660-preview2",
+      "id": "icsharpcode.decompiler",
+      "path": "icsharpcode.decompiler.9.0.0.7660-preview2.nupkg"
+    },
+    {
       "version": "6.0.26",
       "id": "microsoft.aspnetcore.components",
       "path": "microsoft.aspnetcore.components.6.0.26.nupkg"
@@ -61,9 +71,14 @@
       "path": "microsoft.aspnetcore.components.web.6.0.26.nupkg"
     },
     {
-      "version": "8.0.6",
+      "version": "9.0.0-rc.1.24452.1",
+      "id": "microsoft.aspnetcore.diagnostics.entityframeworkcore",
+      "path": "microsoft.aspnetcore.diagnostics.entityframeworkcore.9.0.0-rc.1.24452.1.nupkg"
+    },
+    {
+      "version": "9.0.0-rc.1.24452.1",
       "id": "microsoft.aspnetcore.identity.entityframeworkcore",
-      "path": "microsoft.aspnetcore.identity.entityframeworkcore.8.0.6.nupkg"
+      "path": "microsoft.aspnetcore.identity.entityframeworkcore.9.0.0-rc.1.24452.1.nupkg"
     },
     {
       "version": "6.0.26",
@@ -71,9 +86,44 @@
       "path": "microsoft.aspnetcore.metadata.6.0.26.nupkg"
     },
     {
-      "version": "17.10.4",
+      "version": "17.11.4",
       "id": "microsoft.build",
-      "path": "microsoft.build.17.10.4.nupkg"
+      "path": "microsoft.build.17.11.4.nupkg"
+    },
+    {
+      "version": "17.11.4",
+      "id": "microsoft.build.utilities.core",
+      "path": "microsoft.build.utilities.core.17.11.4.nupkg"
+    },
+    {
+      "version": "4.8.0",
+      "id": "microsoft.codeanalysis.common",
+      "path": "microsoft.codeanalysis.common.4.8.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.common",
+      "path": "microsoft.codeanalysis.common.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.csharp",
+      "path": "microsoft.codeanalysis.csharp.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.csharp.workspaces",
+      "path": "microsoft.codeanalysis.csharp.workspaces.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.workspaces.msbuild",
+      "path": "microsoft.codeanalysis.workspaces.msbuild.4.11.0.nupkg"
+    },
+    {
+      "version": "4.11.0",
+      "id": "microsoft.codeanalysis.workspaces.common.msbuild",
+      "path": "microsoft.codeanalysis.workspaces.common.4.11.0.nupkg"
     },
     {
       "version": "8.0.6",
@@ -114,6 +164,11 @@
       "version": "1.21.0",
       "id": "microsoft.visualstudio.azure.containers.tools.targets",
       "path": "microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg"
+    },
+    {
+      "version": "0.11.5",
+      "id": "mono.cecil",
+      "path": "mono.cecil.0.11.5.nupkg"
     },
     {
       "version": "13.0",
