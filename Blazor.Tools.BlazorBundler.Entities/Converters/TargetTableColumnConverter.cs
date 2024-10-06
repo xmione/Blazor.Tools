@@ -1,8 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using Blazor.Tools.BlazorBundler.Entities;
 
-namespace Blazor.Tools.BlazorBundler.Utilities.Converters
+namespace Blazor.Tools.BlazorBundler.Entities.Converters
 {
     public class TargetTableColumnConverter : JsonConverter<TargetTableColumn>
     {

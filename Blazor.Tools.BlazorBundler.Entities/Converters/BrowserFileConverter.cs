@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Blazor.Tools.BlazorBundler.Entities
+namespace Blazor.Tools.BlazorBundler.Entities.Converters
 {
     public class BrowserFileConverter : JsonConverter<IBrowserFile>
     {

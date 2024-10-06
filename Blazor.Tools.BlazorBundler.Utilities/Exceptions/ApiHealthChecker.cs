@@ -30,6 +30,8 @@ namespace Blazor.Tools.BlazorBundler.Utilities.Exceptions
                 // Send the request
                 var response = await _httpClient.GetAsync(healthCheckEndpoint, cancellationToken);
 
+                await Task.Delay(500);
+
                 // Check if the response is successful
                 if (!response.IsSuccessStatusCode)
                 {

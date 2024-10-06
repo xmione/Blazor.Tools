@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System.Data;
 
-namespace Blazor.Tools.BlazorBundler.Entities
+namespace Blazor.Tools.BlazorBundler.Entities.Converters
 {
     public class DataTableJsonConverter : JsonConverter<DataTable>
     {

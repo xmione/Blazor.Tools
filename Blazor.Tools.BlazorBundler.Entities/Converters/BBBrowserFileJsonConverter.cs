@@ -1,8 +1,7 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
-using Microsoft.AspNetCore.Components.Forms;
+﻿using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
 
-namespace Blazor.Tools.BlazorBundler.Utilities.Converters
+namespace Blazor.Tools.BlazorBundler.Entities.Converters
 {
     public class BBBrowserFileJsonConverter : JsonConverter<BBBrowserFile>
     {
