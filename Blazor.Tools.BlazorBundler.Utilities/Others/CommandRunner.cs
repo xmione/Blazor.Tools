@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*====================================================================================================
+    Class Name  : CommandRunner
+    Created By  : Solomio S. Sisante
+    Created On  : October 5, 2024
+    Purpose     : To manage the running of desired process.
+  ====================================================================================================*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

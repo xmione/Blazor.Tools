@@ -30,7 +30,7 @@
         [TestInitialize]
         public void TestInit()
         {
-            // Set up before each test method.
+            // SetI up before each test method.
         }
 
         [TestCleanup]

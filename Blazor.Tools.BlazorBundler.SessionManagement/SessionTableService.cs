@@ -257,7 +257,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
                 //var command = "dotnet";
                 //var arguments = $"""{apiDLLPath}"" ""{Path.GetDirectoryName(apiDLLPath)}""";
 
-                // Set environment variables within the cmd context
+                // SetI environment variables within the cmd context
                 var setEnvVars = $"set ASPNETCORE_ENVIRONMENT=Development&& set ASPNETCORE_URLS=https://localhost:7040&&";
                 var command = "cmd.exe";
                 var arguments = $"/k {setEnvVars} dotnet \"{apiDLLPath}\" \"{Path.GetDirectoryName(apiDLLPath)}\"";

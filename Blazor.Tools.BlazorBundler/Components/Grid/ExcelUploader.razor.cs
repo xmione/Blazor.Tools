@@ -1,5 +1,6 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.SessionManagement;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -18,13 +19,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Inject] private IConfiguration Configuration { get; set; } = default!;
 
         private bool _isUploaded = false;
-        private static DataSet? _excelDataSet;
         private ExcelProcessor? _excelProcessor;
         private bool _isRetrieved = false;
         private string? _connectionString;
         private SessionManager _sessionManager = SessionManager.Instance;
 
-        private IList<SessionItem>? _sessionItems;
+        private Dictionary<string, SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -37,13 +37,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _connectionString = Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
             _excelProcessor = new ExcelProcessor(_connectionString);
-            _sessionItems = new List<SessionItem>
-        {
-            new SessionItem()
+            _sessionItems = new Dictionary<string, SessionItem>
             {
-                Key = "_excelDataSet", Value = new DataSet(), Type = typeof(DataSet), Serialize = true
-            }
-        };
+                ["_excelDataSet"] =
+                new SessionItem()
+                {
+                    Key = "_excelDataSet", Value = null, Type = typeof(DataSet), Serialize = true
+                }
+            };
 
             await Task.CompletedTask;
         }
@@ -54,16 +55,15 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 if (!_isRetrieved && _sessionItems != null)
                 {
-                    _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-                    _excelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
-                    _isUploaded = _excelDataSet != null;
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
+                    _isUploaded = _sessionItems!["_excelDataSet"] != null;
                     _isRetrieved = true;
                     StateHasChanged();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
 
             await Task.CompletedTask;
@@ -91,13 +91,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     if (_excelProcessor != null)
                     {
-                        _excelDataSet = await _excelProcessor.ReadExcelDataAsync(tempFilePath);
-                        await _sessionManager.SaveToSessionTableAsync("_excelDataSet", _excelDataSet, serialize: true);
+                        var excelDataSet = await _excelProcessor.ReadExcelDataAsync(tempFilePath);
+                        _sessionItems!["_excelDataSet"] = excelDataSet;
+                        await _sessionManager.SaveToSessionTableAsync("_excelDataSet", excelDataSet, serialize: true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error processing Excel file: {ex.Message}");
+                    AppLogger.HandleError(ex);
                 }
                 finally
                 {
@@ -142,7 +143,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             if (_isUploaded)
             {
                 builder.OpenComponent<ExcelUploaderDetail>(sequence++);
-                builder.AddAttribute(sequence++, "ExcelDataSet", _excelDataSet);
+                builder.AddAttribute(sequence++, "ExcelDataSet", (DataSet)_sessionItems!["_excelDataSet"]!);
                 builder.AddAttribute(sequence++, "ExcelProcessor", _excelProcessor);
                 builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
                 builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);

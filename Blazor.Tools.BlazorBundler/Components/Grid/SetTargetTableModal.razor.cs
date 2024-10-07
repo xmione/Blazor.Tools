@@ -1,5 +1,6 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using BlazorBootstrap;
@@ -19,30 +20,31 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public EventCallback<List<TargetTableColumn>> SetTargetTableColumnList { get; set; }
         [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
-        //private SessionManager _sessionManager = SessionManager.Instance;
+        private SessionManager _sessionManager = SessionManager.Instance;
         private string? _tag;
-        private int _selectedTableID;
-        private int _selectedLookupTableID;
-        private string? _selectedTableValue;
-        private string? _selectedLookupTableValue;
-        private string? _selectedFieldValue;
-        private string? _selectedPrimaryKeyFieldValue;
-        private string? _selectedForeignKeyFieldValue;
-        private string? _selectedSourceField;
-        private string _searchQuerySelectedData = string.Empty;
-        private IEnumerable<DataRow>? _filteredRowsSelectedData;
-        private IEnumerable<DataRow>? _pagedRowsSelectedData;
-        private int _pageSizeSelectedData = 0;
-        private int _currentPageSelectedData = 1;
-        private int _totalPagesSelectedData = 0;
-        private int _totalItemsSelectedData = 0;
-        private List<TargetTableColumn>? _targetTableColumnList;
-        private List<string>? _columnProperties;
-        private string? _uniqueField;
-        //private bool _isRetrieved = false;
-        private bool _showForeignTableSearchFieldsModal = false;
-        private DataTable? _searchFieldsTable = null;
-        //private IList<SessionItem>? _sessionItems;
+        //private int _selectedTableID;
+        //private int _selectedLookupTableID;
+        //private string? _selectedTableValue;
+        //private string? _selectedLookupTableValue;
+        //private string? _selectedFieldValue;
+        //private string? _selectedPrimaryKeyFieldValue;
+        //private string? _selectedForeignKeyFieldValue;
+        //private string? _selectedSourceField;
+        //private string _searchQuerySelectedData = string.Empty;
+        //private IEnumerable<DataRow>? _filteredRowsSelectedData;
+        //private IEnumerable<DataRow>? _pagedRowsSelectedData;
+        //private int _pageSizeSelectedData = 0;
+        //private int _currentPageSelectedData = 1;
+        //private int _totalPagesSelectedData = 0;
+        //private int _totalItemsSelectedData = 0;
+        //private List<TargetTableColumn>? _targetTableColumnList;
+        //private List<string>? _columnProperties;
+        //private string? _uniqueField;
+        //private bool _showForeignTableSearchFieldsModal = false;
+        //private DataTable? _searchFieldsTable = null;
+
+        private bool _isRetrieved = false;
+        private Dictionary<string, SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -55,129 +57,193 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task InitializeVariables()
         {
-            //_sessionItems = new List<SessionItem>
-            //{
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedData", Value = SelectedData, Type = typeof(DataRow[]), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_uniqueField", Value = _uniqueField, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedSourceField", Value = _selectedSourceField, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedTableID", Value = _selectedTableID, Type = typeof(int), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedTableValue", Value = _selectedTableValue, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedFieldValue", Value = _selectedFieldValue, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedLookupTableID", Value = _selectedLookupTableID, Type = typeof(int), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_selectedLookupTableValue", Value = _selectedLookupTableValue, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_targetTableColumnList", Value = _targetTableColumnList, Type = typeof(List<TargetTableColumn>), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_columnProperties", Value = _columnProperties, Type = typeof(List<string>), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Title}_showForeignTableSearchFieldsModal", Value = _showForeignTableSearchFieldsModal, Type = typeof(bool), Serialize = true
-            //    }
-            //};
+            _sessionItems = new Dictionary<string, SessionItem>
+            {
+                ["_selectedData"] = 
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedData", Value = SelectedData, Type = typeof(DataRow[]), Serialize = true
+                },
+                ["_uniqueField"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_uniqueField", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedSourceField"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedSourceField", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedTableID"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedTableID", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_selectedLookupTableID"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedLookupTableID", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_selectedTableValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedTableValue", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedLookupTableValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedLookupTableValue", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedFieldValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedFieldValue", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedPrimaryKeyFieldValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedPrimaryKeyFieldValue", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedForeignKeyFieldValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedForeignKeyFieldValue", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_selectedLookupTableID"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedLookupTableID", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_selectedLookupTableValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_selectedLookupTableValue", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_searchQuerySelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_searchQuerySelectedData", Value = string.Empty, Type = typeof(string), Serialize = false
+                },
+                ["_filteredRowsSelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_filteredRowsSelectedData", Value = null, Type = typeof(IEnumerable<DataRow>), Serialize = true
+                },
+                ["_pagedRowsSelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_pagedRowsSelectedData", Value = null, Type = typeof(IEnumerable<DataRow>), Serialize = true
+                },
+                ["_pageSizeSelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_pageSizeSelectedData", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_currentPageSelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_currentPageSelectedData", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_totalPagesSelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_totalPagesSelectedData", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_totalItemsSelectedData"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_totalItemsSelectedData", Value = 0, Type = typeof(int), Serialize = true
+                },
+                ["_targetTableColumnList"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_targetTableColumnList", Value = null, Type = typeof(List<TargetTableColumn>), Serialize = true
+                },
+                ["_columnProperties"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_columnProperties", Value = null, Type = typeof(List<string>), Serialize = true
+                },
+                ["_showForeignTableSearchFieldsModal"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_showForeignTableSearchFieldsModal", Value = false, Type = typeof(bool), Serialize = true
+                },
+                ["_searchFieldsTable"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_searchFieldsTable", Value = null, Type = typeof(DataTable), Serialize = true
+                }
+            };
 
-            _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
+             
             await Task.CompletedTask;
         }
 
         private async Task RetrieveDataFromSessionTableAsync()
         {
-            //try
-            //{
-            //    if (!_isRetrieved && _sessionItems != null)
-            //    {
-            //        _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-            //        SelectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
-            //        _uniqueField = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_uniqueField"))?.Value?.ToString() ?? string.Empty;
-            //        _selectedSourceField = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedSourceField"))?.Value?.ToString() ?? string.Empty;
-            //        _selectedTableID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedTableID"))?.Value?.ToString(), out int selectedTableIDResult) ? selectedTableIDResult : 0;
-            //        _selectedTableValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedTableValue"))?.Value?.ToString() ?? string.Empty;
-            //        _selectedFieldValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedFieldValue"))?.Value?.ToString() ?? string.Empty;
-            //        _selectedLookupTableID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedLookupTableID"))?.Value?.ToString(), out int selectedLookupTableIDResult) ? selectedLookupTableIDResult : 0;
-            //        _selectedLookupTableValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedLookupTableValue"))?.Value?.ToString() ?? string.Empty;
-            //        _targetTableColumnList = (List<TargetTableColumn>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTableColumnList"))?.Value;
-            //        _columnProperties = (List<string>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_columnProperties"))?.Value;
-            //        _showForeignTableSearchFieldsModal = (bool)(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_showForeignTableSearchFieldsModal"))?.Value ?? false);
+            try
+            {
+                if (!_isRetrieved && _sessionItems != null)
+                {
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
 
-            //        _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
-            //        _isRetrieved = true;
-            //        StateHasChanged();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Error: {0}", ex.Message);
-            //}
+                    _tag = $"{_sessionItems["_selectedTableValue"]}-{_sessionItems["_selectedFieldValue"]}";
+                    _isRetrieved = true;
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
 
             await Task.CompletedTask;
         }
 
         private async Task UpdateVariablesAfterSessionRetrieval()
         {
-
-            if (SelectedData != null)
+            DataRow[]? selectedData = _sessionItems!["_selectedData"];
+            List<TargetTableColumn>? targetTableColumnList = _sessionItems["_targetTableColumnList"];
+            List<string>? columnProperties = _sessionItems["_columnProperties"];
+            if (selectedData != null)
             {
-                _totalItemsSelectedData = SelectedData.Length;
-                _pageSizeSelectedData = _totalItemsSelectedData;
-                _filteredRowsSelectedData = ApplyFilterSelectedData();
+                var dataLength = selectedData.Length;
+                _sessionItems["_totalItemsSelectedData"] = dataLength;
+                _sessionItems["_pageSizeSelectedData"] = dataLength;
+                _sessionItems["_filteredRowsSelectedData"].SetI(ApplyFilterSelectedData());
+                
                 CalculateTotalPagesAndPagedData();
 
-                if (_targetTableColumnList != null)
+                if (targetTableColumnList != null)
                 {
-                    if (_targetTableColumnList.Any())
+                    if (targetTableColumnList.Any())
                     {
-                        _columnProperties = _targetTableColumnList.First().GetPropertyNames().ToList();
+                        columnProperties = targetTableColumnList.First().GetPropertyNames().ToList();
                     }
                     else
                     {
-                        _columnProperties = new List<string>();
+                        columnProperties = new List<string>();
                     }
                 }
                 else
                 {
-                    _columnProperties = new List<string>();
+                    columnProperties = new List<string>();
                 }
 
                 // Set the initial selected value
-                if (_totalItemsSelectedData > 0 && string.IsNullOrEmpty(_selectedSourceField))
+                int totalItemsSelectedData = _sessionItems["_totalItemsSelectedData"];
+                string? selectedSourceField = _sessionItems["_selectedSourceField"];
+                if (totalItemsSelectedData > 0 && string.IsNullOrEmpty(selectedSourceField))
                 {
-                    _selectedSourceField = SelectedData[0].Table.Columns[0].ColumnName;
+                    _sessionItems["_selectedSourceField"] = selectedData[0].Table.Columns[0].ColumnName;
                     var selectedTableValue = TableList?.FirstOrDefault();
-                    _selectedTableID = selectedTableValue?.ID ?? 0;
-                    var selectedFieldValue = GetFieldValues(_selectedTableID)?.FirstOrDefault();
-                    _selectedFieldValue = selectedFieldValue ?? string.Empty;
-
-                    _selectedLookupTableID = 0;
-                    _selectedPrimaryKeyFieldValue = _selectedFieldValue;
-
-                    _uniqueField = _selectedSourceField;
+                    _sessionItems["_selectedTableID"] = selectedTableValue?.ID ?? 0;
+                    var selectedFieldValue = GetFieldValues(_sessionItems["_selectedTableID"])?.FirstOrDefault();
+                    _sessionItems["_selectedFieldValue"] = selectedFieldValue ?? string.Empty;
+                    _sessionItems["_selectedPrimaryKeyFieldValue"] = selectedFieldValue ?? string.Empty;
+                    _sessionItems["_selectedLookupTableID"] = 0;
+                    _sessionItems["_uniqueField"] = _sessionItems["_selectedSourceField"]!;
                 }
             }
 
@@ -186,29 +252,30 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task OnSourceFieldValueChanged(ChangeEventArgs e)
         {
-            _selectedSourceField = e?.Value?.ToString() ?? string.Empty;
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedSourceField", _selectedSourceField);
+            var selectedSourceField = e?.Value?.ToString() ?? string.Empty;
+            _sessionItems!["_selectedSourceField"] = selectedSourceField;
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedSourceField", selectedSourceField);
             await Task.CompletedTask;
         }
 
         private async Task OnTargetTableValueChanged(ChangeEventArgs e)
         {
             // Parse selected value from int to TableEnum
-            int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
-            _selectedTableID = selectedIntValue;
+            int selectedTableID = int.Parse(e?.Value?.ToString() ?? string.Empty);
+            _sessionItems!["_selectedTableID"] = selectedTableID;
 
-            _selectedTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
+            _sessionItems["_selectedTableValue"] = TableList?.FirstOrDefault(t => t.ID == selectedTableID)?.TableName ?? string.Empty;
 
             // Reset selected field value when table value changes
-            _selectedFieldValue = string.Empty;
-            _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
+            _sessionItems["_selectedFieldValue"] = string.Empty;
+            _tag = $"{ _sessionItems["_selectedTableValue"]}-{_sessionItems["_selectedFieldValue"]}";
 
             // Handle the selected value here
-            AppLogger.WriteInfo($"_selectedTableID: {_selectedTableID}");
+            AppLogger.WriteInfo($"_selectedTableID: {selectedTableID}");
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableID", _selectedTableID, serialize: true);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableValue", _selectedTableValue);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedFieldValue", _selectedFieldValue);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableID", selectedTableID, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableValue", _sessionItems["_selectedTableValue"]);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedFieldValue", _sessionItems["_selectedFieldValue"]);
 
             await Task.CompletedTask;
         }
@@ -216,65 +283,73 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private async Task OnSelectedLookupTableValueChanged(ChangeEventArgs e)
         {
             // Parse selected value from int to TableEnum
-            int selectedIntValue = int.Parse(e?.Value?.ToString() ?? string.Empty);
-            _selectedLookupTableID = selectedIntValue;
-            _selectedLookupTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
+            int selectedLookupTableID = int.Parse(e?.Value?.ToString() ?? string.Empty);
+            _sessionItems!["_selectedLookupTableID"] = selectedLookupTableID;
+            _sessionItems["_selectedLookupTableValue"] = TableList?.FirstOrDefault(t => t.ID == selectedLookupTableID)?.TableName ?? string.Empty;
 
             // Reset selected field value when table value changes
-            _selectedPrimaryKeyFieldValue = string.Empty;
-            _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
+            _sessionItems["_selectedPrimaryKeyFieldValue"] = string.Empty;
+            _tag = $"{_sessionItems["_selectedTableValue"]}-{_sessionItems["_selectedFieldValue"]}";
 
             // Handle the selected value here
-            Console.WriteLine("selectedValue: {0}", _selectedLookupTableID);
+            AppLogger.WriteInfo($"selectedValue: {selectedLookupTableID}" );
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedLookupTableID", _selectedLookupTableID, serialize: true);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedLookupTableValue", _selectedLookupTableValue, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedLookupTableID", selectedLookupTableID, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedLookupTableValue", _sessionItems["_selectedLookupTableValue"], serialize: true);
             await Task.CompletedTask;
         }
 
         private async Task OnTargetFieldChanged(ChangeEventArgs e)
         {
-            _selectedTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
-            _selectedFieldValue = e?.Value?.ToString() ?? string.Empty;
-            _tag = $"{_selectedTableValue}-{_selectedFieldValue}";
+            _sessionItems!["_selectedTableValue"] = TableList?.FirstOrDefault(t => t.ID == _sessionItems["_selectedTableID"])?.TableName ?? string.Empty;
+            _sessionItems["_selectedFieldValue"] = e?.Value?.ToString() ?? string.Empty;
+            _tag = $"{_sessionItems["_selectedTableValue"]}-{_sessionItems["_selectedFieldValue"]}";
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedFieldValue", _selectedFieldValue);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedFieldValue", _sessionItems["_selectedFieldValue"]);
             await Task.CompletedTask;
         }
 
         private async Task OnPrimaryKeyFieldChanged(ChangeEventArgs e)
         {
-            _selectedLookupTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
-            _selectedPrimaryKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
+            _sessionItems!["_selectedLookupTableValue"] = TableList?.FirstOrDefault(t => t.ID == _sessionItems["_selectedLookupTableID"])?.TableName ?? string.Empty;
+            _sessionItems["_selectedPrimaryKeyFieldValue"] = e?.Value?.ToString() ?? string.Empty;
             await Task.CompletedTask;
         }
 
         private async Task OnForeignKeyFieldChanged(ChangeEventArgs e)
         {
-            _selectedLookupTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedLookupTableID)?.TableName ?? string.Empty;
-            _selectedForeignKeyFieldValue = e?.Value?.ToString() ?? string.Empty;
+            _sessionItems!["_selectedLookupTableValue"] = TableList?.FirstOrDefault(t => t.ID == _sessionItems["_selectedLookupTableID"])?.TableName ?? string.Empty;
+            _sessionItems["_selectedForeignKeyFieldValue"] = e?.Value?.ToString() ?? string.Empty;
             await Task.CompletedTask;
         }
 
         private async Task SetTargetTableFieldAsync()
         {
-            if (_targetTableColumnList == null)
+            List<TargetTableColumn>? targetTableColumnList = _sessionItems!["_targetTableColumnList"];
+            string? selectedSourceField = _sessionItems["_selectedSourceField"];
+            string? selectedTableValue = _sessionItems["_selectedTableValue"];
+            string? selectedFieldValue = _sessionItems["_selectedFieldValue"];
+            string? selectedLookupTableValue = _sessionItems["_selectedLookupTableValue"];
+            List<string>? columnProperties = _sessionItems["_columnProperties"];
+
+            int selectedTableID = _sessionItems["_selectedTableID"];
+            if (targetTableColumnList == null)
             {
-                _targetTableColumnList = new List<TargetTableColumn>();
+                targetTableColumnList = new List<TargetTableColumn>();
             }
 
-            var targetTableColumn = _targetTableColumnList.FirstOrDefault(s => s.SourceFieldName == _selectedSourceField)
+            var targetTableColumn = targetTableColumnList.FirstOrDefault(s => s.SourceFieldName == selectedSourceField)
                                     ?? new TargetTableColumn();
-            _selectedTableValue = TableList?.FirstOrDefault(t => t.ID == _selectedTableID)?.TableName ?? string.Empty;
-            var sourceFieldName = _selectedSourceField ?? string.Empty;
-            var targetTableName = _selectedTableValue ?? string.Empty;
-            var targetFieldName = _selectedFieldValue ?? string.Empty;
-            var checkOnTableName = _selectedLookupTableValue ?? string.Empty;
+            selectedTableValue = TableList?.FirstOrDefault(t => t.ID == selectedTableID)?.TableName ?? string.Empty;
+            var sourceFieldName = selectedSourceField ?? string.Empty;
+            var targetTableName = selectedTableValue ?? string.Empty;
+            var targetFieldName = selectedFieldValue ?? string.Empty;
+            var checkOnTableName = selectedLookupTableValue ?? string.Empty;
 
             Type dataType = typeof(object);
-            if (!string.IsNullOrEmpty(_selectedSourceField) && SelectedData?.Length > 0 && SelectedData[0].Table.Columns.Contains(_selectedSourceField))
+            if (!string.IsNullOrEmpty(selectedSourceField) && SelectedData?.Length > 0 && SelectedData[0].Table.Columns.Contains(selectedSourceField))
             {
-                dataType = SelectedData[0][_selectedSourceField]?.GetType() ?? typeof(object);
+                dataType = SelectedData[0][selectedSourceField]?.GetType() ?? typeof(object);
             }
 
             targetTableColumn.SourceFieldName = sourceFieldName;
@@ -285,30 +360,34 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             targetTableColumn.DataType = dataType.Name;
 
-            if (!_targetTableColumnList.Contains(targetTableColumn))
+            if (!targetTableColumnList.Contains(targetTableColumn))
             {
-                _targetTableColumnList.Add(targetTableColumn);
+                targetTableColumnList.Add(targetTableColumn);
             }
 
-            if (_targetTableColumnList != null)
+            if (targetTableColumnList != null)
             {
-                if (_targetTableColumnList.Any())
+                if (targetTableColumnList.Any())
                 {
-                    _columnProperties = _targetTableColumnList.First().GetPropertyNames().ToList();
+                    columnProperties = targetTableColumnList.First().GetPropertyNames().ToList();
                 }
                 else
                 {
-                    _columnProperties = new List<string>();
+                    columnProperties = new List<string>();
                 }
             }
             else
             {
-                _columnProperties = new List<string>();
+                columnProperties = new List<string>();
             }
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTableColumnList", _targetTableColumnList, serialize: true);
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_columnProperties", _columnProperties, serialize: true);
-            await SetTargetTableColumnList.InvokeAsync(_targetTableColumnList);
+            _sessionItems["_selectedTableValue"] = selectedTableValue!;
+            _sessionItems["_targetTableColumnList"] = targetTableColumnList!;
+            _sessionItems["_columnProperties"] = columnProperties;
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedTableValue", selectedTableValue, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTableColumnList", targetTableColumnList, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_columnProperties", columnProperties, serialize: true);
+            await SetTargetTableColumnList.InvokeAsync(targetTableColumnList);
             StateHasChanged();
         }
 
@@ -323,7 +402,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private IEnumerable<DataRow>? ApplyFilterSelectedData()
         {
-            if (string.IsNullOrWhiteSpace(_searchQuerySelectedData))
+            if (string.IsNullOrWhiteSpace(_sessionItems!["_searchQuerySelectedData"]))
             {
                 return SelectedData;
             }
@@ -334,7 +413,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Check each column in the row for the search query
                 foreach (DataColumn column in row.Table.Columns)
                 {
-                    if (row[column]?.ToString()?.IndexOf(_searchQuerySelectedData, StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (row[column]?.ToString()?.IndexOf(_sessionItems["_searchQuerySelectedData"]!, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         return true; // Return true if search query is found in any column
                     }
@@ -345,28 +424,31 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private void ChangePage(int pageNumber)
         {
-            _currentPageSelectedData = pageNumber;
+            _sessionItems!["_currentPageSelectedData"] = pageNumber;
             StateHasChanged(); // Refresh UI after changing page
         }
 
         private void SelectedDataPageSizeChanged(ChangeEventArgs e)
         {
-            _pageSizeSelectedData = Convert.ToInt32(e.Value);
-            _currentPageSelectedData = 1; // Reset to first page when changing page size
+            _sessionItems!["_pageSizeSelectedData"] = Convert.ToInt32(e.Value);
+            _sessionItems["_currentPageSelectedData"] = 1; // Reset to first page when changing page size
             CalculateTotalPagesAndPagedData();
         }
 
         private void CalculateTotalPagesAndPagedData()
         {
-            if (_filteredRowsSelectedData != null)
+            IEnumerable<DataRow>? filteredRowsSelectedData = _sessionItems!["_filteredRowsSelectedData"].GetI();
+            int pageSizeSelectedData = _sessionItems["_pageSizeSelectedData"];
+            int currentPageSelectedData = _sessionItems["_currentPageSelectedData"];
+            if (filteredRowsSelectedData != null)
             {
-                _totalPagesSelectedData = (int)Math.Ceiling((double)(_filteredRowsSelectedData?.Count() ?? 0) / _pageSizeSelectedData);
-                _pagedRowsSelectedData = _filteredRowsSelectedData?.Skip((_currentPageSelectedData - 1) * _pageSizeSelectedData).Take(_pageSizeSelectedData);
+                _sessionItems["_totalPagesSelectedData"] = (int)Math.Ceiling((double)(filteredRowsSelectedData?.Count() ?? 0) / pageSizeSelectedData);
+                _sessionItems["_pagedRowsSelectedData"].SetI(filteredRowsSelectedData?.Skip((currentPageSelectedData - 1) * pageSizeSelectedData).Take(pageSizeSelectedData));
             }
             else
             {
-                _totalPagesSelectedData = 0;
-                _pagedRowsSelectedData = Enumerable.Empty<DataRow>();
+                _sessionItems["_totalPagesSelectedData"] = 0;
+                _sessionItems["_pagedRowsSelectedData"].SetI(Enumerable.Empty<DataRow>());
             }
 
             StateHasChanged(); // Refresh UI after calculating pages and paged data
@@ -374,41 +456,55 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task GoToFirstPage()
         {
-            _currentPageSelectedData = 1;
+            _sessionItems!["_currentPageSelectedData"] = 1;
             StateHasChanged();
             await Task.CompletedTask; // If you have no async operations, you can use Task.CompletedTask
         }
 
         private async Task GoToPreviousPage()
         {
-            if (_currentPageSelectedData > 1)
+            var curPage = _sessionItems!["_currentPageSelectedData"];
+            if (curPage > 1)
             {
-                _currentPageSelectedData--;
+                curPage--;
+                _sessionItems!["_currentPageSelectedData"] = curPage;
                 StateHasChanged();
             }
+
             await Task.CompletedTask;
         }
 
         private async Task GoToNextPage()
         {
-            if (_currentPageSelectedData < _totalPagesSelectedData)
+            var curPage = _sessionItems!["_currentPageSelectedData"];
+            var totalPagesSelectedData = _sessionItems!["_totalPagesSelectedData"];
+            if (curPage < totalPagesSelectedData)
             {
-                _currentPageSelectedData++;
+                curPage++;
+                _sessionItems!["_currentPageSelectedData"] = curPage;
                 StateHasChanged();
             }
+
             await Task.CompletedTask;
         }
 
         private async Task GoToLastPage()
         {
-            _currentPageSelectedData = _totalPagesSelectedData;
+            var curPage = _sessionItems!["_currentPageSelectedData"];
+            var totalPagesSelectedData = _sessionItems!["_totalPagesSelectedData"];
+
+            curPage = totalPagesSelectedData;
+            _sessionItems!["_currentPageSelectedData"] = curPage;
             StateHasChanged();
             await Task.CompletedTask;
         }
 
         private async Task GoToSpecifiedPage()
         {
-            if (_currentPageSelectedData >= 1 && _currentPageSelectedData <= _totalPagesSelectedData)
+            var curPage = _sessionItems!["_currentPageSelectedData"];
+            var totalPagesSelectedData = _sessionItems!["_totalPagesSelectedData"];
+
+            if (curPage >= 1 && curPage <= totalPagesSelectedData)
             {
                 StateHasChanged();
             }
@@ -423,12 +519,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task DataCombAsync()
         {
-            if (SelectedData != null && SelectedData.Length > 1 && !string.IsNullOrEmpty(_uniqueField))
+            string? uniqueField = _sessionItems!["_uniqueField"];
+            if (SelectedData != null && SelectedData.Length > 1 && !string.IsNullOrEmpty(uniqueField))
             {
                 SelectedData = SelectedData
-                    .Where(row => row[_uniqueField] != DBNull.Value &&
-                                  row[_uniqueField] != null &&
-                                  !string.IsNullOrEmpty(row[_uniqueField].ToString()))
+                    .Where(row => row[uniqueField] != DBNull.Value &&
+                                  row[uniqueField] != null &&
+                                  !string.IsNullOrEmpty(row[uniqueField].ToString()))
                     .ToArray();  // Explicitly convert to DataRow[]
 
 
@@ -442,19 +539,20 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task OnUniqueFieldValueChanged(ChangeEventArgs e)
         {
-            _uniqueField = e?.Value?.ToString() ?? string.Empty;
+            _sessionItems!["_uniqueField"] = e?.Value?.ToString() ?? string.Empty;
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_uniqueField", _uniqueField);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_uniqueField", _sessionItems["_uniqueField"]);
             await DataCombAsync();
 
         }
 
         private async Task SaveTargetTablesAsync()
         {
+            List<TargetTableColumn>? targetTableColumnList = _sessionItems!["_targetTableColumnList"];
             var targetTables = new List<TargetTable>();
-            if (_targetTableColumnList != null)
+            if (targetTableColumnList != null)
             {
-                var targetTableGroups = _targetTableColumnList?
+                var targetTableGroups = targetTableColumnList?
                                         .Where(t => !string.IsNullOrEmpty(t.TargetTableName))
                                         .GroupBy(t => t.TargetTableName)
                                         .ToList();
@@ -546,22 +644,23 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task AddLookupTableAsync()
         {
-            _showForeignTableSearchFieldsModal = true;
+            _sessionItems!["_showForeignTableSearchFieldsModal"] = true;
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_showForeignTableSearchFieldsModal", _showForeignTableSearchFieldsModal, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_showForeignTableSearchFieldsModal", _sessionItems["_showForeignTableSearchFieldsModal"], serialize: true);
             StateHasChanged();
             await Task.CompletedTask;
         }
 
         private async Task SaveSearchFieldsAsync()
         {
-            List<SearchField> searchFields = _searchFieldsTable?.ConvertDataTableToObjects<SearchField>() ?? default!;
+            DataTable? searchFieldsTable = _sessionItems!["_searchFieldsTable"];
+            List<SearchField> searchFields = searchFieldsTable?.ConvertDataTableToObjects<SearchField>() ?? default!;
             await Task.CompletedTask;
         }
 
         private async Task CloseSearchFieldsEntryModalAsync()
         {
-            _showForeignTableSearchFieldsModal = false;
+            _sessionItems!["_showForeignTableSearchFieldsModal"] = false;
             StateHasChanged();
             await Task.CompletedTask;
         }
@@ -601,9 +700,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private void RenderSelectedDataTable(RenderTreeBuilder builder, int seq)
         {
-            if (SelectedData != null && _pagedRowsSelectedData != null)
+            IEnumerable<DataRow>? pagedRowsSelectedData = _sessionItems!["_pagedRowsSelectedData"].GetI();
+            if (SelectedData != null && pagedRowsSelectedData != null)
             {
-                var pagedColumns = _pagedRowsSelectedData?.FirstOrDefault()?.Table?.Columns;
+                var pagedColumns = pagedRowsSelectedData?.FirstOrDefault()?.Table?.Columns;
 
                 builder.OpenElement(seq++, "div");
                 builder.AddAttribute(seq++, "class", "data-table-grid-div");
@@ -627,9 +727,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 // Table Body
                 builder.OpenElement(seq++, "tbody");
-                if (_pagedRowsSelectedData != null)
+                if (pagedRowsSelectedData != null)
                 {
-                    foreach (DataRow row in _pagedRowsSelectedData)
+                    foreach (DataRow row in pagedRowsSelectedData)
                     {
                         builder.OpenElement(seq++, "tr");
                         foreach (DataColumn column in row.Table.Columns)
@@ -660,9 +760,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create(this, SelectedDataPageSizeChanged));
 
                 builder.OpenElement(seq++, "option");
-                builder.AddAttribute(seq++, "value", _totalItemsSelectedData.ToString());
+                builder.AddAttribute(seq++, "value", _sessionItems["_totalItemsSelectedData"].ToString());
                 builder.AddAttribute(seq++, "selected", "selected");
-                builder.AddContent(seq++, _totalItemsSelectedData.ToString());
+                builder.AddContent(seq++, _sessionItems["_totalItemsSelectedData"].ToString());
                 builder.CloseElement();
 
                 foreach (var size in new[] { 5, 10, 20, 50, 100 })
@@ -700,8 +800,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.OpenElement(seq++, "input");
                 builder.AddAttribute(seq++, "type", "number");
                 builder.AddAttribute(seq++, "min", "1");
-                builder.AddAttribute(seq++, "max", _totalPagesSelectedData.ToString());
-                builder.AddAttribute(seq++, "bind", _currentPageSelectedData.ToString());
+                builder.AddAttribute(seq++, "max", _sessionItems["_totalItemsSelectedData"].ToString());
+                builder.AddAttribute(seq++, "bind", _sessionItems["_currentPageSelectedData"].ToString());
                 builder.CloseElement();
 
                 builder.OpenComponent<Icon>(seq++);
@@ -722,7 +822,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.OpenElement(seq++, "div");
             builder.AddAttribute(seq++, "class", "col");
             builder.OpenElement(seq++, "h1");
-            builder.AddContent(seq++, "Set Target Table");
+            builder.AddContent(seq++, "SetI Target Table");
             builder.CloseElement();
             builder.CloseElement();
             builder.CloseElement();
@@ -730,11 +830,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private void RenderTableColumnsHeader(RenderTreeBuilder builder, int seq)
         {
+            List<string>? columnProperties = _sessionItems!["_columnProperties"];
             builder.OpenElement(seq++, "thead");
-            if (_columnProperties != null)
+            if (columnProperties != null)
             {
                 builder.OpenElement(seq++, "tr");
-                foreach (var prop in _columnProperties)
+                foreach (var prop in columnProperties)
                 {
                     builder.OpenElement(seq++, "th");
                     builder.AddContent(seq++, prop);
@@ -747,13 +848,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private void RenderTableColumnsBody(RenderTreeBuilder builder, int seq)
         {
+            List<TargetTableColumn>? targetTableColumnList = _sessionItems!["_targetTableColumnList"];
+            List<string>? columnProperties = _sessionItems["_columnProperties"];
+
             builder.OpenElement(seq++, "tbody");
-            if (_targetTableColumnList != null && _columnProperties != null)
+            if (targetTableColumnList != null && columnProperties != null)
             {
-                foreach (var col in _targetTableColumnList)
+                foreach (var col in targetTableColumnList)
                 {
                     builder.OpenElement(seq++, "tr");
-                    foreach (var prop in _columnProperties)
+                    foreach (var prop in columnProperties)
                     {
                         var colProperty = col.GetProperty(prop);
                         builder.OpenElement(seq++, "td");
@@ -794,9 +898,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private void RenderLookupTableModalEntry(RenderTreeBuilder builder, int seq)
         {
+            bool showForeignTableSearchFieldsModal = _sessionItems!["_showForeignTableSearchFieldsModal"];
             builder.OpenComponent<AddLookupTableModal>(seq++);
             builder.AddAttribute(seq++, "Tag", _tag);
-            builder.AddAttribute(seq++, "ShowSearchFieldsModal", _showForeignTableSearchFieldsModal);
+            builder.AddAttribute(seq++, "ShowSearchFieldsModal", showForeignTableSearchFieldsModal);
             builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create(this, SaveSearchFieldsAsync));
             builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseSearchFieldsEntryModalAsync));
             builder.AddAttribute(seq++, "TableList", TableList);
@@ -860,14 +965,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(seq++, "id", "targetField");
             builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create(this, OnTargetFieldChanged));
 
-            var fieldValues = GetFieldValues(_selectedTableID);
+            int selectedTableID = _sessionItems!["_selectedTableID"];
+            string? selectedFieldValue = _sessionItems!["_selectedFieldValue"];
+            var fieldValues = GetFieldValues(selectedTableID);
             if (fieldValues != null)
             {
                 foreach (var field in fieldValues)
                 {
                     builder.OpenElement(seq++, "option");
                     builder.AddAttribute(seq++, "value", field);
-                    builder.AddAttribute(seq++, "selected", _selectedFieldValue?.Equals(field) ?? false ? "selected" : null);
+                    builder.AddAttribute(seq++, "selected", selectedFieldValue?.Equals(field) ?? false ? "selected" : null);
                     builder.AddContent(seq++, field);
                     builder.CloseElement();
                 }
@@ -893,11 +1000,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             if (TableList != null)
             {
+                int selectedTableID = _sessionItems!["_selectedTableID"];
                 foreach (var table in TableList)
                 {
                     builder.OpenElement(seq++, "option");
                     builder.AddAttribute(seq++, "value", table.ID.ToString());
-                    builder.AddAttribute(seq++, "selected", _selectedTableID.Equals(table.ID) ? "selected" : null);
+                    builder.AddAttribute(seq++, "selected", selectedTableID.Equals(table.ID) ? "selected" : null);
                     builder.AddContent(seq++, table.TableName);
                     builder.CloseElement();
                 }
@@ -926,18 +1034,19 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "class", "form-control");
                 builder.AddAttribute(seq++, "id", "sourceField");
                 builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create(this, OnSourceFieldValueChanged));
-
+                string? selectedSourceField = _sessionItems!["_selectedSourceField"];
                 foreach (DataColumn sourceFieldCol in SelectedData[0].Table.Columns)
                 {
                     builder.OpenElement(seq++, "option");
                     builder.AddAttribute(seq++, "value", sourceFieldCol.ColumnName);
-                    builder.AddAttribute(seq++, "selected", _selectedSourceField?.Equals(sourceFieldCol.ColumnName) ?? false ? "selected" : null);
+                    builder.AddAttribute(seq++, "selected", selectedSourceField?.Equals(sourceFieldCol.ColumnName) ?? false ? "selected" : null);
                     builder.AddContent(seq++, sourceFieldCol.ColumnName);
                     builder.CloseElement();
                 }
 
                 builder.CloseElement();
             }
+
             builder.CloseElement();
             builder.CloseElement();
 
@@ -1004,7 +1113,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // Display Selected Data Table
             RenderSelectedDataTable(builder, seq);
 
-            // Set Target Table Header
+            // SetI Target Table Header
             RenderSetTargetTableHeader(builder, seq);
 
             // Unique Field
@@ -1034,8 +1143,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Modal content
                 RenderModalContent(builder, seq);
 
+                bool showForeignTableSearchFieldsModal = _sessionItems!["_showForeignTableSearchFieldsModal"];
                 // AddLookupTableModal
-                if (_showForeignTableSearchFieldsModal)
+                if (showForeignTableSearchFieldsModal)
                 {
                     RenderLookupTableModalEntry(builder, seq);
                 }

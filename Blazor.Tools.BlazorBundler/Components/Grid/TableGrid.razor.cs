@@ -11,6 +11,7 @@ using Blazor.Tools.BlazorBundler.Factories;
 using System.Data;
 using BlazorBootstrap;
 using DocumentFormat.OpenXml.EMMA;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -55,7 +56,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         }
 
         /// <summary>
-        /// Renders main content. This is method was created for testability.
+        /// Renders main content. These types of methods were created for testability.
         /// </summary>
         /// <param name="builder">RenderTreeBuilder for the main content</param>
         public async Task RenderMainContentAsync(RenderTreeBuilder builder)
@@ -77,9 +78,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "RowTemplate", RenderRowTemplate());
 
                 // Capture the component reference
-                builder.AddComponentReferenceCapture(seq++, inst =>
+                builder.AddComponentReferenceCapture(seq++, reference =>
                 {
-                    _tableGridInternalsComponentReference = inst;
+                    _tableGridInternalsComponentReference = reference;
                 });
 
                 builder.CloseComponent(); // TableGridInternals            
@@ -187,8 +188,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     Logger.LogDebug($"ColumnName: {column.ColumnName}");
                     Logger.LogDebug($"value: {value}");
-                    Console.WriteLine($"ColumnName: {column.ColumnName}");
-                    Console.WriteLine($"value: {value}");
+                    AppLogger.WriteInfo($"ColumnName: {column.ColumnName}");
+                    AppLogger.WriteInfo($"value: {value}");
 
                     break;
 
@@ -259,130 +260,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             var valueChangedDelegate = column.ValueChanged;
             valueChangedDelegate?.DynamicInvoke(newValue, item);
-        }
-
-        private async Task LogToConsoleAsync(string message)
-        {
-            await JSRuntime.InvokeVoidAsync("logToConsole", message);
-        }
-
-        //public async Task HandleSelectedDataCombAsync(DataRow[] selectedData)
-        //{
-        //    _nodeSelectedData = selectedData;
-
-        //    if (TableNodeContext != null)
-        //    {
-        //        TableNodeContext.SelectedData = _nodeSelectedData;
-        //        TableNodeContext.StartCell = _nodeStartCell;
-        //        TableNodeContext.EndCell = _nodeEndCell;
-
-        //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeSelectedData", _nodeSelectedData, serialize: true);
-        //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeStartCell", _nodeStartCell, serialize: false);
-        //        await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeEndCell", _nodeEndCell, serialize: false);
-
-        //    }
-
-        //    StateHasChanged();
-        //    await Task.CompletedTask;
-        //}
-
-        public async Task<DataRow[]?> ShowSetTargetTableModalAsync(string startCell, string endCell)
-        {
-            DataRow[] selectedData = default!;
-
-            var method = _tableGridInternalsType?.GetMethod("ShowSetTargetTableModalAsync");
-
-            if (_tableGridInternalsComponentReference != null)
-            {
-                // Cast the reference to the appropriate type (generic table grid)
-                var tableGridInstance = _tableGridInternalsComponentReference as dynamic;
-
-                // Invoke the method
-                if (tableGridInstance != null)
-                {
-                    var resultTask = tableGridInstance.ShowSetTargetTableModalAsync(startCell, endCell);
-
-                    // Since it's a Task, you can await it or use other async handling
-                    selectedData = await resultTask;
-
-                    // Now you can use the 'rows' variable which is of type DataRow[]?
-                    if (selectedData != null)
-                    {
-                        foreach (var row in selectedData)
-                        {
-                            // LoadAssembly each row here
-                            Console.WriteLine(row);
-                        }
-                    }
-                }
-            }
-
-            //if (_tableGridInternalsType != null)
-            //{
-            //    var instance = Activator.CreateInstance(_tableGridInternalsType);
-
-            //    // Check if the method and instance are valid
-            //    if (method != null && instance != null)
-            //    {
-            //        // Invoke the async method (it returns a Task)
-            //        var result = method.Invoke(instance, null);
-
-            //        // Check if the result is a Task<DataRow[]?>
-            //        if (result is Task<DataRow[]?> task)
-            //        {
-            //            // Await the task to get the result
-            //            var rows = await task;
-
-            //            // Now you can use the 'rows' variable which is of type DataRow[]?
-            //            if (rows != null)
-            //            {
-            //                foreach (var row in rows)
-            //                {
-            //                    // LoadAssembly each row here
-            //                    Console.WriteLine(row);
-            //                }
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        Console.WriteLine("Method or instance not found.");
-            //    }
-            //}
-
-            await Task.CompletedTask;
-            //StateHasChanged();
-
-            return selectedData;
-        }
-
-        public async Task ReloadTableGridInternalsComponent()
-        {
-            var reloadComponent = _tableGridInternalsType?.GetMethod("ReloadComponent");
-
-            if (_tableGridInternalsType != null)
-            {
-                // Create an instance of the type (_tableGridInternalsType refers to a type, not an instance)
-                var instance = Activator.CreateInstance(_tableGridInternalsType);
-
-                // Check if the method and instance are valid
-                if (instance != null)
-                {
-                    // Reload TableGridInternals Component
-                    if (reloadComponent != null)
-                    {
-                        // Invoke the async method (it returns a Task)
-                        reloadComponent.Invoke(instance, null);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Method ReloadTableGridInternalsComponent or instance not found.");
-                    }
-
-                }
-            }
-            
-            await Task.CompletedTask;
         }
     }
 }

@@ -2,6 +2,7 @@
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using BlazorBootstrap;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -18,13 +19,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string ViewModelsAssemblyName { get; set; } = default!; 
         [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!; 
 
-        private DataTable? _selectedTable;
-        private string? _selectedTableName;
         //private bool _isReceived = false;
         private List<AssemblyTable>? _tableList = null;
         private SessionManager _sessionManager = SessionManager.Instance;
         private bool _isRetrieved = false;
-        private IList<SessionItem>? _sessionItems;
+        private Dictionary<string, SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -36,7 +35,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0} \r\n StackTrace: {1}", ex.Message, ex.StackTrace);
+                AppLogger.HandleError(ex);
             }
 
         }
@@ -88,19 +87,22 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 }
             }
 
-            _sessionItems = new List<SessionItem>
+            _sessionItems = new Dictionary<string, SessionItem>
             {
+                ["_excelDataSet"] = 
                 new SessionItem()
                 {
                     Key = "_excelDataSet", Value = ExcelDataSet, Type = typeof(DataSet), Serialize = true
                 },
+                ["_selectedTable"] =
                 new SessionItem()
                 {
-                    Key = "_selectedTable", Value=_selectedTable, Type = typeof(DataTable), Serialize = true
+                    Key = "_selectedTable", Value = null, Type = typeof(DataTable), Serialize = true
                 },
+                ["_selectedTableName"] =
                 new SessionItem()
                 {
-                    Key = "_selectedTableName", Value=_selectedTableName, Type = typeof(string), Serialize = false
+                    Key = "_selectedTableName", Value = string.Empty, Type = typeof(string), Serialize = false
                 }
             };
 
@@ -143,10 +145,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 if (!_isRetrieved && _sessionItems != null)
                 {
-                    _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-                    ExcelDataSet = (DataSet?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelDataSet"))?.Value;
-                    _selectedTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedTable"))?.Value;
-                    _selectedTableName = _sessionItems?.FirstOrDefault(s => s.Key.Equals("_selectedTableName"))?.Value?.ToString();
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
+
+                    DataTable selectedTable = _sessionItems["_selectedTable"]!;
+                    if (selectedTable != null)
+                    {
+                        selectedTable.TableName = _sessionItems["_selectedTableName"];
+                    }
 
                     _isRetrieved = true;
                     StateHasChanged();
@@ -154,7 +159,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
 
             await Task.CompletedTask;
@@ -162,22 +167,22 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task SelectTableAsync(DataTable table)
         {
-            _selectedTable = table;
-            _selectedTableName = table.TableName;
+            _sessionItems!["_selectedTable"] = table;
+            _sessionItems!["_selectedTableName"] = table.TableName;
 
-            await _sessionManager.SaveToSessionTableAsync("_selectedTable", _selectedTable, serialize: true);
-            await _sessionManager.SaveToSessionTableAsync("_selectedTableName", _selectedTable);
+            await _sessionManager.SaveToSessionTableAsync("_selectedTable", table, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync("_selectedTableName", table.TableName);
 
             StateHasChanged();
         }
 
         private async Task UploadData()
         {
-            if (ExcelDataSet != null)
+            if (_sessionItems!["_excelDataSet"] != null)
             {
                 if (ExcelProcessor != null)
                 {
-                    await ExcelProcessor.SaveDataToDatabaseAsync(ExcelDataSet);
+                    await ExcelProcessor.SaveDataToDatabaseAsync(_sessionItems["_excelDataSet"]!);
                 }
 
                 //TODO: sol: Optionally, show a success message or handle post-upload actions
@@ -189,8 +194,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             int sequence = 0;
 
             // Check if ExcelDataSet is not null and has tables
-            if (ExcelDataSet != null && ExcelDataSet.Tables.Count > 0)
+            if (_sessionItems != null && _sessionItems["_excelDataSet"] != null && ((DataSet)_sessionItems["_excelDataSet"]!).Tables.Count > 0)
             {
+                DataTable selectedTable = _sessionItems["_selectedTable"]!;
                 // Outer div
                 builder.OpenElement(sequence++, "div");
 
@@ -198,13 +204,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.OpenElement(sequence++, "ul");
                 builder.AddAttribute(sequence++, "class", "nav nav-tabs");
 
-                foreach (var table in ExcelDataSet.Tables.Cast<DataTable>())
+                foreach (var table in ((DataSet)_sessionItems["_excelDataSet"]!).Tables.Cast<DataTable>())
                 {
                     builder.OpenElement(sequence++, "li");
                     builder.AddAttribute(sequence++, "class", "nav-item");
 
                     builder.OpenElement(sequence++, "a");
-                    builder.AddAttribute(sequence++, "class", $"cursor-pointer nav-link {(table == _selectedTable ? "active" : "")}");
+                    builder.AddAttribute(sequence++, "class", $"cursor-pointer nav-link {(table == selectedTable ? "active" : "")}");
                     builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SelectTableAsync(table)));
                     builder.AddContent(sequence++, table.TableName);
                     builder.CloseElement();
@@ -218,20 +224,20 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "tab-content");
 
-                if (_selectedTable != null)
+                if (selectedTable != null)
                 {
                     builder.OpenElement(sequence++, "div");
                     builder.AddAttribute(sequence++, "class", "tab-pane fade show active");
 
                     builder.OpenElement(sequence++, "h4");
-                    builder.AddContent(sequence++, _selectedTableName);
+                    builder.AddContent(sequence++, selectedTable.TableName);
                     builder.CloseElement();
 
                     // DataTableGrid component
                     builder.OpenComponent<DataTableGrid>(sequence++);
                     builder.AddAttribute(sequence++, "Title", ""); // Too many Titles already so you need to blank this.
                     //builder.AddAttribute(sequence++, "Title", _selectedTableName);
-                    builder.AddAttribute(sequence++, "SelectedTable", _selectedTable);
+                    builder.AddAttribute(sequence++, "SelectedTable", selectedTable);
                     builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
                     builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
                     builder.AddAttribute(sequence++, "AllowCellRangeSelection", true);

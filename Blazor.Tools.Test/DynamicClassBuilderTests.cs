@@ -55,7 +55,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _testContext.Services.AddSingleton(_dynamicClassBuilderMock.Object);
 
             // Arrange
-            // Set up the mock to return specific values or throw exceptions
+            // SetI up the mock to return specific values or throw exceptions
             // Define the paths in the Temp folder
             _tempFolderPath = Path.GetTempPath();
             _modelTempDllPath = Path.Combine(_tempFolderPath, $"{ModelsAssemblyName}.dll");
@@ -70,7 +70,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             //_dataTableGridMock.Setup(m => m.DefineMethodsAsync(_dynamicClassBuilderMock.Object, _dynamicClassBuilderMock.Object.DynamicType)).Returns(Task.CompletedTask);
             //_dataTableGridMock.Setup(m => m.DefineTableColumnsAsync()).Returns(Task.CompletedTask);
 
-            // Set up the dynamic class builder mock
+            // SetI up the dynamic class builder mock
             _dynamicClassBuilderMock.Setup(m => m.CreateClassFromDataTable(It.IsAny<DataTable>())).Verifiable();
             _dynamicClassBuilderMock.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
             _dynamicClassBuilderMock.Setup(m => m.DeleteAssembly()).Verifiable();
@@ -107,7 +107,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             {
                 // Act: Call the method that interacts with IDynamicClassBuilder
                 _dataTableGridComponent = _testContext?.Render<DataTableGrid>(parameters => parameters
-                    .Add(p => p.Title, EmployeeDataTable.TableName) // Set component parameters using bUnit's parameter helper
+                    .Add(p => p.Title, EmployeeDataTable.TableName) // SetI component parameters using bUnit's parameter helper
                     .Add(p => p.SelectedTable, EmployeeDataTable)
                     .Add(p => p.ModelsAssemblyName, ModelsAssemblyName)
                     .Add(p => p.ViewModelsAssemblyName, ViewModelsAssemblyName)

@@ -123,7 +123,7 @@ namespace Models
             mockDynamicInstance.SetupGet(x => x.IsEditMode).Returns(true);
             mockDynamicInstance.Setup(x => x.GetMessage()).Returns("Hello from Mock");
 
-            // Act: Set the message using the mock
+            // Act: SetI the message using the mock
             mockDynamicInstance.Object.SetMessage("Hello from Mock");
 
             // Render the component and pass the dynamic instance or mock object to the DynamicInstance parameter
