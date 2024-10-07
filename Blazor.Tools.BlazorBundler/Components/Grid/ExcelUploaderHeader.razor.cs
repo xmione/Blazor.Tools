@@ -1,5 +1,6 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.SessionManagement;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -11,8 +12,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public EventCallback<IBrowserFile> OnFileUpload { get; set; }
 
         private SessionManager _sessionManager = SessionManager.Instance;
-        private IList<SessionItem>? _sessionItems;
-        private BBBrowserFile? _excelFile;
+        private Dictionary<string, SessionItem>? _sessionItems;
         private bool _isRetrieved;
 
         protected override async Task OnParametersSetAsync()
@@ -24,11 +24,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task InitializeVariables()
         {
-            _sessionItems = new List<SessionItem>
+            _sessionItems = new Dictionary<string, SessionItem>
             {
+                ["_excelFile"] =
                 new SessionItem()
                 {
-                    Key = "_excelFile", Value = _excelFile, Type = typeof(BBBrowserFile), Serialize = true
+                    Key = "_excelFile", Value = null, Type = typeof(BBBrowserFile), Serialize = true
                 }
             };
 
@@ -41,8 +42,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 if (!_isRetrieved && _sessionItems != null)
                 {
-                    _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-                    _excelFile = (BBBrowserFile?)_sessionItems?.FirstOrDefault(s => s.Key.Equals("_excelFile"))?.Value;
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
 
                     _isRetrieved = true;
                     StateHasChanged();
@@ -50,7 +50,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
 
             await Task.CompletedTask;
@@ -61,7 +61,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             try
             {
                 var browserFile = e.File;
-                _excelFile = new BBBrowserFile(browserFile)
+                var excelFile = new BBBrowserFile(browserFile)
                 {
                     Name = browserFile.Name,
                     LastModified = browserFile.LastModified,
@@ -69,14 +69,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     ContentType = browserFile.ContentType
                 };
 
-                await _sessionManager.ClearSessionAsync();
-                await _sessionManager.SaveToSessionTableAsync("_excelFile", _excelFile, serialize: true);
+                _sessionItems!["_excelFile"] = excelFile;
 
-                await OnFileUpload.InvokeAsync(_excelFile);
+                await _sessionManager.ClearSessionAsync();
+                await _sessionManager.SaveToSessionTableAsync("_excelFile", excelFile, serialize: true);
+
+                await OnFileUpload.InvokeAsync(excelFile);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
         }
 

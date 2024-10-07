@@ -117,7 +117,7 @@ namespace Models
             {
                 setMessageMethod.Invoke(DynamicInstance, new object[] { message });
             }
-            // Set IsEditMode to true and verify the change
+            // SetI IsEditMode to true and verify the change
             var setEditModeMethod = dynamicType.GetMethod("SetEditMode");
             if (setEditModeMethod != null)
             {

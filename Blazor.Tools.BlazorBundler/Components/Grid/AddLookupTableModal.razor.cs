@@ -1,7 +1,9 @@
 ﻿using Blazor.Tools.BlazorBundler.Entities;
+using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using BlazorBootstrap;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using System.Data;
@@ -17,16 +19,16 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public DataRow[]? SelectedData { get; set; } = default!;
         [Parameter] public List<AssemblyTable>? TableList { get; set; } = default!;
 
-        //private SessionManager _sessionManager = SessionManager.Instance;
+        private SessionManager _sessionManager = SessionManager.Instance;
         private string _baseClassName = string.Empty;
         private int _targetTableID = default!;
         private string _targetTableValue = default!;
         private string? _targetFieldValue = default!;
         private int _targetFieldMatchConditionID = default!;
         private string? _targetFieldMatchConditionValue = default!;
-        //private IList<SessionItem>? _sessionItems;
+        private Dictionary<string, SessionItem>? _sessionItems;
         private DataTable? _searchFieldsTable;
-        //private bool _isRetrieved;
+        private bool _isRetrieved;
         private string? _title;
         private string? _dataSource;
         private DataTable? _matchConditionsTable;
@@ -42,13 +44,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task InitializeVariables()
         {
-
-            _baseClassName = _searchFieldsTable?.TableName ?? "LookupTable";
-            _targetTableID = 1;
-            _targetFieldMatchConditionID = 1;
-            _title = $"{Tag}-{_baseClassName}";
-            _dataSource = $"{_title}DS";
-
+            
             _matchConditionsTable = new DataTable("MatchConditionTable");
             _matchConditionsTable.Columns.Add("ID", typeof(int));
             _matchConditionsTable.Columns.Add("Name");
@@ -73,76 +69,96 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             newRow["Name"] = "Value";
             _matchConditionsTable.Rows.Add(newRow);
 
-            //_sessionItems = new List<SessionItem>
-            //{
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_searchFieldsTable", Value = _searchFieldsTable, Type = typeof(DataTable), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_baseClassName", Value = _baseClassName, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_targetTableID", Value = _targetTableID, Type = typeof(int), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_targetTableValue", Value = _targetTableValue, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_targetFieldValue", Value = _targetFieldValue, Type = typeof(string), Serialize = false
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_targetFieldMatchConditionID", Value = _targetFieldMatchConditionID, Type = typeof(int), Serialize = true
-            //    },
-            //    new SessionItem()
-            //    {
-            //        Key = $"{Tag}_targetFieldMatchConditionValue", Value = _targetFieldMatchConditionValue, Type = typeof(string), Serialize = false
-            //    }
-            //};
+            _sessionItems = new Dictionary<string, SessionItem>
+            {
 
+                [$"{Tag}_title"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_title",
+                    Value = $"{Tag}_LookupTable",
+                    Type = typeof(string),
+                    Serialize = false
+                },
+                [$"{Tag}_baseClassName"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_baseClassName",
+                    Value = "LookupTable",
+                    Type = typeof(string),
+                    Serialize = false
+                },
+                [$"{Tag}_dataSource"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_datasource",
+                    Value = $"{Tag}_LookupTableDS",
+                    Type = typeof(string),
+                    Serialize = false
+                },
+                [$"{Tag}_searchFieldsTable"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_searchFieldsTable", Value = null, Type = typeof(DataTable), Serialize = true
+                },
+                [$"{Tag}_targetTableID"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_targetTableID", Value = 1, Type = typeof(int), Serialize = true
+                },
+                [$"{Tag}_targetTableValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_targetTableValue", Value = "", Type = typeof(string), Serialize = false
+                },
+                [$"{Tag}_targetFieldValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_targetFieldValue", Value = "", Type = typeof(string), Serialize = false
+                },
+                [$"{Tag}_targetFieldMatchConditionID"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_targetFieldMatchConditionID", Value = 1, Type = typeof(int), Serialize = true
+                },
+                [$"{Tag}_targetFieldMatchConditionValue"] =
+                new SessionItem()
+                {
+                    Key = $"{Tag}_targetFieldMatchConditionValue", Value = "First_Split", Type = typeof(string), Serialize = false
+                }
+            };
 
             await Task.CompletedTask;
         }
 
         private async Task RetrieveDataFromSessionTableAsync()
         {
-            //try
-            //{
-            //    if (!_isRetrieved && _sessionItems != null)
-            //    {
-            //        _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
+            try
+            {
+                if (!_isRetrieved && _sessionItems != null)
+                {
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
 
-            //        _searchFieldsTable = (DataTable?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_searchFieldsTable"))?.Value ?? _searchFieldsTable;
-            //        _baseClassName = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_baseClassName"))?.Value?.ToString() ?? string.Empty;
-            //        _targetTableID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetTableID"))?.Value?.ToString(), out int selectedTableIDResult) ? selectedTableIDResult : 1;
-            //        _targetTableValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetTableValue"))?.Value?.ToString() ?? string.Empty;
-            //        _targetFieldValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetFieldValue"))?.Value?.ToString() ?? string.Empty;
-            //        _targetFieldMatchConditionID = int.TryParse(_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetFieldMatchConditionID"))?.Value?.ToString(), out int _targetFieldMatchConditionIDResult) ? _targetFieldMatchConditionIDResult : 1;
-            //        _targetFieldMatchConditionValue = _sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Tag}_targetFieldMatchConditionValue"))?.Value?.ToString() ?? string.Empty;
+                    DataTable? searchFieldsTable = _sessionItems[$"{Tag}_searchFieldsTable"];
 
-            //        if (_searchFieldsTable != null)
-            //        {
-            //            _searchFieldsTable.TableName = _baseClassName;
-            //        }
+                    if (searchFieldsTable != null)
+                    {
+                        searchFieldsTable.TableName = _sessionItems[$"{Tag}_baseClassName"]!; 
+                        _sessionItems[$"{Tag}_searchFieldsTable"] = searchFieldsTable;
+                    }
 
-            //        _targetTableID = _targetTableID == 0 ? 1 : _targetTableID;
-            //        _targetFieldMatchConditionID = _targetFieldMatchConditionID == 0 ? 1 : _targetFieldMatchConditionID;
-            //        _title = $"{Tag}-{_baseClassName}";
-            //        _dataSource = $"{_title}DS";
-            //        _isRetrieved = true;
-            //        GetMatchCondition();
-            //        StateHasChanged();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Error: {0}", ex.Message);
-            //}
+                    _targetTableID = _targetTableID == 0 ? 1 : _targetTableID;
+                    _targetFieldMatchConditionID = _targetFieldMatchConditionID == 0 ? 1 : _targetFieldMatchConditionID;
+
+                    _isRetrieved = true;
+                    GetMatchCondition();
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: {0}", ex.Message);
+            }
 
             await Task.CompletedTask;
         }
@@ -159,11 +175,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             _targetFieldValue = string.Empty;
 
             // Handle the selected value here
-            Console.WriteLine("targetTableID: {0}", _targetTableID);
+            AppLogger.WriteInfo($"targetTableID: {_targetTableID}");
             StateHasChanged();
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetTableID", _targetTableID, serialize: true);
-            //await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetTableValue", _targetTableValue);
+            await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetTableID", _targetTableID, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetTableValue", _targetTableValue);
 
             await Task.CompletedTask;
         }
@@ -173,7 +189,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             _targetFieldValue = e?.Value?.ToString() ?? string.Empty;
             StateHasChanged();
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetFieldValue", _targetFieldValue);
+            await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetFieldValue", _targetFieldValue);
             await Task.CompletedTask;
         }
 
@@ -184,7 +200,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             GetMatchCondition();
             StateHasChanged();
-            //await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetFieldMatchConditionValue", _targetFieldMatchConditionValue);
+            await _sessionManager.SaveToSessionTableAsync($"{Tag}_targetFieldMatchConditionValue", _targetFieldMatchConditionValue);
             await Task.CompletedTask;
         }
 
@@ -232,7 +248,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             _searchFieldsTable.Rows.Add(newRow);
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Tag}_searchFieldsTable", _searchFieldsTable, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Tag}_searchFieldsTable", _searchFieldsTable, serialize: true);
 
             StateHasChanged();
 
@@ -365,7 +381,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                <div class="row">
                    <div class="col">
-                       <h1>Set Target Table</h1>
+                       <h1>SetI Target Table</h1>
                    </div>
                </div>
                <div class="row">

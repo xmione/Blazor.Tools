@@ -1,4 +1,10 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
+﻿/*====================================================================================================
+    Class Name  : TableGridInternals
+    Created By  : Solomio S. Sisante
+    Created On  : August 10, 2024
+    Purpose     : To provide a table grid component class.
+  ====================================================================================================*/
+using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -8,6 +14,7 @@ using System.Data;
 using Microsoft.JSInterop;
 using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Extensions;
+using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 
 namespace Blazor.Tools.BlazorBundler.Components.Grid
 {
@@ -28,7 +35,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public RenderFragment? TableHeader { get; set; }
         [Parameter] public RenderFragment<IViewModel<TModel, IModelExtendedProperties>> RowTemplate { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
-        
+
         private SessionManager _sessionManager = SessionManager.Instance;
         public IEnumerable<IViewModel<TModel, IModelExtendedProperties>> _items { get; set; } = Enumerable.Empty<IViewModel<TModel, IModelExtendedProperties>>();
         private IEnumerable<IViewModel<TModel, IModelExtendedProperties>> _filteredRows = default!;
@@ -48,6 +55,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private bool _isFirstCellClicked;
         private bool _isComponentInitialized;
         private DataTable? _dataTable;
+        private Dictionary<string, SessionItem>? _sessionItems;
+        private bool _isRetrieved;
 
         protected override async Task OnInitializedAsync()
         {
@@ -67,6 +76,90 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             // because it will trigger this method and will affect the data displayed.
             // It is better to use private variables to play with within the component.
 
+            _sessionItems = new Dictionary<string, SessionItem>
+            {
+                [$"{Title}_items"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_items", Value = _items, Type = typeof(IEnumerable<IViewModel<TModel, IModelExtendedProperties>>), Serialize = true
+                },
+                [$"{Title}_filteredRows"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_filteredRows", Value = _filteredRows, Type = typeof(IEnumerable<IViewModel<TModel, IModelExtendedProperties>>), Serialize = true
+                },
+                [$"{Title}_pagedRows"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_pagedRows", Value = _pagedRows, Type = typeof(IEnumerable<IViewModel<TModel, IModelExtendedProperties>>), Serialize = true
+                },
+                [$"{Title}_filteredItems"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_filteredItems", Value = _filteredItems, Type = typeof(int), Serialize = true
+                },
+                [$"{Title}_currentPage"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_currentPage", Value = _currentPage, Type = typeof(int), Serialize = true
+                },
+                [$"{Title}_pageSize"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_pageSize", Value = _pageSize, Type = typeof(int), Serialize = true
+                },
+                [$"{Title}_totalPages"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_totalPages", Value = _totalPages, Type = typeof(int), Serialize = true
+                },
+                [$"{Title}_isEditing"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_isEditing", Value = _isEditing, Type = typeof(bool), Serialize = true
+                },
+                [$"{Title}_isAdding"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_isAdding", Value = _isAdding, Type = typeof(bool), Serialize = true
+                },
+                [$"{Title}_editedRow"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_editedRow", Value = _editedRow, Type = typeof(IViewModel<TModel, IModelExtendedProperties>), Serialize = true
+                },
+                [$"{Title}_editedRowSaved"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_editedRowSaved", Value = _editedRowSaved, Type = typeof(IViewModel<TModel, IModelExtendedProperties>), Serialize = true
+                },
+                [$"{Title}_startCell"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_startCell", Value = _startCell, Type = typeof(string), Serialize = false
+                },
+                [$"{Title}_endCell"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_endCell", Value = _endCell, Type = typeof(string), Serialize = false
+                },
+                [$"{Title}_isFirstCellClicked"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_isFirstCellClicked", Value = _isFirstCellClicked, Type = typeof(bool), Serialize = true
+                },
+                [$"{Title}_isComponentInitialized"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_isComponentInitialized", Value = _isComponentInitialized, Type = typeof(bool), Serialize = true
+                },
+                [$"{Title}_dataTable"] =
+                new SessionItem()
+                {
+                    Key = $"{Title}_dataTable", Value = _dataTable, Type = typeof(DataTable), Serialize = true
+                }
+            };
+
             _items = Items;
 
             int currentId = 1;
@@ -76,9 +169,32 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 item?.GetType().GetProperty("RowID")?.SetValue(item, currentId++);
             });
 
-
             await GetPageRowsAsync(_items);
         }
+
+        private async Task RetrieveDataFromSessionTableAsync()
+        {
+            try
+            {
+                if (!_isRetrieved && _sessionItems != null)
+                {
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
+                    _items = _sessionItems["_items"].GetI<TModel>();
+                    _filteredRows = _sessionItems["_filteredRows"].GetI<TModel>();
+                    _pagedRows = _sessionItems["_pagedRows"].GetI<TModel>();
+
+                    _isRetrieved = true;
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
+
+            await Task.CompletedTask;
+        }
+
         protected override async void BuildRenderTree(RenderTreeBuilder builder)
         {
             await RenderMainContentAsync(builder);
@@ -188,6 +304,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             await RenderAllowSelection(builder, seq);
         }
+
         private async Task<RenderTreeBuilder> RenderEditAndDeleteButtons(int seq, RenderTreeBuilder builder, IViewModel<TModel, IModelExtendedProperties>? row)
         {
             builder.OpenElement(seq++, "td");
@@ -476,8 +593,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _items = await newItem.AddItemToList(_items);
                  
                 await GetPageRowsAsync(_items);
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeDataTable", _nodeDataTable, serialize: true);
-                StateHasChanged(); // Ensure UI updates after adding modelVM
+                StateHasChanged();
             }
 
             await Task.CompletedTask;
@@ -516,7 +632,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 // Print the current value before changing
                 var currentValue = isEditModeProperty.GetValue(modelVM);
-                Console.WriteLine($"Before changing IsEditMode value: {currentValue}");
+                AppLogger.WriteInfo($"Before changing IsEditMode value: {currentValue}");
 
                 // Invoke SetEditMode
                 var result = setEditModeMethod.Invoke(modelVM, new object[] { _isEditing });
@@ -527,7 +643,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     // Print the value after changing
                     currentValue = isEditModeProperty.GetValue(modelVM);
-                    Console.WriteLine($"After changing IsEditMode value: {currentValue}");
+                    AppLogger.WriteInfo($"After changing IsEditMode value: {currentValue}");
 
                     _editedRowSaved = await item.SaveModelVMToNewModelVM();
                 }
@@ -566,6 +682,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                  
                 _editedRow = default!;
                 _editedRowSaved = default!;
+
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_isEditing", _isEditing, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_editedRow", _editedRow, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_editedRowSaved", _editedRowSaved, serialize: true);
+
                 StateHasChanged(); // Refresh UI after canceling edit
             }
 
@@ -575,7 +696,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             if (!_isComponentInitialized)
             {
-                Console.WriteLine("Component is not initialized yet.");
+                AppLogger.WriteInfo("Component is not initialized yet.");
                 return;
             }
 
@@ -591,6 +712,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 _editedRow = default!;
                 _editedRowSaved = default!;
 
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_items", _items, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_isEditing", _isEditing, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_editedRow", _editedRow, serialize: true);
+                await _sessionManager.SaveToSessionTableAsync($"{Title}_editedRowSaved", _editedRowSaved, serialize: true);
                 await InvokeAsync(() => StateHasChanged());
             }
 
@@ -609,6 +734,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             _currentPage = _currentPage == 0 ? 1 : _currentPage;
             _pagedRows = _filteredRows.Skip((_currentPage - 1) * _pageSize).Take(_pageSize);
             _totalPages = (int)Math.Ceiling((double)(_filteredRows?.Count() ?? 0) / _pageSize);
+
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_filteredRows", _filteredRows, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_filteredItems", _filteredItems, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_totalItems", _totalItems, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_pageSize", _pageSize, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_currentPage", _currentPage, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_pagedRows", _pagedRows, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_totalPages", _totalPages, serialize: true);
 
             await Task.CompletedTask;
         }
@@ -707,14 +840,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _currentPage = _totalPages;
 
-            //if (TableNodeContext != null)
-            //{
-            //    TableNodeContext.CurrentPage = _nodeCurrentPage;
-            //    TableNodeContext.UpdateDisplayFromPageSize();
-
-            //    await PopulateNodeVariablesAsync();
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeCurrentPage", _nodeCurrentPage, serialize: true);
-            //}
             await GetPageRowsAsync(_filteredRows);
             StateHasChanged();
             await Task.CompletedTask;
@@ -727,8 +852,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 throw new Exception($"Page value can be up to total pages only {_totalPages}");
             }
+            
             await GetPageRowsAsync(_filteredRows);
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_currentPage", _currentPage, serialize: true);
             StateHasChanged();
             await Task.CompletedTask;
         }
@@ -776,8 +901,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-start-col", "");
             await JSRuntime.InvokeVoidAsync("setValue", $"{TableID}-end-col", "");
 
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
-            //    await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
 
             await Task.CompletedTask;
         }
@@ -786,6 +911,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _startCell = string.Empty;
 
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
             await JSRuntime.InvokeVoidAsync("StartCellClicked", true, TableID);
             StateHasChanged();
 
@@ -796,123 +922,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             _endCell = string.Empty;
 
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
             await JSRuntime.InvokeVoidAsync("StartCellClicked", false, TableID);
             StateHasChanged();
 
             await Task.CompletedTask;
         }
-
-        private async Task HandleCellClickAsync(int rowIndex, int columnIndex)
-        {
-            string cellIdentifier = $"R{rowIndex}C{columnIndex}";
-
-            if (string.IsNullOrEmpty(_startCell) || _isFirstCellClicked)
-            {
-                _startCell = cellIdentifier;
-                _isFirstCellClicked = false;
-
-            }
-            else
-            {
-                _endCell = cellIdentifier;
-                _isFirstCellClicked = true;
-
-            }
-
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_startCell", _startCell, serialize: false);
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_endCell", _endCell, serialize: false);
-                //await _sessionManager.SaveToSessionTableAsync($"{Title}_nodeIsFirstCellClicked", _nodeIsFirstCellClicked, serialize: true);
-
-            StateHasChanged(); // Refresh UI to reflect the changes in cell selection
-
-            await Task.CompletedTask;
-        }
-
-        public async Task<DataRow[]?> ShowSetTargetTableModalAsync(string startCell, string endCell)
-        {
-            _startCell = startCell;
-            _endCell = endCell; 
-            DataRow[] selectedData = default!;
-
-            try
-            {
-                
-                if (!string.IsNullOrEmpty(_startCell) && !string.IsNullOrEmpty(_endCell))
-                {
-                    // Parsing startCell ("R1-C1")
-                    int startRow = int.Parse(startCell.Substring(1, startCell.IndexOf('-') - 1));
-                    int startCol = int.Parse(startCell.Substring(startCell.IndexOf('C') + 1));
-
-                    // Parsing endCell ("R101-C6")
-                    int endRow = int.Parse(endCell.Substring(1, endCell.IndexOf('-') - 1));
-                    int endCol = int.Parse(endCell.Substring(endCell.IndexOf('C') + 1));
-
-                    selectedData = GetDataInRange(startRow, startCol, endRow, endCol);
-
-                    //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
-
-                    await Task.CompletedTask;
-                }
-            }
-            catch (TaskCanceledException ex)
-            {
-                Console.WriteLine("JavaScript invocation was canceled: " + ex.Message);
-            }
-            catch (JSException jsEx)
-            {
-                Console.WriteLine("JavaScript exception occurred: " + jsEx.Message);
-            }
-
-            await Task.CompletedTask;
-            //StateHasChanged();
-
-            return selectedData;
-        }
-
-        public async Task ReloadComponent()
-        {
-            StateHasChanged();
-            await Task.CompletedTask;
-        }
-
-        private DataRow[] GetDataInRange(int startRow, int startCol, int endRow, int endCol)
-        {
-            List<DataRow> dataInRange = new List<DataRow>();
-
-            var tModelList = Items.OfType<TModel>().ToList();
-            //_dataTable = tModelList.Any() ? tModelList.ToDataTable() : default!;
-            _dataTable = tModelList.GetDataTableFromClass();
-
-            if (_dataTable != null)
-            {
-                // Create a new DataTable with the selected columns
-                DataTable filteredDataTable = new DataTable();
-                for (int i = startCol - 1; i <= endCol - 1; i++)
-                {
-                    var column = _dataTable.Columns[i];
-                    filteredDataTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
-                }
-
-                for (int i = startRow - 1; i < endRow - 1; i++)
-                {
-                    DataRow newRow = filteredDataTable.NewRow();
-
-                    for (int j = startCol - 1; j < endCol - 1; j++)
-                    {
-                        DataRow currentRow = _dataTable.Rows[i];
-                        var currentCol = _dataTable.Columns[j];
-                        var columnName = currentCol.ColumnName;
-                        newRow[columnName] = currentRow[j];
-                    }
-
-                    dataInRange.Add(newRow);
-                }
-
-            }
-
-            return dataInRange.ToArray();
-        }
-
+         
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)

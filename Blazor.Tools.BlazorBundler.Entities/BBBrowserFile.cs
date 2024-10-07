@@ -10,10 +10,14 @@ namespace Blazor.Tools.BlazorBundler.Entities
         {
             _browserFile = browserFile;
 
-            Name = browserFile.Name;
-            LastModified = browserFile.LastModified;
-            Size = browserFile.Size;
-            ContentType = browserFile.ContentType;
+            if (browserFile != null)
+            {
+                Name = browserFile.Name;
+                LastModified = browserFile.LastModified;
+                Size = browserFile.Size;
+                ContentType = browserFile.ContentType;
+            }
+            
         }
 
         public string Name { get; set; }

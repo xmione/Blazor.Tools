@@ -36,7 +36,7 @@ namespace Blazor.Tools.Test
         [TestInitialize]
         public void TestInit()
         {
-            // Set up before each test method.
+            // SetI up before each test method.
 
             _dataTableGrid = new DataTableGrid
             {
@@ -68,7 +68,7 @@ namespace Blazor.Tools.Test
             _testContext.Services.AddSingleton(_dynamicClassBuilderMock.Object);
 
             // Arrange
-            // Set up the mock to return specific values or throw exceptions
+            // SetI up the mock to return specific values or throw exceptions
             // Define the paths in the Temp folder
             _tempFolderPath = Path.GetTempPath();
             _modelTempDllPath = Path.Combine(_tempFolderPath, $"{ModelsAssemblyName}.dll");
@@ -83,7 +83,7 @@ namespace Blazor.Tools.Test
             //_dataTableGridMock.Setup(m => m.DefineMethodsAsync(_dynamicClassBuilderMock.Object, _dynamicClassBuilderMock.Object.DynamicType)).Returns(Task.CompletedTask);
             //_dataTableGridMock.Setup(m => m.DefineTableColumnsAsync()).Returns(Task.CompletedTask);
 
-            // Set up the dynamic class builder mock
+            // SetI up the dynamic class builder mock
             _dynamicClassBuilderMock.Setup(m => m.CreateClassFromDataTable(It.IsAny<DataTable>())).Verifiable();
             _dynamicClassBuilderMock.Setup(m => m.SaveAssembly(It.IsAny<string>(), It.IsAny<bool>())).Verifiable();
             _dynamicClassBuilderMock.Setup(m => m.DeleteAssembly()).Verifiable();

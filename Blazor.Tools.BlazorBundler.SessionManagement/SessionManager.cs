@@ -1,4 +1,11 @@
-﻿using Blazor.Tools.BlazorBundler.Extensions;
+﻿/*====================================================================================================
+    Class Name  : SessionManager
+    Created By  : Solomio S. Sisante
+    Created On  : July 23, 2024
+    Purpose     : To handle manage session items.
+  ====================================================================================================*/
+
+using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
@@ -265,16 +272,16 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         /// <param name="sessionItems">IList<SessionItem> - refers to the list of session items with or without
         /// default values. It is used to retrieve session variables from the session table.</param>
         /// <returns></returns>
-        public async Task<IList<SessionItem>> RetrieveSessionListAsync(IList<SessionItem> sessionItems)
+        public async Task<Dictionary<string, SessionItem>> RetrieveSessionItemsAsync(Dictionary<string, SessionItem> sessionItems)
         {
             try
             {
                 foreach (var sessionItem in sessionItems)
                 {
-                    var sessionItemValue = sessionItem.Value;
+                    var sessionItemValue = sessionItem.Value?.Value;
 
                     // Get the runtime type of the session item's value
-                    Type type = sessionItem.Type;
+                    Type type = sessionItem.Value?.Type!;
 
                     // Retrieve the generic method 'RetrieveFromSessionTableAsync' definition
                     var methodInfo = typeof(SessionManager)
@@ -284,7 +291,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
                     var genericMethod = methodInfo?.MakeGenericMethod(type);
 
                     // Safely access sessionItem.Key if sessionItem is not null
-                    var sessionKey = sessionItem?.Key;
+                    var sessionKey = sessionItem.Value?.Key;
 
                     if (sessionKey != null)
                     {
@@ -301,21 +308,21 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
                             if (resultProperty != null)
                             {
-                                if (sessionItem != null)
+                                if (sessionItem.Value != null)
                                 {
                                     // Assign the result value to sessionItem.Value
                                     var foundSessionItemValue = resultProperty.GetValue(task);
 
                                     if (foundSessionItemValue == null)
                                     {
-                                        sessionItem.Value = sessionItemValue;
+                                        sessionItem.Value.Value = sessionItemValue;
 
                                         // Save session item value immediately to SessionTable
-                                        await SaveToSessionTableAsync(sessionKey, sessionItemValue, sessionItem.Serialize);
+                                        await SaveToSessionTableAsync(sessionKey, sessionItemValue, sessionItem.Value.Serialize);
                                     }
                                     else
                                     {
-                                        sessionItem.Value = foundSessionItemValue;
+                                        sessionItem.Value.Value = foundSessionItemValue;
                                     }
                                 }
                             }
@@ -323,13 +330,13 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
                         else
                         {
                             // Handle the case where task is null
-                            Console.WriteLine("Warning: Task was null after invoking the generic method.");
+                            AppLogger.WriteInfo("Warning: Task was null after invoking the generic method.");
                         }
                     }
                     else
                     {
                         // Handle the case where sessionKey is null
-                        Console.WriteLine("Warning: sessionKey is null, unable to invoke method.");
+                        AppLogger.WriteInfo("Warning: sessionKey is null, unable to invoke method.");
                     }
                 }
             }

@@ -52,7 +52,7 @@ namespace Blazor.Tools.Test
         [TestInitialize]
         public void TestInit()
         {
-            // Set up before each test method.
+            // SetI up before each test method.
             _dataTableGridContext = new BunitContext();
             _tableGridContext = new BunitContext();
             _tableGridInternalsContext = new BunitContext();
@@ -70,7 +70,7 @@ namespace Blazor.Tools.Test
             _tableGridInternalsContext.Services.AddSingleton(_tableGridInternalsMock.Object);
 
             // Arrange
-            // Set up the mock to return specific values or throw exceptions
+            // SetI up the mock to return specific values or throw exceptions
             _dataTableGridMock.Setup(m => m.InitializeVariablesAsync()).Returns(Task.CompletedTask).Verifiable();
             _dataTableGridMock.Setup(m => m.RenderMainContentAsync(It.IsAny<RenderTreeBuilder>())).Returns(Task.CompletedTask).Verifiable();
             

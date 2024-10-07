@@ -67,7 +67,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 return false;
             }
 
-            // Set a breakpoint on the following line
+            // SetI a breakpoint on the following line
             var properties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             // Ensure properties are being retrieved

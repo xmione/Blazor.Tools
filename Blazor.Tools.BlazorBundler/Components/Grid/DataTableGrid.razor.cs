@@ -38,7 +38,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         //[Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
         private DataTable _selectedTableVM = default!;
-        private DataRow[]? _selectedData = default!;
         private string _selectedFieldValue = string.Empty;
         private SessionManager _sessionManager = SessionManager.Instance;
         private bool _isRetrieved = false;
@@ -66,7 +65,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private Type _iViewModelType;
         private EventCallback<IEnumerable<IViewModel<IBase, IModelExtendedProperties>>> _itemsChangedCallBack;
 
-        private IList<SessionItem>? _sessionItems;
+        private Dictionary<string, SessionItem>? _sessionItems;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -88,12 +87,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Get the TableGrid component type with the correct generic types
                 _tableGridType = typeof(TableGrid<,>).MakeGenericType(_modelType, _iModelExtendedPropertiesType);
 
-                _sessionItems = new List<SessionItem>
+                _sessionItems = new Dictionary<string, SessionItem>
                 {
+                    [$"{Title}_selectedData"] =
                     new SessionItem()
                     {
-                        Key = $"{Title}_selectedData", Value = _selectedData, Type = typeof(DataRow[]), Serialize = true
+                        Key = $"{Title}_selectedData", Value = null, Type = typeof(DataRow[]), Serialize = true
                     },
+                    [$"{Title}_targetTables"] =
                     new SessionItem()
                     {
                         Key = $"{Title}_targetTables", Value = _targetTables, Type = typeof(List<TargetTable>), Serialize = true
@@ -123,17 +124,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             {
                 if (!_isRetrieved && _sessionItems != null)
                 {
-                    _sessionItems = await _sessionManager.RetrieveSessionListAsync(_sessionItems);
-                    _selectedData = (DataRow[]?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_selectedData"))?.Value;
-                    _targetTables = (List<TargetTable>?)_sessionItems?.FirstOrDefault(s => s.Key.Equals($"{Title}_targetTables"))?.Value;
-
+                    _sessionItems = await _sessionManager.RetrieveSessionItemsAsync(_sessionItems);
                     _isRetrieved = true;
                     StateHasChanged();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: {0}", ex.Message);
+                AppLogger.HandleError(ex);
             }
 
             await Task.CompletedTask;
@@ -236,14 +234,14 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 if (_modelVMInstance == null)
                 {
-                    Console.WriteLine("Failed to create an instance of the ViewModel.");
+                    AppLogger.WriteInfo("Failed to create an instance of the ViewModel.");
                     return;
                 }
 
                 // Check if the ViewModel implements the specific IViewModel<T, U>
                 _modelVMType = _modelVMInstance.GetType();
                 bool implementsViewModelInterface = iViewModelType.IsAssignableFrom(_modelVMType);
-                Console.WriteLine($"Implements IViewModel<{_tableName}, IModelExtendedProperties>: {implementsViewModelInterface}");
+                AppLogger.WriteInfo($"Implements IViewModel<{_tableName}, IModelExtendedProperties>: {implementsViewModelInterface}");
 
                 if (implementsViewModelInterface)
                 {
@@ -252,17 +250,17 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                     if (viewModelInterfaceInstance != null)
                     {
-                        Console.WriteLine("Successfully casted to the interface type.");
+                        AppLogger.WriteInfo("Successfully casted to the interface type.");
                         // You can now work with the viewModelInterfaceInstance
                     }
                     else
                     {
-                        Console.WriteLine("Failed to cast to the interface type.");
+                        AppLogger.WriteInfo("Failed to cast to the interface type.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Failed to cast to the interface type.");
+                    AppLogger.WriteInfo("Failed to cast to the interface type.");
                 }
             }
             catch(Exception ex) 
@@ -434,7 +432,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Stfld, contextProviderField);
                 ilg.Emit(OpCodes.Ret);
 
-                Console.WriteLine("Constructor with no parameters defined.");
+                AppLogger.WriteInfo("Constructor with no parameters defined.");
             });
 
             // Constructor with IContextProvider parameter
@@ -444,13 +442,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Call, baseConstructor);
 
-                // Set contextProvider field
+                // SetI contextProvider field
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ldarg_1);
                 ilg.Emit(OpCodes.Stfld, contextProviderField);
                 ilg.Emit(OpCodes.Ret);
 
-                Console.WriteLine("Constructor with IContextProvider parameter defined.");
+                AppLogger.WriteInfo("Constructor with IContextProvider parameter defined.");
             });
 
             // Constructor with IContextProvider and Employee parameter
@@ -460,12 +458,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Call, baseConstructor);
 
-                // Set contextProvider field
+                // SetI contextProvider field
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ldarg_1);
                 ilg.Emit(OpCodes.Stfld, contextProviderField);
 
-                // Set properties from Employee model
+                // SetI properties from Employee model
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                 ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
                 foreach (var prop in _modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -475,12 +473,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                         ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                         ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
                         ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // SetI property value
                     }
                 }
                 ilg.Emit(OpCodes.Ret);
 
-                Console.WriteLine("Constructor with IContextProvider and Employee parameter defined.");
+                AppLogger.WriteInfo("Constructor with IContextProvider and Employee parameter defined.");
             });
 
             // Update _modelVMType. 
@@ -493,12 +491,12 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Call, baseConstructor);
 
-                // Set contextProvider field
+                // SetI contextProvider field
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ldarg_1);
                 ilg.Emit(OpCodes.Stfld, contextProviderField);
 
-                // Set properties from EmployeeVM modelVM
+                // SetI properties from EmployeeVM modelVM
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                 ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
 
@@ -510,13 +508,13 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                         ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                         ilg.Emit(OpCodes.Ldarg_2); // Load EmployeeVM modelVM
                         ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // SetI property value
                     }
                 }
 
                 ilg.Emit(OpCodes.Ret);
 
-                Console.WriteLine("Constructor with IContextProvider and EmployeeVM parameter defined.");
+                AppLogger.WriteInfo("Constructor with IContextProvider and EmployeeVM parameter defined.");
             });
 
             //// Verify all constructors
@@ -567,7 +565,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     .Where(p => p.CanWrite) // Only properties with setters
                     .ToArray();
 
-                // Set properties on the new instance
+                // SetI properties on the new instance
                 foreach (var property in properties)
                 {
                     // Load the instance and the value to set
@@ -624,7 +622,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Load the isEditMode argument onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_1);
 
-                // Set the IsEditMode property
+                // SetI the IsEditMode property
                 var isEditModeProperty = tiModelType.GetProperty("IsEditMode", BindingFlags.Public | BindingFlags.Instance);
                 if (isEditModeProperty == null)
                 {
@@ -650,7 +648,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
 
-                // Set the IsEditMode property to false
+                // SetI the IsEditMode property to false
                 var isEditModeProperty = tiModelType.GetProperty("IsEditMode", BindingFlags.Public | BindingFlags.Instance);
                 if (isEditModeProperty == null)
                 {
@@ -682,7 +680,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 foreach (var (ctor, parameters) in constructors)
                 {
-                    Console.WriteLine($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.Name))}");
+                    AppLogger.WriteInfo($"Constructor: {ctor.Name}, Parameters: {string.Join(", ", parameters.Select(p => p.Name))}");
                 }
 
                 // Identify the constructor with IContextProvider
@@ -716,7 +714,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     ilg.Emit(OpCodes.Ldarg_0);
                     ilg.Emit(OpCodes.Callvirt, property?.GetGetMethod() ?? default! );
 
-                    // Set the property on the new instance
+                    // SetI the property on the new instance
                     ilg.Emit(OpCodes.Callvirt, property?.GetSetMethod() ?? default!);
                 }
 
@@ -1003,7 +1001,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await CloseSetTargetTableModalAsync();
 
             _targetTables = targetTables;
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTables", _targetTables, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_targetTables", _targetTables, serialize: true);
 
             StateHasChanged();
 
@@ -1012,9 +1010,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         private async Task HandleSelectedDataCombAsync(DataRow[] selectedData)
         {
-            _selectedData = selectedData;
+            _sessionItems!["_selectedData"] = selectedData;
 
-            //await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", _selectedData, serialize: true);
+            await _sessionManager.SaveToSessionTableAsync($"{Title}_selectedData", selectedData, serialize: true);
+
+            //TODO: sol: find out if this needs to be removed or implemented.
             //await _tableGrid.HandleSelectedDataCombAsync(selectedData);
 
             StateHasChanged();
@@ -1056,22 +1056,23 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                     var resultTask = tableGridInstance.ShowSetTargetTableModalAsync(_startCell, _endCell);
 
                     // Since it's a Task, you can await it or use other async handling
-                    _selectedData = await resultTask;
+                    var selectedData = await resultTask;
+                    _sessionItems!["_selectedData"] = selectedData;
 
                     // Now you can use the 'rows' variable which is of type DataRow[]?
-                    if (_selectedData != null)
+                    if (selectedData != null)
                     {
-                        foreach (var row in _selectedData)
+                        foreach (var row in selectedData)
                         {
                             // LoadAssembly each row here
-                            Console.WriteLine(row);
+                            AppLogger.WriteInfo($"{row}");
                         }
                     }
                 }
             }
 
             //_selectedData = await showTargetTableModalAsyncMethod.Invoke();
-            if (_selectedData != null)
+            if (_sessionItems!["selectedData"] != null)
             {
                 //_showSetTargetTableModal = false;
                 var modalId = $"{Title.ToLower()}-set-target-table-modal";
@@ -1127,11 +1128,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
                 builder.CloseComponent(); // Closing TableGrid
 
-                // Icon for Set Target Table Modal
+                // Icon for SetI Target Table Modal
                 builder.OpenComponent<Icon>(seq++);
                 builder.AddAttribute(seq++, "Name", IconName.Table);
                 builder.AddAttribute(seq++, "Class", "text-success icon-button mb-2 cursor-pointer");
-                builder.AddAttribute(seq++, "title", "Step 1. Set Target Table");
+                builder.AddAttribute(seq++, "title", "Step 1. SetI Target Table");
                 builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, ShowSetTargetTableModalAsync));
                 builder.CloseComponent();
 
@@ -1162,7 +1163,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddAttribute(seq++, "Title", Title);
                 builder.AddAttribute(seq++, "OnClose", EventCallback.Factory.Create(this, CloseSetTargetTableModalAsync));
                 builder.AddAttribute(seq++, "OnSave", EventCallback.Factory.Create<List<TargetTable>>(this, SaveToTargetTableAsync));
-                builder.AddAttribute(seq++, "SelectedData", _selectedData);
+                builder.AddAttribute(seq++, "SelectedData", (DataRow[])_sessionItems!["_selectedData"]!);
                 builder.AddAttribute(seq++, "OnSelectedDataComb", EventCallback.Factory.Create<DataRow[]>(this, HandleSelectedDataCombAsync));
                 builder.AddAttribute(seq++, "TableList", TableList);
                 builder.CloseComponent();

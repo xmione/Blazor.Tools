@@ -21,7 +21,7 @@ public class Program
         builder.Logging.AddConsole();     // Add console logging
         builder.Logging.AddDebug();     // Add console logging
 
-        // Set minimum level to Debug to capture all messages from Debug and above
+        // SetI minimum level to Debug to capture all messages from Debug and above
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
         // Manually check for the environment variable

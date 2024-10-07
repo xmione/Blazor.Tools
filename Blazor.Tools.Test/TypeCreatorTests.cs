@@ -41,7 +41,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
             _assemblyBuilder = new PersistedAssemblyBuilder(_assemblyName, typeof(object).Assembly); 
             _testModuleBuilder = _assemblyBuilder.DefineDynamicModule(contextAssemblyName);
 
-            // Set up default mock behavior
+            // SetI up default mock behavior
             _typeCreatorMock.Setup(tc => tc.DefineAssemblyName(It.IsAny<string>(), It.IsAny<string>())).Returns(_assemblyName);
             _typeCreatorMock.Setup(tc => tc.DefineAssemblyBuilder(It.IsAny<AssemblyName>(), It.IsAny<AssemblyBuilderAccess>()))
                 .Returns(_assemblyBuilder);
@@ -813,7 +813,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Newobj, objectListConstructor); // Create new List<object>
                 ilg.Emit(OpCodes.Stfld, _employeeListField); // Store in _employeeList field
 
-                // Set _contextProvider field
+                // SetI _contextProvider field
                 ilg.Emit(OpCodes.Ldarg_0); // Load 'this'
                 ilg.Emit(OpCodes.Ldarg_1); // Load the constructor parameter (IContextProvider)
                 ilg.Emit(OpCodes.Stfld, _contextProviderField); // Store in _contextProvider field
@@ -843,12 +843,12 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Call, baseConstructor);
 
-                // Set contextProvider field
+                // SetI contextProvider field
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ldarg_1);
                 ilg.Emit(OpCodes.Stfld, _contextProviderField);
 
-                // Set _modelProperties from Employee model
+                // SetI _modelProperties from Employee model
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                 ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
 
@@ -863,7 +863,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                                 ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
                                 ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                                ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                                ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // SetI property value
                             }
 
                         }
@@ -883,12 +883,12 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                 ilg.Emit(OpCodes.Call, baseConstructor); // Call base class constructor
 
-                // Set _contextProvider field
+                // SetI _contextProvider field
                 ilg.Emit(OpCodes.Ldarg_0);  // Load "this"
                 ilg.Emit(OpCodes.Ldarg_1);  // Load contextProvider
                 ilg.Emit(OpCodes.Stfld, _contextProviderField);  // Store contextProvider in _contextProvider
 
-                // Set properties from modelVM
+                // SetI properties from modelVM
                 if (typeCreator.Properties != null)
                 {
                     foreach ((string typeName, PropertyBuilder prop) in typeCreator.Properties)
@@ -909,7 +909,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                             ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!);  // Call modelVM's getter for the property
 
                             // Call the setter on the target object
-                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!);  // Set the target's property
+                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!);  // SetI the target's property
                         }
                     }
                 }
@@ -966,7 +966,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                                 ilg.Emit(OpCodes.Ldarg_0); // Load "this"
                                 ilg.Emit(OpCodes.Ldarg_2); // Load Employee model
                                 ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                                ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                                ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // SetI property value
                             }
 
                         }
@@ -987,7 +987,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 // Load the 'items' argument onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_1); // Load items (List<EmployeeVM>)
 
-                // Set the _employees field with the 'items' argument
+                // SetI the _employees field with the 'items' argument
                 FieldInfo employeesField = typeCreator?.Fields?.FirstOrDefault(f => f.TypeName == "_employees").FieldBuilder!; 
                 ilg.Emit(OpCodes.Stfld, employeesField); // Store 'items' into _employees
 
@@ -1086,7 +1086,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 // Mark the label for setting alreadyExists to true
                 ilg.MarkLabel(setAlreadyExistsTrue);
                 ilg.Emit(OpCodes.Ldc_I4_1); // Load 'true'
-                ilg.Emit(OpCodes.Stloc, alreadyExists); // Set alreadyExists = true
+                ilg.Emit(OpCodes.Stloc, alreadyExists); // SetI alreadyExists = true
 
                 // Return alreadyExists
                 ilg.Emit(OpCodes.Ldloc, alreadyExists); // Load alreadyExists
@@ -1118,7 +1118,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                             // Load 'this' (the current instance) onto the stack
                             ilg.Emit(OpCodes.Ldarg_0);
                             ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                            ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // SetI property value
 
                         }
 
@@ -1148,7 +1148,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 LocalBuilder newInstance = ilg.DeclareLocal(typeBuilder); // Declare a local variable to hold the new instance
                 ilg.Emit(OpCodes.Stloc, newInstance); // Store the new instance in the local variable
 
-                // Set properties on the new instance (from the current instance)
+                // SetI properties on the new instance (from the current instance)
                 foreach ((string typeName, PropertyBuilder prop) in typeCreator?.Properties!)
                 {
                     if ((typeName == iModelType.FullName || typeName == modelType.FullName) && prop.CanWrite)
@@ -1159,7 +1159,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                         // Load 'this' (the current instance) onto the stack
                         ilg.Emit(OpCodes.Ldarg_0);
                         ilg.Emit(OpCodes.Callvirt, prop.GetGetMethod()!); // Get property value
-                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // Set property value
+                        ilg.Emit(OpCodes.Callvirt, prop.GetSetMethod()!); // SetI property value
                     }
                 }
 
@@ -1203,7 +1203,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 // Load the isEditMode argument onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_1);
 
-                // Set the IsEditMode property
+                // SetI the IsEditMode property
                 var isEditModeItem = typeCreator.Properties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
                 var isEditModeProperty = isEditModeItem?.PropertyBuilder;
                 if (isEditModeProperty == null)
@@ -1230,7 +1230,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                 // Load 'this' onto the evaluation stack
                 ilg.Emit(OpCodes.Ldarg_0);
 
-                // Set the IsEditMode property to false
+                // SetI the IsEditMode property to false
                 var isEditModeItem = typeCreator.Properties?.FirstOrDefault(p => p.PropertyBuilder.Name.Contains("IsEditMode"));
                 var isEditModeProperty = isEditModeItem?.PropertyBuilder;
                 if (isEditModeProperty == null)
@@ -1297,7 +1297,7 @@ namespace Blazor.Tools.BlazorBundler.Tests
                             ilg.Emit(OpCodes.Ldarg_0);
                             ilg.Emit(OpCodes.Callvirt, prop?.GetGetMethod() ?? default!);
 
-                            // Set the property on the new instance
+                            // SetI the property on the new instance
                             ilg.Emit(OpCodes.Callvirt, prop?.GetSetMethod() ?? default!);
                         }
                     }
