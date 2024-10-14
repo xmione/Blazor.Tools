@@ -15,4 +15,12 @@
 		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Entities\Blazor.Tools.BlazorBundler.Entities.csproj" />
 		<ProjectReference Include="..\Blazor.Tools.BlazorBundler.Utilities\Blazor.Tools.BlazorBundler.Utilities.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <None Update="DLLs\net8.0\AccSol.Interfaces.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="DLLs\net8.0\AccSol.Services.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 </Project>

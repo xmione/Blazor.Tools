@@ -10,7 +10,7 @@
         Task<TServiceModel?> SaveAsync(TIModel? model);
         Task<TServiceModel?> SaveAsync(TServiceModel? model);
         Task DeleteAsync(int id);
-        Task RunAPIDLLAsync(string apiDLLPath);
+        Task RunAPIDLLAsync(string apiDLLPath, string aspNetCoreEnvironment, string aspNetCoreURLs);
 
     }
 }

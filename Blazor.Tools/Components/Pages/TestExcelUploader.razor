@@ -31,7 +31,16 @@ else
     {
         _isInitialized = true;
         var apiDLLPath = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll";
-        var sessionManager = SessionManager.GetInstance(_sessionTableService, apiDLLPath);
+
+        // Using specific settings:
+        var aspNetCoreEnvironment = "Development";
+        var aspNetCoreURLs = "https://localhost:7040/";
+
+        // Using the current Environment variables:
+        // var aspNetCoreEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        // var aspNetCoreURLs = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+
+        var sessionManager = SessionManager.GetInstance(_sessionTableService, apiDLLPath, aspNetCoreEnvironment, aspNetCoreURLs);
 
         await base.OnInitializedAsync();
 

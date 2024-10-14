@@ -319,10 +319,17 @@ namespace Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
                 Note: These are the important parameters that you need to supply to create the Assembly Table List.
                       These are used to get the model classes that is used to update the database files.
              */
+
+            // Get the assembly where the SampleData class is defined
+            Assembly sampleDataAssembly = typeof(SampleData).Assembly;
+
+            // Get the path of that assembly
+            string assemblyPath = sampleDataAssembly.Location ?? string.Empty;
+            string currentDLLPath = Path.GetDirectoryName(assemblyPath)!;
             HostAssemblies.ModelsAssemblyName = "AccSol.Interfaces";
-            HostAssemblies.ModelsAssemblyPath = @"C:\repo\AccSol\AccSol.Interfaces\bin\Debug\net8.0\AccSol.Interfaces.dll";
+            HostAssemblies.ModelsAssemblyPath = Path.Combine(currentDLLPath, @"DLLs\net8.0\AccSol.Interfaces.dll");
             HostAssemblies.ServicesAssemblyName = "AccSol.Services";
-            HostAssemblies.ServicesAssemblyPath = @"C:\repo\AccSol\AccSol.Services\bin\Debug\net8.0\AccSol.Services.dll";
+            HostAssemblies.ServicesAssemblyPath = Path.Combine(currentDLLPath, @"DLLs\net8.0\AccSol.Services.dll");
 
             Assembly? modelsAssembly;
             Assembly? servicesAssembly;

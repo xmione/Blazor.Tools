@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.NetworkInformation;
+using System.Security;
 using System.Text;
 
 namespace Blazor.Tools.BlazorBundler.SessionManagement
@@ -240,60 +241,75 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             return await _apiHealthChecker?.IsApiUpAsync(cancellationToken)!;
         }
 
-        public async Task RunAPIDLLAsync(string apiDLLPath)
+        public async Task RunAPIDLLAsync(string apiDLLPath, string aspNetCoreEnvironment, string aspNetCoreURLs)
         {
-            // Initialize API health status
-            CancellationTokenSource cts = new CancellationTokenSource(TIMEOUT);
-            _isAPIup = await CheckApiHealthAsync(cts.Token);
-
-            if (_isAPIup)
+            try 
             {
-                return;
+                // Initialize API health status
+                CancellationTokenSource cts = new CancellationTokenSource(TIMEOUT);
+                _isAPIup = await CheckApiHealthAsync(cts.Token);
+
+                if (_isAPIup)
+                {
+                    return;
+                }
+
+                await Task.Run(async () =>
+                {
+
+                    string setEnvVars = string.Empty;
+                    string command = "cmd.exe";
+                    string arguments = string.Empty;
+
+                    //Note: You have to force and overwrite the existing environment variables.
+                    //["Arguments"] = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll ""C:\Hermie\AccSol\AccSol.API\""",
+                    //var command = "dotnet";
+                    //var arguments = $"""{apiDLLPath}"" ""{Path.GetDirectoryName(apiDLLPath)}""";
+
+                    // SetI environment variables within the cmd context
+                    //setEnvVars = $"set ASPNETCORE_ENVIRONMENT=Development&& set ASPNETCORE_URLS=https://localhost:7040&&";
+                    //arguments = $"/k {setEnvVars} dotnet \"{apiDLLPath}\" \"{Path.GetDirectoryName(apiDLLPath)}\"";
+
+                    setEnvVars = $"set ASPNETCORE_ENVIRONMENT={aspNetCoreEnvironment}&& set ASPNETCORE_URLS={aspNetCoreURLs}&&";
+                    arguments = $"/k {setEnvVars} dotnet \"{apiDLLPath}\" \"{Path.GetDirectoryName(apiDLLPath)}\" \"{aspNetCoreEnvironment}\" \"{aspNetCoreURLs}\"";
+                    var commandRunnerArgs = new Dictionary<string, object>()
+                    {
+                        ["FileName"] = command,
+                        ["Arguments"] = arguments,
+                        ["RedirectStandardOutput"] = false,
+                        ["RedirectStandardError"] = false,
+                        ["UseShellExecute"] = true,
+                        ["CreateNoWindow"] = false,
+                    };
+                    var cm = new CommandRunner("RunWebAPI");
+                    await cm.RunDotnetCommandAsync(commandRunnerArgs, TIMEOUT);
+
+                });
+
+                await Task.Run(async () =>
+                {
+                    while (apiDLLPath != null && !apiDLLPath.IsFileInUse())
+                    {
+                        // Wait for it to be in use and log it
+                        AppLogger.WriteInfo($"Waiting to load the Web API file {apiDLLPath}...");
+                    }
+
+                    while (!_isAPIup)
+                    {
+                        // Wait for the Web API to be up and log it
+                        AppLogger.WriteInfo($"Waiting for the Web API to start from file {apiDLLPath}...");
+                        _isAPIup = await CheckApiHealthAsync(cts.Token);
+                        cts.Token.ThrowIfCancellationRequested();
+                    }
+
+                    AppLogger.WriteInfo($"Web API has started successfully.");
+                });
             }
-
-            await Task.Run(async () =>
+            catch (Exception ex)
             {
-                //["Arguments"] = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll ""C:\Hermie\AccSol\AccSol.API\""",
-                //var command = "dotnet";
-                //var arguments = $"""{apiDLLPath}"" ""{Path.GetDirectoryName(apiDLLPath)}""";
-
-                // SetI environment variables within the cmd context
-                var setEnvVars = $"set ASPNETCORE_ENVIRONMENT=Development&& set ASPNETCORE_URLS=https://localhost:7040&&";
-                var command = "cmd.exe";
-                var arguments = $"/k {setEnvVars} dotnet \"{apiDLLPath}\" \"{Path.GetDirectoryName(apiDLLPath)}\"";
-
-                var commandRunnerArgs = new Dictionary<string, object>()
-                {
-                    ["FileName"] = command,
-                    ["Arguments"] = arguments,
-                    ["RedirectStandardOutput"] = false,
-                    ["RedirectStandardError"] = false,
-                    ["UseShellExecute"] = true,
-                    ["CreateNoWindow"] = false,
-                };
-                var cm = new CommandRunner("RunWebAPI");
-                await cm.RunDotnetCommandAsync(commandRunnerArgs, TIMEOUT);
-
-            });
-
-            await Task.Run(async () =>
-            {
-                while (apiDLLPath != null && !apiDLLPath.IsFileInUse())
-                {
-                    // Wait for it to be in use and log it
-                    AppLogger.WriteInfo($"Waiting to load the Web API file {apiDLLPath}...");
-                }
-
-                while (!_isAPIup)
-                {
-                    // Wait for the Web API to be up and log it
-                    AppLogger.WriteInfo($"Waiting for the Web API to start from file {apiDLLPath}...");
-                    _isAPIup = await CheckApiHealthAsync(cts.Token);
-                    cts.Token.ThrowIfCancellationRequested();
-                }
-
-                AppLogger.WriteInfo($"Web API has started successfully.");
-            });
+                AppLogger.HandleError(ex);
+            }
+            
         }
     }
 }

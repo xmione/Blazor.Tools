@@ -31,6 +31,8 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
         private ICommonService<SessionTable, ISessionTable, IReportItem>? _sessionTableService;
         private string? _apiDLLPath;
+        private string? _aspNetCoreEnvironment;
+        private string? _aspNetCoreURLs;
         private SessionTable _sessionTable;
         private string _selectedFieldValue = string.Empty;
         public static SessionManager Instance => _instance.Value;
@@ -39,11 +41,13 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         /// Constructor to use the Serialize and Deserialize methods
         /// <param name="apiDLLPath">The full path name of the API dll file.</param>
         /// </summary>
-        private SessionManager(string? apiDLLPath = null)
+        private SessionManager(string? apiDLLPath = null, string? aspNetCoreEnvironment = null, string? aspNetCoreURLs = null)
         {
             _sessionTable = new SessionTable();
             _sessionTableService = null;
             _apiDLLPath = apiDLLPath;
+            _aspNetCoreEnvironment = aspNetCoreEnvironment;
+            _aspNetCoreURLs = aspNetCoreURLs;
         }
 
         /// <summary>
@@ -51,11 +55,13 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         /// </summary>
         /// <param name="sessionTableService">The session table service to interact with session data.</param>
         /// <param name="apiDLLPath">The full path name of the API dll file.</param>
-        private SessionManager(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService, string? apiDLLPath = null)
+        private SessionManager(ICommonService<SessionTable, ISessionTable, IReportItem> sessionTableService, string? apiDLLPath = null, string? aspNetCoreEnvironment = null, string? aspNetCoreURLs = null)
         {
             _sessionTable = new SessionTable();
             _sessionTableService = sessionTableService;
             _apiDLLPath = apiDLLPath;
+            _aspNetCoreEnvironment = aspNetCoreEnvironment;
+            _aspNetCoreURLs = aspNetCoreURLs;
         }
 
         /// <summary>
@@ -63,7 +69,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         /// </summary> 
         /// <param name="sessionTableService">The session table service to interact with session data.</param>
         /// <returns>SessionManager - The SessionManager class with service instance.</returns>
-        public static SessionManager GetInstance(ICommonService<SessionTable, ISessionTable, IReportItem>? sessionTableService = null, string? apiDLLPath = null)
+        public static SessionManager GetInstance(ICommonService<SessionTable, ISessionTable, IReportItem>? sessionTableService = null, string? apiDLLPath = null, string? aspNetCoreEnvironment = null, string? aspNetCoreURLs = null)
         {
             // Access the singleton instance
             var instance = _instance.Value;
@@ -77,10 +83,21 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
                 }
                 
                 // If we need to check the Web API health and it hasn't been set yet
-                if (instance._apiDLLPath == null)
+                if (apiDLLPath != null)
                 {
                     instance._apiDLLPath = apiDLLPath;
                 }
+
+                if (aspNetCoreEnvironment != null)
+                {
+                    instance._aspNetCoreEnvironment = aspNetCoreEnvironment;
+                }
+                
+                if (aspNetCoreURLs != null)
+                {
+                    instance._aspNetCoreURLs = aspNetCoreURLs;
+                }
+
             }
             else
             {
@@ -115,7 +132,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
                 if (_sessionTableService != null)
                 {
-                    await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!);
+                    await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!, _aspNetCoreEnvironment!, _aspNetCoreURLs!);
                     // Check first if Name exists
                     var foundSessionItem = await _sessionTableService.GetByNameAsync(name) as SessionTable ?? default!;
                     var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
@@ -162,7 +179,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
 
                         if (_sessionTableService != null)
                         {
-                            await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!);
+                            await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!, _aspNetCoreEnvironment!, _aspNetCoreURLs!);
                             // Check first if Name exists
                             var foundSessionItem = await _sessionTableService.GetByNameAsync(sessionItem.Key) ?? default!;
                             var byteArray = System.Text.Encoding.UTF8.GetBytes(serializedObject);
@@ -198,7 +215,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
             {
                 if (_sessionTableService != null)
                 {
-                    await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!);
+                    await _sessionTableService.RunAPIDLLAsync(_apiDLLPath!, _aspNetCoreEnvironment!, _aspNetCoreURLs!);
                     var sessionTable = await _sessionTableService.GetByNameAsync(name);
                     if (sessionTable != null)
                     {
