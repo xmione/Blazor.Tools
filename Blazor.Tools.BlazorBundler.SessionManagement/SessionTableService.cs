@@ -24,7 +24,7 @@ namespace Blazor.Tools.BlazorBundler.SessionManagement
         private readonly HttpClient _httpClient;
         private bool _isAPIup;
         private ApiHealthChecker? _apiHealthChecker;
-        private const int TIMEOUT = 12000;
+        private const int TIMEOUT = 30000;
         public bool IsAPIUp
         {
             get { return _isAPIup; }    
