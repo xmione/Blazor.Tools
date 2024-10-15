@@ -8,6 +8,7 @@ using Blazor.Tools.Data;
 using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Interfaces;
 using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces;
+using Blazor.Tools.BlazorBundler.Components.LoadingGif;
 
 namespace Blazor.Tools;
 
@@ -50,6 +51,7 @@ public class Program
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
         builder.Services.AddScoped<SessionTable>();
+        builder.Services.AddScoped<LoadingService>();
 
         builder.Services.AddAuthentication(options =>
             {

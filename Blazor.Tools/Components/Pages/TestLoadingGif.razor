@@ -1,0 +1,25 @@
+﻿@page "/test-loading-gif"
+@using Blazor.Tools.BlazorBundler.Components.LoadingGif
+@inject LoadingService LS
+
+<h3>Loading Example</h3>
+
+<button @onclick="ToggleLoading">Toggle Loading</button>
+
+<LoadingGif IsLoading="@isLoading" Message="Fetching data, please wait..." />
+
+@code {
+    private bool isLoading = false;
+
+    private async Task ToggleLoading()
+    {
+        isLoading = !isLoading;
+
+        if (isLoading)
+        {
+            await Task.Delay(3000); // Simulate a data fetch operation
+        }
+
+        isLoading = false;
+    }
+}
