@@ -15,14 +15,15 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
         private LoadingGifService LS { get; set; } = default!;
 
         [Inject]
-        private LoadingGifStateService LSS { get; set; } = default!;
+        private LoadingGifStateService LGSS { get; set; } = default!;
 
         [Parameter]
         public string Message { get; set; } = "Loading... Please wait...";
 
         protected override async Task OnParametersSetAsync()
         {
-            if (LSS.IsLoading)
+            // Update loading state based on the LoadingGifStateService
+            if (LGSS.IsLoading)
             {
                 await LS.ShowLoading(Message);
             }
@@ -32,7 +33,6 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
             }
         }
 
-        // BuildRenderTree method to inject HTML and style elements directly into the component
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
@@ -52,26 +52,35 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
                 align-items: center;
                 justify-content: center;
             }
-        ");
+            .loading-overlay.active {
+                display: flex; /* Show when active */
+            }
+            .spinner-border {
+                width: 3rem;
+                height: 3rem;
+            }
+            ");
             builder.CloseElement();
 
             // HTML structure for the loading overlay and spinner
             builder.OpenElement(2, "div");
             builder.AddAttribute(3, "id", "loading-overlay");
-            builder.AddAttribute(4, "class", "loading-overlay");
+            builder.AddAttribute(4, "class", "loading-overlay" + (LGSS.IsLoading ? " active" : ""));
 
+            // Spinner
             builder.OpenElement(5, "div");
             builder.AddAttribute(6, "class", "spinner-border text-primary");
             builder.AddAttribute(7, "role", "status");
             builder.CloseElement(); // Close spinner div
 
+            // Loading message
             builder.OpenElement(8, "div");
             builder.AddAttribute(9, "class", "row");
             builder.OpenElement(10, "span");
             builder.AddAttribute(11, "id", "loading-overlay-message");
+            builder.AddContent(12, Message); // Show the message here
             builder.CloseElement(); // Close span
             builder.CloseElement(); // Close row div
-
             builder.CloseElement(); // Close loading-overlay div
         }
     }

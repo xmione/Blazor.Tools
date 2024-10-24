@@ -10,7 +10,6 @@
 
 <button @onclick="ToggleLoading">Toggle Parent Loading</button>
 
-<!-- Parent's Loading Gif -->
 <LoadingGif Message="@LGSS.LoadingMessage" />
 
 @if (_isInitialized)
@@ -43,14 +42,14 @@
 
     private void OnLoadingStateChanged()
     {
-        // Ensure that the component re-renders after loading state changes
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(StateHasChanged); // Ensure the UI updates
     }
 
     private async Task ToggleLoading()
     {
         string message = "Parent is processing...";
         await LGSS.RunTaskAsync(_loaderName, message, LongRunningTaskAsync);
+        StateHasChanged();
     }
 
     private async Task LongRunningTaskAsync()
@@ -61,6 +60,6 @@
     private void HandleChildLoadingState(bool isLoading)
     {
         _isChildLoading = isLoading;
-        InvokeAsync(StateHasChanged); // Ensure UI updates when child loading state changes
+        InvokeAsync(StateHasChanged); // Trigger UI update for child loading state
     }
 }

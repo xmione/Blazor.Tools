@@ -10,22 +10,29 @@
 @using Blazor.Tools.BlazorBundler.Utilities.Exceptions
 
 @inherits SampleData
-@inject LoadingGifStateService LSS
+@inject LoadingGifStateService LGSS
 
-<LoadingGif Message="@LSS.LoadingMessage" />
+<LoadingGif Message="@LGSS.LoadingMessage" />
 @if (_isInitialized)
 {
     <ExcelUploader Title="Upload Excel Files"
-    ModelsAssemblyName="@ModelsAssemblyName"
-    ViewModelsAssemblyName="@ViewModelsAssemblyName"
-    HostAssemblies="@HostAssemblies" 
+        ModelsAssemblyName="@ModelsAssemblyName"
+        ViewModelsAssemblyName="@ViewModelsAssemblyName"
+        HostAssemblies="@HostAssemblies" 
+        OnLoading="@HandleExcelUploaderLoadingState"
     />
+}
+
+@if (_isExcelUploaderLoading)
+{
+    <p>Excel Uploader is Loading...</p>
 }
 
 @code {
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private bool _isInitialized = false;
+    private bool _isExcelUploaderLoading = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -46,6 +53,9 @@
 
             // Set the initialization flag after the loading process
             _isInitialized = true;
+
+            _isInitialized = true;
+            LGSS.Subscribe(OnLoadingStateChanged);
         }
         catch (Exception ex)
         {
@@ -55,5 +65,21 @@
         
         await Task.CompletedTask;
     }
+
+    public void Dispose()
+    {
+        LGSS.Unsubscribe(OnLoadingStateChanged);
+    }
+
+    private void OnLoadingStateChanged()
+    {
+        // Ensure that the component re-renders after loading state changes
+        InvokeAsync(StateHasChanged);
+    }
       
+    private void HandleExcelUploaderLoadingState(bool isLoading)
+    {
+        _isExcelUploaderLoading = isLoading;
+        InvokeAsync(StateHasChanged); // Ensure UI updates when child loading state changes
+    }
 }

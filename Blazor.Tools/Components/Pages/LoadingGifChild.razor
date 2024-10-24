@@ -20,17 +20,18 @@
         string message = "Child component processing...";
 
         // Notify the parent that the child is starting a long-running task
-        await OnChildLoading.InvokeAsync(true);
+        await OnChildLoading.InvokeAsync(true); // Set loading state to true
 
         // Use the LoadingGif service to display a loading message
         await LGSS.RunTaskAsync(_loaderName, message, async () =>
         {
             // Simulate a long-running task (e.g., data processing)
-            await Task.Delay(3000); // Example: 3 seconds delay
+            await Task.Delay(5000); // Example: 5 seconds delay
         });
 
         // Notify the parent that the task is done
-        await OnChildLoading.InvokeAsync(false);
+        await OnChildLoading.InvokeAsync(false); // Set loading state to false
     }
 }
+
 

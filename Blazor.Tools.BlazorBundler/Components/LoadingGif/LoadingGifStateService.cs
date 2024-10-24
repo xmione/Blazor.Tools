@@ -6,6 +6,8 @@
         private readonly List<Action> _subscribers = new();
         private string _loadingMessage = string.Empty;
 
+        public bool IsLoading => _loadingCounts.Values.Any(count => count > 0); // Return true if any loader is active
+
         public string LoadingMessage
         {
             get => _loadingMessage;
@@ -37,11 +39,9 @@
             }
         }
 
-        // Overload for methods with parameters
         public async Task RunTaskAsync<T>(string loaderName, string message, Func<T, Task> longRunningTask, T parameter)
         {
             await StartLoadingAsync(loaderName, message); // Start the loading state
-
             try
             {
                 await longRunningTask(parameter); // Call the long-running task with the parameter
@@ -52,11 +52,9 @@
             }
         }
 
-        // Overload for methods without parameters
         public async Task RunTaskAsync(string loaderName, string message, Func<Task> longRunningTask)
         {
             await StartLoadingAsync(loaderName, message); // Start the loading state
-
             try
             {
                 await longRunningTask(); // Call the long-running task without a parameter
@@ -96,7 +94,5 @@
 
             await Task.CompletedTask;
         }
-
-        public bool IsLoading => _loadingCounts.Values.Any(count => count > 0);
     }
 }

@@ -17,6 +17,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string ModelsAssemblyName { get; set; } = default!;
         [Parameter] public string ViewModelsAssemblyName { get; set; } = default!;
         [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!;
+        [Parameter] public EventCallback<bool> OnLoading { get; set; }
         [Inject] private IConfiguration Configuration { get; set; } = default!;
         [Inject] private LoadingGifStateService LGSS { get; set; } = default!;
 
@@ -51,21 +52,24 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             try
             {
+                await OnLoading.InvokeAsync(true);
                 await LGSS.RunTaskAsync("excel-uploader", "Initializing the Excel Uploader, please wait...", InitializeAsync);
-                
+                // Notify the parent that the task is done
+                await OnLoading.InvokeAsync(false);
             }
             catch (Exception ex)
             {
                 AppLogger.HandleError(ex);
             }
-
         }
 
         private async Task InitializeAsync()
         {
+            
             await InitializeVariables();
             await RetrieveDataFromSessionTableAsync();
             await Task.Delay(5000);
+            
         }
 
         private async Task InitializeVariables()
