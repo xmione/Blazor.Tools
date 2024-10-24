@@ -1,10 +1,4 @@
-﻿/*====================================================================================================
-    Class Name  : LSS.cs
-    Created By  : Solomio S. Sisante
-    Created On  : October 15, 2024
-    Purpose     : To handle the LoadingGif component state service.
-  ====================================================================================================*/
-namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
+﻿namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
 {
     public class LoadingGifStateService
     {
@@ -43,21 +37,37 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
             }
         }
 
-        public async Task RunTask(string loaderName, string message, Func<Task> longRunningTask)
+        // Overload for methods with parameters
+        public async Task RunTaskAsync<T>(string loaderName, string message, Func<T, Task> longRunningTask, T parameter)
         {
-            StartLoading(loaderName, message);
+            await StartLoadingAsync(loaderName, message); // Start the loading state
 
             try
             {
-                await longRunningTask();
+                await longRunningTask(parameter); // Call the long-running task with the parameter
             }
             finally
             {
-                EndLoading(loaderName);
+                await EndLoadingAsync(loaderName); // Ensure loading ends
             }
         }
 
-        public void StartLoading(string loaderName, string message = "Loading...")
+        // Overload for methods without parameters
+        public async Task RunTaskAsync(string loaderName, string message, Func<Task> longRunningTask)
+        {
+            await StartLoadingAsync(loaderName, message); // Start the loading state
+
+            try
+            {
+                await longRunningTask(); // Call the long-running task without a parameter
+            }
+            finally
+            {
+                await EndLoadingAsync(loaderName); // Ensure loading ends
+            }
+        }
+
+        public async Task StartLoadingAsync(string loaderName, string message = "Loading...")
         {
             if (!_loadingCounts.ContainsKey(loaderName))
             {
@@ -66,9 +76,11 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
 
             _loadingCounts[loaderName]++;
             LoadingMessage = message;
+
+            await Task.CompletedTask;
         }
 
-        public void EndLoading(string loaderName)
+        public async Task EndLoadingAsync(string loaderName)
         {
             if (_loadingCounts.ContainsKey(loaderName) && _loadingCounts[loaderName] > 0)
             {
@@ -81,9 +93,10 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
                     Notify();
                 }
             }
+
+            await Task.CompletedTask;
         }
 
         public bool IsLoading => _loadingCounts.Values.Any(count => count > 0);
     }
 }
-

@@ -1,0 +1,36 @@
+﻿@* 
+    LoadingGifChild.razor
+*@
+
+@using Blazor.Tools.BlazorBundler.Components.LoadingGif
+@code {
+    [Inject] LoadingGifStateService LGSS { get; set; } = default!;
+    [Parameter] public EventCallback<bool> OnChildLoading { get; set; }
+
+    private string _loaderName = "child-component-loader";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Start the long-running task when the component initializes
+        await RunLongRunningTaskInChild();
+    }
+
+    private async Task RunLongRunningTaskInChild()
+    {
+        string message = "Child component processing...";
+
+        // Notify the parent that the child is starting a long-running task
+        await OnChildLoading.InvokeAsync(true);
+
+        // Use the LoadingGif service to display a loading message
+        await LGSS.RunTaskAsync(_loaderName, message, async () =>
+        {
+            // Simulate a long-running task (e.g., data processing)
+            await Task.Delay(3000); // Example: 3 seconds delay
+        });
+
+        // Notify the parent that the task is done
+        await OnChildLoading.InvokeAsync(false);
+    }
+}
+

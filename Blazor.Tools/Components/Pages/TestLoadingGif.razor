@@ -1,47 +1,66 @@
-﻿@page "/test-loading-gif"
+﻿@* 
+    TestLoadingGif.razor
+*@
+
+@page "/test-loading-gif"
 @using Blazor.Tools.BlazorBundler.Components.LoadingGif
 @inject LoadingGifStateService LGSS
 
-<h3>Loading Example</h3>
+<h3>Parent Component - Loading Example</h3>
 
-<button @onclick="ToggleLoading">Toggle Loading</button>
+<button @onclick="ToggleLoading">Toggle Parent Loading</button>
 
+<!-- Parent's Loading Gif -->
 <LoadingGif Message="@LGSS.LoadingMessage" />
+
+@if (_isInitialized)
+{
+    <p>Parent Initialized. Now showing child component...</p>
+    <!-- Child Component -->
+    <LoadingGifChild OnChildLoading="@HandleChildLoadingState" />
+}
+
+@if (_isChildLoading)
+{
+    <p>The child component is running a long process...</p>
+}
 
 @code {
     private string _loaderName = "test-load-gif-razor";
+    private bool _isInitialized = false;
+    private bool _isChildLoading = false;
 
     protected override void OnInitialized()
     {
-        // Subscribe to changes in the loading state
+        _isInitialized = true;
         LGSS.Subscribe(OnLoadingStateChanged);
     }
 
-    // Implement IDisposable to clean up subscriptions
     public void Dispose()
     {
-        // Unsubscribe to avoid memory leaks
         LGSS.Unsubscribe(OnLoadingStateChanged);
     }
 
     private void OnLoadingStateChanged()
     {
-        // Handle loading state changes, if necessary
-        StateHasChanged(); // Trigger a re-render if needed
+        // Ensure that the component re-renders after loading state changes
+        InvokeAsync(StateHasChanged);
     }
 
     private async Task ToggleLoading()
     {
-        string message = "Processing...";
-        await LGSS.RunTask(_loaderName, message, LongRunningTaskAsync);
-
+        string message = "Parent is processing...";
+        await LGSS.RunTaskAsync(_loaderName, message, LongRunningTaskAsync);
     }
 
     private async Task LongRunningTaskAsync()
     {
+        await Task.Delay(3000); // Simulate a long-running task
+    }
 
-        // Simulate a data fetch operation
-        await Task.Delay(5000);
-
+    private void HandleChildLoadingState(bool isLoading)
+    {
+        _isChildLoading = isLoading;
+        InvokeAsync(StateHasChanged); // Ensure UI updates when child loading state changes
     }
 }

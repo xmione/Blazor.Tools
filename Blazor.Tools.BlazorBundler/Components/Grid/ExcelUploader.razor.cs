@@ -18,7 +18,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string ViewModelsAssemblyName { get; set; } = default!;
         [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!;
         [Inject] private IConfiguration Configuration { get; set; } = default!;
-        [Inject] private LoadingGifStateService LSS { get; set; } = default!;
+        [Inject] private LoadingGifStateService LGSS { get; set; } = default!;
 
         private bool _isLoading = true;
         private bool _isUploaded = false;
@@ -26,28 +26,46 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         private bool _isRetrieved = false;
         private string? _connectionString;
         private SessionManager _sessionManager = SessionManager.Instance;
-
         private Dictionary<string, SessionItem>? _sessionItems;
+        
+        protected override void OnInitialized()
+        {
+            // Subscribe to changes in the loading state
+            LGSS.Subscribe(OnLoadingStateChanged);
+        }
+
+        // Implement IDisposable to clean up subscriptions
+        public void Dispose()
+        {
+            // Unsubscribe to avoid memory leaks
+            LGSS.Unsubscribe(OnLoadingStateChanged);
+        }
+
+        private void OnLoadingStateChanged()
+        {
+            // Handle loading state changes, if necessary
+            StateHasChanged(); // Trigger a re-render if needed
+        }
 
         protected override async Task OnParametersSetAsync()
         {
             try
             {
-                LSS.StartLoading("excel-uploader", "Initializing the Excel Uploader, please wait...");
-
-                await base.OnParametersSetAsync();
-                await InitializeVariables();
-                await RetrieveDataFromSessionTableAsync();
+                await LGSS.RunTaskAsync("excel-uploader", "Initializing the Excel Uploader, please wait...", InitializeAsync);
+                
             }
             catch (Exception ex)
             {
                 AppLogger.HandleError(ex);
             }
-            finally
-            {
-                // Mark the component as no longer loading
-                LSS.EndLoading("excel-uploader");
-            }
+
+        }
+
+        private async Task InitializeAsync()
+        {
+            await InitializeVariables();
+            await RetrieveDataFromSessionTableAsync();
+            await Task.Delay(5000);
         }
 
         private async Task InitializeVariables()
@@ -87,6 +105,19 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         }
 
         private async Task HandleFileUpload(IBrowserFile file)
+        {
+            try
+            {
+                await LGSS.RunTaskAsync("excel-uploader", "Initializing the Excel Uploader, please wait...", FileUploadAsync, file);
+
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
+        }
+
+        private async Task FileUploadAsync(IBrowserFile file)
         {
             if (file != null)
             {
@@ -128,51 +159,66 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             }
         }
 
-        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        protected override async void BuildRenderTree(RenderTreeBuilder builder)
         {
-            int sequence = 0;
-
-            // Outer div with class "col-md-12"
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "col-md-12");
-
-            // Inner div with class "card-header"
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "card-header");
-
-            // Header with Title
-            builder.OpenElement(sequence++, "h3");
-            builder.AddContent(sequence++, Title);
-            builder.CloseElement();
-
-            // ExcelUploaderHeader component
-            builder.OpenComponent<ExcelUploaderHeader>(sequence++);
-            builder.AddAttribute(sequence++, "OnFileUpload", EventCallback.Factory.Create<IBrowserFile>(this, HandleFileUpload));
-            builder.CloseComponent();
-
-            builder.CloseElement(); // Close "card-header" div
-
-            // Inner div with class "card-body"
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "card-body");
-
-            // Conditional rendering of ExcelUploaderDetail component
-            if (_isUploaded)
+            try
             {
-                builder.OpenComponent<ExcelUploaderDetail>(sequence++);
-                builder.AddAttribute(sequence++, "ExcelDataSet", (DataSet)_sessionItems!["_excelDataSet"]!);
-                builder.AddAttribute(sequence++, "ExcelProcessor", _excelProcessor);
-                builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
-                builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
-                builder.AddAttribute(sequence++, "HostAssemblies", HostAssemblies);
-                builder.CloseComponent();
+                //await LGSS.RunTaskAsync("excel-uploader-build-render-tree", "Rendering Excel Uploader, please wait...", RenderMainContentAsync, builder);
             }
-
-            builder.CloseElement(); // Close "card-body" div
-
-            builder.CloseElement(); // Close "col-md-12" div
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
         }
-         
+
+        private async Task RenderMainContentAsync(RenderTreeBuilder builder)
+        {
+            await Task.Run(() => 
+            {
+                int sequence = 0;
+
+                // Outer div with class "col-md-12"
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "col-md-12");
+
+                // Inner div with class "card-header"
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "card-header");
+
+                // Header with Title
+                builder.OpenElement(sequence++, "h3");
+                builder.AddContent(sequence++, Title);
+                builder.CloseElement();
+
+                // ExcelUploaderHeader component
+                builder.OpenComponent<ExcelUploaderHeader>(sequence++);
+                builder.AddAttribute(sequence++, "OnFileUpload", EventCallback.Factory.Create<IBrowserFile>(this, HandleFileUpload));
+                builder.CloseComponent();
+
+                builder.CloseElement(); // Close "card-header" div
+
+                // Inner div with class "card-body"
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "card-body");
+
+                // Conditional rendering of ExcelUploaderDetail component
+                if (_isUploaded)
+                {
+                    builder.OpenComponent<ExcelUploaderDetail>(sequence++);
+                    builder.AddAttribute(sequence++, "ExcelDataSet", (DataSet)_sessionItems!["_excelDataSet"]!);
+                    builder.AddAttribute(sequence++, "ExcelProcessor", _excelProcessor);
+                    builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
+                    builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
+                    builder.AddAttribute(sequence++, "HostAssemblies", HostAssemblies);
+                    builder.CloseComponent();
+                }
+
+                builder.CloseElement(); // Close "card-body" div
+
+                builder.CloseElement(); // Close "col-md-12" div
+            });
+            
+        }
     }
 }
 

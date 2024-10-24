@@ -31,8 +31,7 @@
     {
         try
         {
-            LSS.StartLoading("test-excel-uploader", "Initializing the uploader, please wait...");
-
+            
             var apiDLLPath = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll";
 
             // Using specific settings: This is hard coded only because it is a test component.
@@ -53,12 +52,7 @@
             AppLogger.HandleError(ex);
 
         }
-        finally 
-        {
-            // Mark the component as no longer loading
-            LSS.EndLoading("test-excel-uploader");
-        }
-
+        
         await Task.CompletedTask;
     }
       

@@ -19,33 +19,49 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string ModelsAssemblyName { get; set; } = default!; 
         [Parameter] public string ViewModelsAssemblyName { get; set; } = default!; 
         [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!;
-        [Inject] private LoadingGifStateService LSS { get; set; } = default!;
+        [Inject] private LoadingGifStateService LGSS { get; set; } = default!;
 
         private List<AssemblyTable>? _tableList = null;
         private SessionManager _sessionManager = SessionManager.Instance;
         private bool _isRetrieved = false;
         private Dictionary<string, SessionItem>? _sessionItems;
 
+        protected override void OnInitialized()
+        {
+            // Subscribe to changes in the loading state
+            LGSS.Subscribe(OnLoadingStateChanged);
+        }
+
+        // Implement IDisposable to clean up subscriptions
+        public void Dispose()
+        {
+            // Unsubscribe to avoid memory leaks
+            LGSS.Unsubscribe(OnLoadingStateChanged);
+        }
+
+        private void OnLoadingStateChanged()
+        {
+            // Handle loading state changes, if necessary
+            StateHasChanged(); // Trigger a re-render if needed
+        }
+
         protected override async Task OnParametersSetAsync()
         {
             try
             {
-                LSS.StartLoading("excel-uploader-detail", "Initializing the Excel Uploader Detail, please wait...");
-
-                await base.OnParametersSetAsync();
-                await InitializeVariables();
-                await RetrieveDataFromSessionTableAsync();
+                await LGSS.RunTaskAsync("excel-uploader-detail", "Initializing the Excel Uploader Detail, please wait...", InitializeAsync);
             }
             catch (Exception ex)
             {
                 AppLogger.HandleError(ex);
             }
-            finally
-            {
-                // Mark the component as no longer loading
-                LSS.EndLoading("excel-uploader-detail");
-            }
 
+        }
+
+        private async Task InitializeAsync()
+        {
+            await InitializeVariables();
+            await RetrieveDataFromSessionTableAsync();
         }
 
         private async Task InitializeVariables()
@@ -199,6 +215,23 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
+            try
+            {
+                Task.Run(async () =>
+                {
+                    await LGSS.RunTaskAsync("excel-uploader-detail-build-render-tree", "Rendering Excel Uploader Detail, please wait...", RenderMainContentAsync, builder);
+                });
+
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
+        }
+
+
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
+        {
             int sequence = 0;
 
             // Check if ExcelDataSet is not null and has tables
@@ -294,6 +327,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.AddContent(sequence++, "No data available.");
                 builder.CloseElement();
             }
+
+            await Task.CompletedTask;
         }
          
 

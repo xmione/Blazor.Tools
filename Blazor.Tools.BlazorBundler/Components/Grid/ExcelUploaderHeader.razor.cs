@@ -11,33 +11,49 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     public partial class ExcelUploaderHeader : ComponentBase
     {
         [Parameter] public EventCallback<IBrowserFile> OnFileUpload { get; set; }
-        [Inject] private LoadingGifStateService LSS { get; set; } = default!;
+        [Inject] private LoadingGifStateService LGSS { get; set; } = default!;
 
         private SessionManager _sessionManager = SessionManager.Instance;
         private Dictionary<string, SessionItem>? _sessionItems;
         private bool _isRetrieved;
 
+        protected override void OnInitialized()
+        {
+            // Subscribe to changes in the loading state
+            LGSS.Subscribe(OnLoadingStateChanged);
+        }
+
+        // Implement IDisposable to clean up subscriptions
+        public void Dispose()
+        {
+            // Unsubscribe to avoid memory leaks
+            LGSS.Unsubscribe(OnLoadingStateChanged);
+        }
+
+        private void OnLoadingStateChanged()
+        {
+            // Handle loading state changes, if necessary
+            StateHasChanged(); // Trigger a re-render if needed
+        }
+
         protected override async Task OnParametersSetAsync()
         {
-            try 
+            try
             {
-                LSS.StartLoading("excel-uploader-header", "Initializing the Excel Uploader Header, please wait...");
+                await LGSS.RunTaskAsync("excel-uploader-header", "Initializing the Excel Uploader Header, please wait...", InitializeAsync);
 
-                await base.OnParametersSetAsync();
-                await InitializeVariables();
-                await RetrieveDataFromSessionTableAsync();
-                
-            } 
-            catch (Exception ex) 
+            }
+            catch (Exception ex)
             {
                 AppLogger.HandleError(ex);
             }
-            finally
-            {
-                // Mark the component as no longer loading
-                LSS.EndLoading("excel-uploader-header");
-            }
 
+        }
+
+        private async Task InitializeAsync()
+        {
+            await InitializeVariables();
+            await RetrieveDataFromSessionTableAsync();
         }
 
         private async Task InitializeVariables()
@@ -74,7 +90,20 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             await Task.CompletedTask;
         }
 
-        private async Task HandleFileUpload(InputFileChangeEventArgs e)
+        private async Task HandleFileUploadAsync(InputFileChangeEventArgs e)
+        {
+            try
+            {
+                await LGSS.RunTaskAsync("excel-uploader-header-handle-file-upload-async", "Running HandleFileUploadAsync, please wait...", FileUploadAsync, e);
+
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
+        }
+        
+        private async Task FileUploadAsync(InputFileChangeEventArgs e)
         {
             try
             {
@@ -102,6 +131,22 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
+            try
+            {
+                Task.Run(async () =>
+                {
+                    await LGSS.RunTaskAsync("excel-uploader-header-build-render-tree", "Rendering Excel Uploader Header, please wait...", RenderMainContentAsync, builder);
+                });
+
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
+        }
+         
+        public async Task RenderMainContentAsync(RenderTreeBuilder builder)
+        {
             int seq = 0;
 
             // InputFile element
@@ -109,8 +154,10 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(seq++, "type", "file");
             builder.AddAttribute(seq++, "id", "fileInput");
             builder.AddAttribute(seq++, "accept", ".xlsx");
-            builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<InputFileChangeEventArgs>(this, HandleFileUpload));
+            builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<InputFileChangeEventArgs>(this, HandleFileUploadAsync));
             builder.CloseComponent();
+
+            await Task.CompletedTask;
         }
          
     }
