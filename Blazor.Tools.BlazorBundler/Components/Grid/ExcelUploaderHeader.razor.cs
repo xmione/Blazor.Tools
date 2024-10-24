@@ -1,4 +1,5 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
+﻿using Blazor.Tools.BlazorBundler.Components.LoadingGif;
+using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using Microsoft.AspNetCore.Components;
@@ -10,6 +11,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
     public partial class ExcelUploaderHeader : ComponentBase
     {
         [Parameter] public EventCallback<IBrowserFile> OnFileUpload { get; set; }
+        [Inject] private LoadingGifStateService LSS { get; set; } = default!;
 
         private SessionManager _sessionManager = SessionManager.Instance;
         private Dictionary<string, SessionItem>? _sessionItems;
@@ -17,9 +19,25 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override async Task OnParametersSetAsync()
         {
-            await InitializeVariables();
-            await RetrieveDataFromSessionTableAsync();
-            await base.OnParametersSetAsync();
+            try 
+            {
+                LSS.StartLoading("excel-uploader-header", "Initializing the Excel Uploader Header, please wait...");
+
+                await base.OnParametersSetAsync();
+                await InitializeVariables();
+                await RetrieveDataFromSessionTableAsync();
+                
+            } 
+            catch (Exception ex) 
+            {
+                AppLogger.HandleError(ex);
+            }
+            finally
+            {
+                // Mark the component as no longer loading
+                LSS.EndLoading("excel-uploader-header");
+            }
+
         }
 
         private async Task InitializeVariables()
@@ -94,5 +112,6 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<InputFileChangeEventArgs>(this, HandleFileUpload));
             builder.CloseComponent();
         }
+         
     }
 }

@@ -1,25 +1,47 @@
 ﻿@page "/test-loading-gif"
 @using Blazor.Tools.BlazorBundler.Components.LoadingGif
-@inject LoadingService LS
+@inject LoadingGifStateService LGSS
 
 <h3>Loading Example</h3>
 
 <button @onclick="ToggleLoading">Toggle Loading</button>
 
-<LoadingGif IsLoading="@isLoading" Message="Fetching data, please wait..." />
+<LoadingGif Message="@LGSS.LoadingMessage" />
 
 @code {
-    private bool isLoading = false;
+    private string _loaderName = "test-load-gif-razor";
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to changes in the loading state
+        LGSS.Subscribe(OnLoadingStateChanged);
+    }
+
+    // Implement IDisposable to clean up subscriptions
+    public void Dispose()
+    {
+        // Unsubscribe to avoid memory leaks
+        LGSS.Unsubscribe(OnLoadingStateChanged);
+    }
+
+    private void OnLoadingStateChanged()
+    {
+        // Handle loading state changes, if necessary
+        StateHasChanged(); // Trigger a re-render if needed
+    }
 
     private async Task ToggleLoading()
     {
-        isLoading = !isLoading;
+        string message = "Processing...";
+        await LGSS.RunTask(_loaderName, message, LongRunningTaskAsync);
 
-        if (isLoading)
-        {
-            await Task.Delay(3000); // Simulate a data fetch operation
-        }
+    }
 
-        isLoading = false;
+    private async Task LongRunningTaskAsync()
+    {
+
+        // Simulate a data fetch operation
+        await Task.Delay(5000);
+
     }
 }

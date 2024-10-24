@@ -1,4 +1,5 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
+﻿using Blazor.Tools.BlazorBundler.Components.LoadingGif;
+using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.Extensions;
 using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Assemblies;
@@ -17,9 +18,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public ExcelProcessor ExcelProcessor { get; set; } = default!;
         [Parameter] public string ModelsAssemblyName { get; set; } = default!; 
         [Parameter] public string ViewModelsAssemblyName { get; set; } = default!; 
-        [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!; 
+        [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!;
+        [Inject] private LoadingGifStateService LSS { get; set; } = default!;
 
-        //private bool _isReceived = false;
         private List<AssemblyTable>? _tableList = null;
         private SessionManager _sessionManager = SessionManager.Instance;
         private bool _isRetrieved = false;
@@ -29,6 +30,8 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         {
             try
             {
+                LSS.StartLoading("excel-uploader-detail", "Initializing the Excel Uploader Detail, please wait...");
+
                 await base.OnParametersSetAsync();
                 await InitializeVariables();
                 await RetrieveDataFromSessionTableAsync();
@@ -36,6 +39,11 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             catch (Exception ex)
             {
                 AppLogger.HandleError(ex);
+            }
+            finally
+            {
+                // Mark the component as no longer loading
+                LSS.EndLoading("excel-uploader-detail");
             }
 
         }
@@ -194,81 +202,91 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
             int sequence = 0;
 
             // Check if ExcelDataSet is not null and has tables
-            if (_sessionItems != null && _sessionItems["_excelDataSet"] != null && ((DataSet)_sessionItems["_excelDataSet"]!).Tables.Count > 0)
+            if (_sessionItems != null && _sessionItems["_excelDataSet"] != null )
             {
-                DataTable selectedTable = _sessionItems["_selectedTable"]!;
-                // Outer div
-                builder.OpenElement(sequence++, "div");
-
-                // Nav tabs
-                builder.OpenElement(sequence++, "ul");
-                builder.AddAttribute(sequence++, "class", "nav nav-tabs");
-
-                foreach (var table in ((DataSet)_sessionItems["_excelDataSet"]!).Tables.Cast<DataTable>())
+                var dataSet = ((DataSet)_sessionItems["_excelDataSet"]!);
+                if (dataSet != null)
                 {
-                    builder.OpenElement(sequence++, "li");
-                    builder.AddAttribute(sequence++, "class", "nav-item");
+                    var tables = dataSet.Tables;
+                    var tableCount = tables.Count;
+                    if (tableCount > 0)
+                    {
+                        DataTable selectedTable = _sessionItems["_selectedTable"]!;
+                        // Outer div
+                        builder.OpenElement(sequence++, "div");
 
-                    builder.OpenElement(sequence++, "a");
-                    builder.AddAttribute(sequence++, "class", $"cursor-pointer nav-link {(table == selectedTable ? "active" : "")}");
-                    builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SelectTableAsync(table)));
-                    builder.AddContent(sequence++, table.TableName);
-                    builder.CloseElement();
+                        // Nav tabs
+                        builder.OpenElement(sequence++, "ul");
+                        builder.AddAttribute(sequence++, "class", "nav nav-tabs");
 
-                    builder.CloseElement();
+                        foreach (DataTable table in tables)
+                        {
+                            builder.OpenElement(sequence++, "li");
+                            builder.AddAttribute(sequence++, "class", "nav-item");
+
+                            builder.OpenElement(sequence++, "a");
+                            builder.AddAttribute(sequence++, "class", $"cursor-pointer nav-link {(table == selectedTable ? "active" : "")}");
+                            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SelectTableAsync(table)));
+                            builder.AddContent(sequence++, table.TableName);
+                            builder.CloseElement();
+
+                            builder.CloseElement();
+                        }
+
+                        builder.CloseElement(); // Close "nav-tabs" ul
+
+                        // Tab content
+                        builder.OpenElement(sequence++, "div");
+                        builder.AddAttribute(sequence++, "class", "tab-content");
+
+                        if (selectedTable != null)
+                        {
+                            builder.OpenElement(sequence++, "div");
+                            builder.AddAttribute(sequence++, "class", "tab-pane fade show active");
+
+                            builder.OpenElement(sequence++, "h4");
+                            builder.AddContent(sequence++, selectedTable.TableName);
+                            builder.CloseElement();
+
+                            // DataTableGrid component
+                            builder.OpenComponent<DataTableGrid>(sequence++);
+                            builder.AddAttribute(sequence++, "Title", ""); // Too many Titles already so you need to blank this.
+                                                                           //builder.AddAttribute(sequence++, "Title", _selectedTableName);
+                            builder.AddAttribute(sequence++, "SelectedTable", selectedTable);
+                            builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
+                            builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
+                            builder.AddAttribute(sequence++, "AllowCellRangeSelection", true);
+                            builder.AddAttribute(sequence++, "TableList", _tableList);
+                            builder.CloseComponent();
+
+                            builder.CloseElement(); // Close "tab-pane" div
+                        }
+                        else
+                        {
+                            builder.OpenElement(sequence++, "p");
+                            builder.AddContent(sequence++, "Select a table to view its data.");
+                            builder.CloseElement();
+                        }
+
+                        builder.CloseElement(); // Close "tab-content" div
+
+                        // Icon button
+                        builder.OpenElement(sequence++, "div");
+                        builder.AddAttribute(sequence++, "class", "mt-3");
+
+                        builder.OpenComponent<Icon>(sequence++);
+                        builder.AddAttribute(sequence++, "ColumnName", IconName.Upload);
+                        builder.AddAttribute(sequence++, "Class", "cursor-pointer");
+                        builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, UploadData));
+                        builder.AddAttribute(sequence++, "title", "Upload to new tables");
+                        builder.CloseComponent();
+
+                        builder.CloseElement(); // Close icon button div
+
+                        builder.CloseElement(); // Close outer div
+                    }
                 }
-
-                builder.CloseElement(); // Close "nav-tabs" ul
-
-                // Tab content
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "tab-content");
-
-                if (selectedTable != null)
-                {
-                    builder.OpenElement(sequence++, "div");
-                    builder.AddAttribute(sequence++, "class", "tab-pane fade show active");
-
-                    builder.OpenElement(sequence++, "h4");
-                    builder.AddContent(sequence++, selectedTable.TableName);
-                    builder.CloseElement();
-
-                    // DataTableGrid component
-                    builder.OpenComponent<DataTableGrid>(sequence++);
-                    builder.AddAttribute(sequence++, "Title", ""); // Too many Titles already so you need to blank this.
-                    //builder.AddAttribute(sequence++, "Title", _selectedTableName);
-                    builder.AddAttribute(sequence++, "SelectedTable", selectedTable);
-                    builder.AddAttribute(sequence++, "ModelsAssemblyName", ModelsAssemblyName);
-                    builder.AddAttribute(sequence++, "ViewModelsAssemblyName", ViewModelsAssemblyName);
-                    builder.AddAttribute(sequence++, "AllowCellRangeSelection", true);
-                    builder.AddAttribute(sequence++, "TableList", _tableList);
-                    builder.CloseComponent();
-
-                    builder.CloseElement(); // Close "tab-pane" div
-                }
-                else
-                {
-                    builder.OpenElement(sequence++, "p");
-                    builder.AddContent(sequence++, "Select a table to view its data.");
-                    builder.CloseElement();
-                }
-
-                builder.CloseElement(); // Close "tab-content" div
-
-                // Icon button
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "mt-3");
-
-                builder.OpenComponent<Icon>(sequence++);
-                builder.AddAttribute(sequence++, "ColumnName", IconName.Upload);
-                builder.AddAttribute(sequence++, "Class", "cursor-pointer");
-                builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, UploadData));
-                builder.AddAttribute(sequence++, "title", "Upload to new tables");
-                builder.CloseComponent();
-
-                builder.CloseElement(); // Close icon button div
-
-                builder.CloseElement(); // Close outer div
+                
             }
             else
             {
@@ -277,6 +295,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
                 builder.CloseElement();
             }
         }
+         
 
     }
 }

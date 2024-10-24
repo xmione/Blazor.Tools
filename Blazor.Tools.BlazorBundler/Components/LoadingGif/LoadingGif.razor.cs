@@ -1,4 +1,9 @@
-﻿using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
+﻿/*====================================================================================================
+    Class Name  : LoadingGif.razor.cs
+    Created By  : Solomio S. Sisante
+    Created On  : October 15, 2024
+    Purpose     : To provide a ComponentBase class for loading gif.
+  ====================================================================================================*/
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
@@ -7,41 +12,17 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
     public class LoadingGif : ComponentBase
     {
         [Inject]
-        private LoadingService LS { get; set; } = default!;
+        private LoadingGifService LS { get; set; } = default!;
 
-        [Parameter]
-        public bool IsLoading { get; set; } = default!;
+        [Inject]
+        private LoadingGifStateService LSS { get; set; } = default!;
 
         [Parameter]
         public string Message { get; set; } = "Loading... Please wait...";
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            AppLogger.WriteInfo($"<OnAfterRenderAsync()> IsLoading: {IsLoading}, Message: {Message}");
-
-            if (firstRender)
-            {
-                if (firstRender)
-                {
-                    if (IsLoading && LS != null)
-                    {
-                        await LS.ShowLoading(Message);
-                    }
-                    else if (LS != null)
-                    {
-                        await LS.HideLoading();
-                    }
-                    else
-                    {
-                        AppLogger.WriteInfo("Warning: LoadingService is not registered.");
-                    }
-                }
-            }
-        }
-
         protected override async Task OnParametersSetAsync()
         {
-            if (IsLoading)
+            if (LSS.IsLoading)
             {
                 await LS.ShowLoading(Message);
             }

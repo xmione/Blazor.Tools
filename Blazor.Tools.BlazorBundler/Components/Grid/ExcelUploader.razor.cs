@@ -1,4 +1,5 @@
-﻿using Blazor.Tools.BlazorBundler.Entities;
+﻿using Blazor.Tools.BlazorBundler.Components.LoadingGif;
+using Blazor.Tools.BlazorBundler.Entities;
 using Blazor.Tools.BlazorBundler.SessionManagement;
 using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
 using Microsoft.AspNetCore.Components;
@@ -17,7 +18,9 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
         [Parameter] public string ViewModelsAssemblyName { get; set; } = default!;
         [Parameter] public HostAssemblies HostAssemblies { get; set; } = default!;
         [Inject] private IConfiguration Configuration { get; set; } = default!;
+        [Inject] private LoadingGifStateService LSS { get; set; } = default!;
 
+        private bool _isLoading = true;
         private bool _isUploaded = false;
         private ExcelProcessor? _excelProcessor;
         private bool _isRetrieved = false;
@@ -28,9 +31,23 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
         protected override async Task OnParametersSetAsync()
         {
-            await InitializeVariables();
-            await RetrieveDataFromSessionTableAsync();
-            await base.OnParametersSetAsync();
+            try
+            {
+                LSS.StartLoading("excel-uploader", "Initializing the Excel Uploader, please wait...");
+
+                await base.OnParametersSetAsync();
+                await InitializeVariables();
+                await RetrieveDataFromSessionTableAsync();
+            }
+            catch (Exception ex)
+            {
+                AppLogger.HandleError(ex);
+            }
+            finally
+            {
+                // Mark the component as no longer loading
+                LSS.EndLoading("excel-uploader");
+            }
         }
 
         private async Task InitializeVariables()
@@ -155,7 +172,7 @@ namespace Blazor.Tools.BlazorBundler.Components.Grid
 
             builder.CloseElement(); // Close "col-md-12" div
         }
-
+         
     }
 }
 

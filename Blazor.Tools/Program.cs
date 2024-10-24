@@ -51,7 +51,9 @@ public class Program
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
         builder.Services.AddScoped<SessionTable>();
-        builder.Services.AddScoped<LoadingService>();
+        builder.Services.AddScoped<LoadingGifService>();
+        builder.Services.AddSingleton<LoadingGifStateService>();
+
 
         builder.Services.AddAuthentication(options =>
             {

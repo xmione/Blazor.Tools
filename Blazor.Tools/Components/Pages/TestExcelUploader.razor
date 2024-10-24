@@ -1,49 +1,65 @@
 ﻿@page "/test-excel-uploader"
 @rendermode InteractiveServer
+@using Blazor.Tools.BlazorBundler.Components.LoadingGif
 @using Blazor.Tools.BlazorBundler.Entities
 @using Blazor.Tools.BlazorBundler.Entities.SampleObjects.Data
 @using Blazor.Tools.BlazorBundler.Interfaces
 @using Blazor.Tools.BlazorBundler.Components.Grid
 @using Blazor.Tools.BlazorBundler.SessionManagement
 @using Blazor.Tools.BlazorBundler.SessionManagement.Interfaces
+@using Blazor.Tools.BlazorBundler.Utilities.Exceptions
 
 @inherits SampleData
+@inject LoadingGifStateService LSS
 
-@if (!_isInitialized)
-{ 
-    <h1>Loading...</h1>
-
-}
-else
+<LoadingGif Message="@LSS.LoadingMessage" />
+@if (_isInitialized)
 {
     <ExcelUploader Title="Upload Excel Files"
-                   ModelsAssemblyName="@ModelsAssemblyName"
-                   ViewModelsAssemblyName="@ViewModelsAssemblyName"
-                   HostAssemblies="@HostAssemblies" />
+    ModelsAssemblyName="@ModelsAssemblyName"
+    ViewModelsAssemblyName="@ViewModelsAssemblyName"
+    HostAssemblies="@HostAssemblies" 
+    />
 }
 
 @code {
-
     [Inject] public ISessionTableService _sessionTableService { get; set; } = default!;
 
     private bool _isInitialized = false;
+
     protected override async Task OnInitializedAsync()
     {
-        _isInitialized = true;
-        var apiDLLPath = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll";
+        try
+        {
+            LSS.StartLoading("test-excel-uploader", "Initializing the uploader, please wait...");
 
-        // Using specific settings:
-        var aspNetCoreEnvironment = "Development";
-        var aspNetCoreURLs = "https://localhost:7040/";
+            var apiDLLPath = @"C:\Hermie\AccSol\AccSol.API\bin\Debug\net8.0\AccSol.API.dll";
 
-        // Using the current Environment variables:
-        // var aspNetCoreEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        // var aspNetCoreURLs = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+            // Using specific settings: This is hard coded only because it is a test component.
+            var aspNetCoreEnvironment = "Development";
+            var aspNetCoreURLs = "https://localhost:7040/";
 
-        var sessionManager = SessionManager.GetInstance(_sessionTableService, apiDLLPath, aspNetCoreEnvironment, aspNetCoreURLs);
+            // Using the current Environment variables:
+            // var aspNetCoreEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            // var aspNetCoreURLs = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
 
-        await base.OnInitializedAsync();
+            var sessionManager = SessionManager.GetInstance(_sessionTableService, apiDLLPath, aspNetCoreEnvironment, aspNetCoreURLs);
 
+            // Set the initialization flag after the loading process
+            _isInitialized = true;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.HandleError(ex);
 
+        }
+        finally 
+        {
+            // Mark the component as no longer loading
+            LSS.EndLoading("test-excel-uploader");
+        }
+
+        await Task.CompletedTask;
     }
+      
 }

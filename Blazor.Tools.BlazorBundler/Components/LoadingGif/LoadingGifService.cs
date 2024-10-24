@@ -1,15 +1,16 @@
-﻿using Microsoft.JSInterop;
+﻿using Blazor.Tools.BlazorBundler.Utilities.Exceptions;
+using Microsoft.JSInterop;
 
 namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
 {
     // The LoadingService class for JS interop to show/hide the loading overlay
-    public class LoadingService
+    public class LoadingGifService
     {
         private readonly IJSRuntime _jsRuntime;
         private const string LoadingOverlayId = "loading-overlay";
         private const string LoadingMessageId = "loading-overlay-message";
 
-        public LoadingService(IJSRuntime jsRuntime)
+        public LoadingGifService(IJSRuntime jsRuntime)
         {
             _jsRuntime = jsRuntime;
         }
@@ -24,7 +25,7 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ShowLoading error: {ex.Message}\n{ex.StackTrace}");
+                AppLogger.HandleError(ex);
             }
         }
 
@@ -37,8 +38,9 @@ namespace Blazor.Tools.BlazorBundler.Components.LoadingGif
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"HideLoading error: {ex.Message}\n{ex.StackTrace}");
+                AppLogger.HandleError(ex);
             }
         }
     }
 }
+
